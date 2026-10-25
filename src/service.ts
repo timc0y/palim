@@ -332,7 +332,7 @@ export class Palim {
     invariant(
       url.protocol === 'https:' && !url.username && !url.password && origins.includes(url.origin),
       'FILE_HOST_UNSUPPORTED',
-      'This host is not configured for secure file transfer. Upload the file in the Palim workspace instead.',
+      `Secure file transfer is not configured for origin ${url.origin}. No file was fetched or sent.`,
     );
     await this.store.user(owner);
     await this.store.admit(owner, 'upload');

@@ -54,6 +54,8 @@ Wrangler also supports an additive `deploy --secrets-file` containing both secre
 
 ## Initialise and deploy
 
+An authenticated host-file rejection identifies only the URL origin, never its credentials, path, signed query, fragment or file identifier. Rejection happens before fetching, upload admission or mail. Use that origin to investigate the actual client's download host; it is diagnostic evidence, not automatic permission to trust or allowlist it.
+
 ```sh
 npx wrangler d1 migrations apply palim --remote
 npm run deploy

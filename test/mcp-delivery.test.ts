@@ -109,6 +109,39 @@ test('MCP accepts a real host-file shape and forwards the fetched bytes unchange
   }
 });
 
+test('blocked host-file diagnostics expose only the origin without network or side effects', async (t) => {
+  const f = await fixture();
+  f.env.FILE_ORIGINS = '';
+  t.mock.method(globalThis, 'fetch', async () => {
+    assert.fail('A denied origin must never be fetched');
+  });
+  const c = await connect(f);
+  try {
+    const result = await c.client.callTool({
+      name: 'send_document',
+      arguments: {
+        file: {
+          download_url:
+            'https://private-user:private-password@untrusted.example/private-book.epub?signature=private-token#private-fragment',
+          file_id: 'private-file-identifier',
+        },
+      },
+    });
+    assert.equal(result.isError, true);
+    const error = output(result);
+    assert.equal(error.code, 'FILE_HOST_UNSUPPORTED');
+    assert.equal(
+      error.message,
+      'Secure file transfer is not configured for origin https://untrusted.example. No file was fetched or sent.',
+    );
+    assert.equal(f.sent.length, 0);
+    for (const table of ['artifacts', 'deliveries', 'operations', 'mail_attempts'])
+      assert.equal(f.sql.prepare(`SELECT count(*) AS n FROM ${table}`).get()!.n, 0);
+  } finally {
+    await c.close();
+  }
+});
+
 test('MCP delivery ownership and scope failures occur before email submission', async () => {
   const f = await fixture(),
     artifact = await f.palim.upload('alice', pdf(), 'original.pdf');
