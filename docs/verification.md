@@ -1,5 +1,11 @@
 # Verification record
 
+## Full local OAuth regression — 25 October 2026
+
+The owner explicitly approved disposable local OAuth test accounts/grants and matching CI, resolving the earlier test-grant restriction. Full direct-Worker and Pages/browser runs now pass: real Better Auth with captured local mail, client registration, owner-bound consent, PKCE/token exchange, MCP tools/guide, EPUB creation, signed download integrity, unchanged original uploads, binary captured-attachment equality, private-preview CSP, account/destination isolation and session revocation. No production identity/grant or real email was created by these tests.
+
+The newly enabled full path exposed stale test expectations for guide capitalisation, user-facing guide wording and the removed duplicate HTML cover. Assertions now reflect the current contract; tool discovery and canonical guide equality remain checked, archive inspection explicitly requires PNG cover/no SVG/reflowable metadata, and the unpack directory is cleared before inspection to prevent stale-file evidence. Captured attachment bytes are compared directly with the original sample. The standalone native network runner uses the platform-selected workerd executable. These are test-runner changes; deployed application source remains `dff50ff7e03068db7181e0f14d716afa87003e7c` with the cleanup versions below, so no redeployment is required.
+
 ## Owner-reported acceptance and cleanup — 25 October 2026
 
 Cleanup deployed source: `dff50ff7e03068db7181e0f14d716afa87003e7c`; Worker `1812298e-fab0-4a33-a1c8-d13dcd38117b`; Pages `43b7ca44-e4ea-4f33-8ec1-e5565422e723`. Provider metadata, live app/style/privacy/plugin asset bytes and the authenticated `get_guide` response match that source. Live checks retain unauthenticated/invalid-token refusal, wrong-origin refusal, canonical OAuth issuer, alternate-host refusal, strictly-public routing, private R2 and disabled Worker preview URLs. Sender verification remains enabled and stored mail previews remain disabled. Local evidence is in `artifacts/production-cleanup.json` and `artifacts/cleanup-*` captures. No cleanup mail was sent.

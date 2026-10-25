@@ -389,7 +389,7 @@ try:
     auth = {'Authorization': 'Bearer ' + bearer, 'Accept': 'application/json, text/event-stream'}
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {'protocolVersion': '2025-06-18', 'capabilities': {}, 'clientInfo': {'name': 'native-proof', 'version': '1'}}}, auth)
     assert status == 200 and json.loads(payload)['result']['serverInfo']['name'] == 'palim'
-    assert 'no skill installation' in json.loads(payload)['result']['instructions']
+    assert 'no skill installation' in json.loads(payload)['result']['instructions'].lower()
     assert ORIGIN + '/app' in json.loads(payload)['result']['instructions']
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}, auth)
     tools = json.loads(payload)['result']['tools']
@@ -472,12 +472,19 @@ try:
             # Inspect the actual packaged EPUB, rather than assuming its browser preview is identical.
             import zipfile
             epub_dir = ARTIFACTS / 'sample-epub-unpacked'
+            import shutil
+            if epub_dir.exists():
+                shutil.rmtree(epub_dir)
             with zipfile.ZipFile(ROOT / 'public/sample.epub') as publication:
+                assert 'EPUB/cover.xhtml' not in publication.namelist()
+                assert not any(name.endswith('.svg') for name in publication.namelist())
+                assert publication.read('EPUB/cover.png').startswith(b'\x89PNG\r\n\x1a\n')
+                assert 'rendition:layout">reflowable' in publication.read('EPUB/package.opf').decode()
                 publication.extractall(epub_dir)
             epub_page = context.new_page()
             for width, height, label in [(390, 844, 'mobile'), (1440, 1000, 'desktop')]:
                 epub_page.set_viewport_size({'width': width, 'height': height})
-                for chapter in ['cover', 'chapter-1', 'chapter-2']:
+                for chapter in ['title', 'chapter-1', 'chapter-2']:
                     epub_page.goto((epub_dir / 'EPUB' / f'{chapter}.xhtml').as_uri())
                     assert not epub_page.evaluate('document.documentElement.scrollWidth > innerWidth')
                     epub_page.screenshot(path=str(ARTIFACTS / f'epub-{chapter}-{label}.png'), full_page=True)
@@ -503,7 +510,7 @@ try:
             browser_page.locator('#login-code').fill(browser_code)
             browser_page.locator('#login-code-form button[type=submit]').click()
             browser_page.locator('#desk').wait_for(state='visible')
-            expect(browser_page.locator('.connect-panel')).to_contain_text('get_guide')
+            expect(browser_page.locator('.connect-panel')).to_contain_text('guide')
             expect(browser_page.locator('.connect-panel a[href="/palim-plugin.zip"]')).to_have_count(1)
             expect(browser_page.locator('#reader-choice')).to_be_hidden()
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-empty-mobile.png'), full_page=True)
@@ -512,7 +519,7 @@ try:
             context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#desk').wait_for(state='visible')
-            expect(browser_page.locator('.connect-panel')).to_contain_text('get_guide')
+            expect(browser_page.locator('.connect-panel')).to_contain_text('guide')
             expect(browser_page.locator('.connect-panel a[href="/palim-plugin.zip"]')).to_have_count(1)
             browser_page.keyboard.press('Tab')
             browser_page.locator('.workspace-page > .nav .wordmark').focus()
@@ -597,7 +604,9 @@ try:
             browser_page.locator('#receipt-panel').wait_for(state='visible')
             expect(browser_page.locator('#receipt')).to_contain_text('bedside@kindle.com')
             expect(browser_page.locator('#receipt')).to_contain_text('not confirmed')
-            assert json.loads(database.execute('SELECT payload FROM proof_mail ORDER BY rowid DESC LIMIT 1').fetchone()[0])['to'] == 'bedside@kindle.com'
+            captured = json.loads(database.execute('SELECT payload FROM proof_mail ORDER BY rowid DESC LIMIT 1').fetchone()[0])
+            assert captured['to'] == 'bedside@kindle.com'
+            assert bytes(captured['attachments'][0]['content']) == (ROOT / 'public/sample.epub').read_bytes()
             browser_page.screenshot(path=str(ARTIFACTS / 'send-receipt-mobile.png'), full_page=True)
             browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
             browser_page.locator('#reader-label').fill('New Kindle')

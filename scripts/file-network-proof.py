@@ -44,7 +44,7 @@ const config :Workerd.Config = (
  sockets=[(name="http",address="127.0.0.1:{port}",http=(),service="main")]
 );''')
 log = (WORK / 'runtime.log').open('w')
-process = subprocess.Popen([str(ROOT / 'node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd'),
+process = subprocess.Popen([str(ROOT / 'node_modules/.bin/workerd'),
                            'serve', str(WORK / 'config.capnp')], stdout=log, stderr=log)
 base = f'http://127.0.0.1:{port}/'
 try:
