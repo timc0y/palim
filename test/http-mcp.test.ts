@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { makeMcp, mcpFetch } from '../src/mcp.js';
 import { appFetch } from '../src/routes.js';
@@ -14,6 +15,9 @@ test('official MCP client lists exactly the three promised tools and creates a d
   await server.connect(a);
   await client.connect(b);
   try {
+    assert.match(client.getInstructions() ?? '', /no separate skill installation/i);
+    assert.match(client.getInstructions() ?? '', /24 hours.*15 minutes/);
+    assert.match(client.getInstructions() ?? '', /workspace|\/app/);
     const tools = await client.listTools();
     assert.deepEqual(tools.tools.map((t) => t.name).sort(), [
       'create_book',
@@ -22,6 +26,17 @@ test('official MCP client lists exactly the three promised tools and creates a d
     ]);
     const result = await client.callTool({ name: 'create_book', arguments: simpleBook });
     assert.notEqual(result.isError, true);
+    assert.equal(f.sent.length, 0);
+    const content = CallToolResultSchema.parse(result).content.find((item) => item.type === 'text');
+    assert.ok(content && content.type === 'text');
+    const artifact = JSON.parse(content.text);
+    f.sql.prepare('DELETE FROM reader_destinations WHERE owner=?').run('alice');
+    const blocked = await client.callTool({
+      name: 'send_document',
+      arguments: { artifactId: artifact.artifactId },
+    });
+    assert.equal(blocked.isError, true);
+    assert.match(JSON.stringify(blocked), /DESTINATION_REQUIRED/);
     assert.equal(f.sent.length, 0);
   } finally {
     await client.close();

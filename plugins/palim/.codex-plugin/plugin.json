@@ -1,0 +1,36 @@
+{
+  "name": "palim",
+  "version": "0.2.0",
+  "description": "Create illustrated reading editions or send existing EPUB/PDF files unchanged. One connection and sign-in.",
+  "author": {
+    "name": "Tim Coy",
+    "url": "https://timcoy.uk"
+  },
+  "homepage": "https://github.com/timc0y/palim",
+  "repository": "https://github.com/timc0y/palim",
+  "license": "MIT",
+  "keywords": ["epub", "reading", "publishing", "mcp", "kindle"],
+  "interface": {
+    "displayName": "Palim",
+    "shortDescription": "Make room for reading.",
+    "longDescription": "Turn explanations into illustrated reading editions, or send an existing EPUB/PDF without changing its bytes.",
+    "developerName": "Tim Coy",
+    "category": "Productivity",
+    "brandColor": "#11151B",
+    "defaultPrompt": [
+      "Make an illustrated guide to this concept.",
+      "Send this EPUB to my reader unchanged."
+    ],
+    "composerIcon": "./assets/mark.svg",
+    "logo": "./assets/mark.svg",
+    "websiteURL": "https://palim-timc0y.pages.dev",
+    "privacyPolicyURL": "https://palim-timc0y.pages.dev/privacy"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md"
+    }
+  }
+}

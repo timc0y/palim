@@ -112,6 +112,19 @@ try:
             database = candidate
             break
         candidate.close()
+    import io, zipfile
+    status, bundle_headers, bundle = request('/palim-plugin.zip')
+    assert status == 200
+    assert 'zip' in bundle_headers.get('Content-Type', '')
+    assert hashlib.sha256(bundle).hexdigest() in request('/palim-plugin.sha256')[2].decode()
+    with zipfile.ZipFile(io.BytesIO(bundle)) as plugin:
+        manifest = json.loads(plugin.read('.codex-plugin/plugin.json'))
+        connection = json.loads(plugin.read('.mcp.json'))
+        assert manifest['mcpServers'] == './.mcp.json'
+        assert manifest['skills'] == './skills/'
+        assert connection['mcpServers']['palim']['url'] == json.loads((ROOT / 'wrangler.jsonc').read_text())['vars']['ORIGIN'] + '/mcp'
+        assert 'skills/palim/SKILL.md' in plugin.namelist() and 'skills/setup/SKILL.md' in plugin.namelist()
+    print('Complete single-install plugin ZIP and checksum served through real response headers.')
     assert database is not None, 'Local D1 schema missing'
     now = int(time.time())
     database.execute('CREATE TABLE proof_mail(payload TEXT NOT NULL)')
@@ -168,6 +181,8 @@ try:
     auth = {'Authorization': 'Bearer ' + bearer, 'Accept': 'application/json, text/event-stream'}
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {'protocolVersion': '2025-06-18', 'capabilities': {}, 'clientInfo': {'name': 'native-proof', 'version': '1'}}}, auth)
     assert status == 200 and json.loads(payload)['result']['serverInfo']['name'] == 'palim'
+    assert 'no separate skill installation' in json.loads(payload)['result']['instructions']
+    assert ORIGIN + '/app' in json.loads(payload)['result']['instructions']
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}, auth)
     tools = json.loads(payload)['result']['tools']
     assert sorted(t['name'] for t in tools) == ['create_book', 'get_delivery', 'send_document']
@@ -276,6 +291,8 @@ try:
             browser_page.locator('#login-code').fill(browser_code)
             browser_page.locator('#login-code-form button[type=submit]').click()
             browser_page.locator('#desk').wait_for(state='visible')
+            expect(browser_page.locator('.connect-panel')).to_contain_text('No separate skill installation')
+            expect(browser_page.locator('.connect-panel a[href="/palim-plugin.zip"]')).to_have_count(1)
             expect(browser_page.locator('#reader-choice')).to_be_hidden()
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-empty-mobile.png'), full_page=True)
             assert browser_page.locator('.job-choices').bounding_box()['y'] < 600
@@ -283,6 +300,8 @@ try:
             context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#desk').wait_for(state='visible')
+            expect(browser_page.locator('.connect-panel')).to_contain_text('No separate skill installation')
+            expect(browser_page.locator('.connect-panel a[href="/palim-plugin.zip"]')).to_have_count(1)
             browser_page.keyboard.press('Tab')
             browser_page.locator('.workspace-page > .nav .wordmark').focus()
             assert browser_page.locator('.workspace-page > .nav .wordmark').evaluate('(e)=>e.matches(":focus-visible")')

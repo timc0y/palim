@@ -1,9 +1,9 @@
 # palim
 
-**Ideas, in another light.**
+**Make room for reading.**
 
 [![Checks](https://github.com/timc0y/palim/actions/workflows/checks.yml/badge.svg)](https://github.com/timc0y/palim/actions/workflows/checks.yml)
-[Open Palim](https://palim-timc0y.pages.dev) · [MIT](LICENSE) · [Deploy your own](docs/deployment.md) · [Verification](docs/verification.md) · [Agent skill](skills/palim/SKILL.md)
+[Open Palim](https://palim-timc0y.pages.dev) · [MIT](LICENSE) · [Deploy your own](docs/deployment.md) · [Verification](docs/verification.md) · [Connect Palim](#connect-palim)
 
 Turn conversations, code and complex ideas into illustrated EPUBs. Or send an existing EPUB/PDF to your reader **without changing its bytes**.
 
@@ -29,7 +29,7 @@ npm run check
 npm run example
 ```
 
-The example produces `artifacts/palim-sample.epub`, a browser preview and an editable JSON manuscript. It requires no AI key, provider account or email sending. The sample chart is explicitly hypothetical.
+The example produces `artifacts/palim-sample.epub`, a browser preview and an editable JSON manuscript. It requires no AI key, provider account or email sending. The sample chart shows calculated exposure ratios, not measured camera data.
 
 ```sh
 npm run build    # generate public example files and bundle Worker without deployment
@@ -38,15 +38,38 @@ npm run dev      # local Worker and website; sign-in needs dedicated secrets and
 
 The local website is at `http://localhost:8787`. A usable authenticated hosted instance requires the [deployment setup](docs/deployment.md). There is no hidden test login in product code.
 
-## Connect your agent
+## Connect Palim
 
-Deploy one instance, then connect its canonical `/mcp` address using OAuth. Install the canonical `skills/palim` instructions in a host that supports Agent Skills. The repository includes a portable Agent Plugins manifest, not a published marketplace listing.
+Connect once, sign in and use Palim. No separate skill installation is required. Creating and downloading a reading edition needs no Kindle setup; sending is a separate requested action.
+
+### ChatGPT
+
+1. Open [ChatGPT Plugins](https://chatgpt.com/plugins), select **+ → Add custom MCP server** and name it Palim.
+2. Enter `https://palim-timc0y.pages.dev/mcp`, choose OAuth, review the connection warning and select **Create as a plugin**.
+3. Complete Palim sign-in in the browser and approve consent. Start a new conversation with Palim enabled.
+
+Availability and workspace policies depend on your account. This is a custom connection, not a public-directory listing. The server carries essential guidance and schemas, so this path does not require an additional skill. Do not paste inbox codes or tokens into chat.
+
+### Codex
+
+Install **one complete plugin**, which includes the connection, editorial workflow and setup guidance automatically. With a current Codex client:
+
+```sh
+codex plugin marketplace add timc0y/palim --ref main
+codex plugin add palim@palim
+```
+
+The first command registers this repository's catalog; the second installs the single plugin. Complete the client's OAuth connection/sign-in when requested. Do not also add a separate Palim MCP or skill. In supported desktop clients, open this repository's marketplace in the plugin browser and install Palim once. Client discovery and actual authenticated use are separate checks; see [verification](docs/verification.md).
+
+[Download the complete plugin ZIP](https://palim-timc0y.pages.dev/palim-plugin.zip) · [SHA-256](https://palim-timc0y.pages.dev/palim-plugin.sha256)
+
+The archive is an inspectable Codex compatibility package, not an invented one-click installer or a public-directory listing. Use a client that supports its package format. It contains no credentials. For a self-hosted deployment, generate the same bundle with your actual origin:
 
 ```sh
 npm run plugin -- https://your-real-palim-host
 ```
 
-This packages the skill with your endpoint in `.local/plugin`. It does not deploy, register or publish the plugin. Client support must be tested through that client's actual connection flow; an official SDK protocol test is not proof of every host.
+The source is `plugins/palim/`; `.agents/plugins/marketplace.json` exposes it as one repository plugin. The command writes the complete ZIP and checksum to `public/` and `artifacts/`, without installing, authorizing or publishing anything. [Official packaging](https://developers.openai.com/plugins/build/plugins/) and [connection/testing guidance](https://developers.openai.com/plugins/deploy/connect-chatgpt/) describe the supported flows. Other clients need their own compatibility verification.
 
 | Tool            | Responsibility                                                      |
 | --------------- | ------------------------------------------------------------------- |

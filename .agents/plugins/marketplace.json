@@ -1,0 +1,20 @@
+{
+  "name": "palim",
+  "interface": {
+    "displayName": "Palim"
+  },
+  "plugins": [
+    {
+      "name": "palim",
+      "source": {
+        "source": "local",
+        "path": "./plugins/palim"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

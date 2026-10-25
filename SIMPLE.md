@@ -28,7 +28,7 @@
 - `src/service.ts` owns artifact/delivery operations; `src/store.ts` owns atomic D1 admission and recovery, including the shared mail ledger across login, Kindle confirmation and documents. `src/mail.ts` owns the provider payload and integrity/size boundary.
 - `src/login.ts` configures Better Auth on native D1; `src/auth.ts` exposes only sign-in code request/redemption and logout. `src/index.ts` and the maintained Cloudflare OAuth package own downstream MCP authorization. `src/mcp.ts` and `src/routes.ts` expose the same service rather than reimplement policy.
 - `pages/public/_worker.js` passes public requests unchanged to the Worker. `pages/wrangler.jsonc` owns that service binding; the Worker configuration owns the canonical Pages origin and all data, email, rate limiting and cleanup. The front door introduces no separate identity or browser API origin.
-- `skills/palim/SKILL.md` owns editorial workflow. `plugin.json` identifies the portable package; the packaging script supplies an operator-selected actual endpoint.
+- `src/mcp.ts` supplies essential standalone connection guidance. `plugins/palim/` owns the single installable package, including workflow/setup skills and OAuth connection; `.agents/plugins/marketplace.json` exposes that one package. The packaging script produces its credential-free downloadable ZIP and can select a self-hosted endpoint. No separate skill install is required.
 - `docs/deployment.md` owns provider setup and acceptance. `docs/verification.md` owns proof. Change those owners instead of creating parallel status pages.
 
 ## Proof

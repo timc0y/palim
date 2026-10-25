@@ -1,6 +1,6 @@
 ---
 name: palim
-description: Create an illustrated EPUB from a conversation, concept, repository, research or technical decision; or forward a user-supplied EPUB/PDF unchanged to their confirmed reader. Use when the user asks to make a reading guide, publish an ebook, send reading to Kindle, or forward an existing book. Requires a connected Palim MCP for rendering and delivery.
+description: Create an illustrated EPUB from a conversation, concept, repository, research or technical decision; or forward a user-supplied EPUB/PDF unchanged to their confirmed reader. Use when the user asks to make a reading guide, publish an ebook, send reading to Kindle, or forward an existing book. Included automatically with the Palim plugin. The same operations also work through a direct Palim connection without installing this skill.
 ---
 
 # Palim

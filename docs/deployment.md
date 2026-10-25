@@ -86,3 +86,11 @@ Disable an abusive or compromised account by setting its `users.disabled` field;
 To remove an account, first list and remove its owned private objects, revoke its grants, then delete its Better Auth `auth_users` row and the matching application `users` row so sessions, private saved destinations and account records cascade. Deleting only the application row does not delete the identity. Keep required provider audit information under the provider's policy; deleting local records cannot recall email or erase an Amazon library copy.
 
 Review the scheduled cleanup and bucket lifecycle. Backups and provider-side retention are separate from the application's expiry. Never claim total deletion from all processors merely because an R2 object was removed.
+
+## One connection and one package
+
+MCP initialization and tool schemas carry required authoring/setup/safety guidance; a separate skill is not required. ChatGPT users connect the deployed /mcp endpoint through the client's custom-plugin flow and sign in. Supported Codex users install one package containing its connection and both workflow/setup skills. See the README's client-specific steps.
+
+The canonical package lives in plugins/palim, exposed by the repository catalog. The documented Codex compatibility layout is used because this Mac's native 0.164.0 loader recognized the portable manifest's skills but omitted its MCP server. Its read-only plugin/list and plugin/read APIs recognized both bundled skills and the palim MCP server after the compatibility correction. Automatic onboarding was not reported by that client; bundled setup guidance remains available without being a prerequisite for MCP use. Actual installation and OAuth consent are separate gates.
+
+The Worker build/deploy generates public/palim-plugin.zip and its SHA-256 from an allowlisted, credential-free package directory. The ZIP and checksum are also CI artifacts. npm run plugin can select a self-hosted HTTPS origin; deploy the matching bundle to that origin. The builder never installs, registers a server, configures credentials or submits a public listing. No lifecycle hooks or executable install scripts are bundled. Never package the whole development checkout or its ignored files.
