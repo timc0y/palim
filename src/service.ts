@@ -7,7 +7,7 @@ import { equalToken, hmac, readBytes } from './http.js';
 import { sha256 } from './xml.js';
 import { Store } from './store.js';
 import type { Asset } from './figures.js';
-import type { Artifact, Delivery, Env } from './types.js';
+import type { Artifact, Delivery, Env, User } from './types.js';
 
 const REJECTED = new Set([
   'E_VALIDATION_ERROR',
@@ -49,6 +49,7 @@ export function publicReceipt(row: Delivery) {
     attachmentSha256: row.sha256,
     destination: row.destination_mask,
     destinationId: row.destination_id ?? null,
+    sender: row.sender ?? null,
     artifactId: row.artifact_id,
     createdAt: new Date(row.created_at * 1000).toISOString(),
     errorCode: row.error_code,
@@ -104,9 +105,18 @@ export class Palim {
   ) {
     this.store = new Store(env.DB, clock);
   }
+  private documentSender(user: User): string {
+    const domain = /^[^\s@]+@([a-z0-9]+(?:[.-][a-z0-9]+)*\.[a-z]{2,})$/.exec(this.env.SENDER)?.[1];
+    invariant(
+      domain && /^[a-f0-9]{32}$/.test(user.sender_alias),
+      'SENDER_UNAVAILABLE',
+      'Your personal sender is unavailable. Nothing was sent.',
+    );
+    // Account-bound identity, never supplied by a browser or MCP caller; no shared fallback.
+    return `p-${user.sender_alias}@${domain}`;
+  }
   async account(owner: string) {
     const user = await this.store.user(owner);
-    const challenge = await this.store.challenge(owner);
     return {
       name: user.name,
       destination: user.destination ? maskAddress(user.destination) : null,
@@ -115,12 +125,9 @@ export class Palim {
         id: d.id,
         label: d.label,
         email: d.email,
-        confirmed: d.confirmed_at !== null,
         isDefault: d.id === user.default_destination_id,
       })),
-      pendingDestination:
-        challenge && challenge.expires_at > this.clock() ? challenge.destination : null,
-      sender: this.env.SENDER,
+      sender: this.documentSender(user),
       limits: {
         renders: LIMITS.renders,
         sends: LIMITS.sends,
@@ -368,14 +375,9 @@ export class Palim {
     invariant(
       selectedId,
       'DESTINATION_REQUIRED',
-      'Open the Palim workspace and confirm your Kindle address first.',
+      'Open the Palim workspace and save a Kindle address first.',
     );
     const selected = await this.store.reader(owner, selectedId);
-    invariant(
-      selected.confirmed_at !== null,
-      'READER_UNCONFIRMED',
-      'This Kindle address is saved. Open the Palim workspace and verify it once before sending. Nothing was sent.',
-    );
     const key = await sha256(`${owner}\n${a.sha256}\n${selected.id}\n${resendOf ?? 'original'}`);
     const previous = await this.store.deliveryByKey(owner, key);
     if (previous) {
@@ -387,27 +389,20 @@ export class Palim {
     const object = await this.env.BOOKS.get(a.object_key);
     invariant(object, 'ARTIFACT_NOT_FOUND', 'This document has expired.');
     const bytes = new Uint8Array(await object.arrayBuffer());
-    const r = await this.newReceipt(
-      owner,
-      key,
-      'document',
-      a.sha256,
-      selected.email,
-      a.id,
-      resendOf,
-    );
+    const r = await this.newReceipt(owner, key, a.sha256, selected.email, a.id, resendOf);
     const payload = await prepareEmail({
       bytes,
       expectedHash: a.sha256,
       type: a.type,
       filename: a.filename,
-      from: this.env.SENDER,
+      from: this.documentSender(user),
       to: selected.email,
       receiptId: r.id,
     });
+    r.sender = this.documentSender(user);
     r.destination_id = selected.id;
     r.default_intent_key = defaultKey;
-    if (!(await this.store.reserveDelivery(r, selected.id))) {
+    if (!(await this.store.reserveDelivery(r, selected.id, user.sender_alias))) {
       const existing =
         (defaultKey && (await this.store.defaultIntent(owner, defaultKey))) ||
         (await this.store.deliveryByKey(owner, key));
@@ -429,7 +424,6 @@ export class Palim {
   private async newReceipt(
     owner: string,
     key: string,
-    purpose: Delivery['purpose'],
     hash: string,
     to: string,
     artifact: string | null,
@@ -439,7 +433,7 @@ export class Palim {
       id: crypto.randomUUID(),
       owner,
       send_key: key,
-      purpose,
+      purpose: 'document',
       artifact_id: artifact,
       sha256: hash,
       destination_hash: await hmac(this.env.SIGNING_SECRET, to),
@@ -484,109 +478,7 @@ export class Palim {
       id: saved.id,
       label: saved.label,
       email: saved.email,
-      confirmed: saved.confirmed_at !== null,
     };
-  }
-  async challenge(owner: string, email: unknown, label = 'My reader') {
-    const user = await this.store.user(owner);
-    const value = this.readerInput(email, label);
-    const readers = await this.store.readers(owner);
-    invariant(
-      readers.length < 5 || readers.some((d) => d.email === value.email),
-      'READER_LIMIT',
-      'You can save up to five Kindle addresses. Remove one before adding another.',
-    );
-    const destination = value.email,
-      existing = await this.store.challenge(owner);
-    if (existing && existing.expires_at > this.clock())
-      throw new PalimError(
-        'CHALLENGE_ACTIVE',
-        'A verification book is already active. Use its code, or wait for it to expire.',
-      );
-    const generation = crypto.randomUUID();
-    const raw = crypto.getRandomValues(new Uint8Array(5));
-    const code = Array.from(raw, (n) => n.toString(16).padStart(2, '0'))
-      .join('')
-      .toUpperCase();
-    const codeHash = await hmac(this.env.SIGNING_SECRET, `${owner}\n${generation}\n${code}`);
-    const built = await buildBook(
-      {
-        title: 'Confirm your Palim reader',
-        chapters: [
-          {
-            title: 'Your private confirmation code',
-            markdown: `Enter **${code}** in the Palim workspace within one hour.\n\nIf you did not request this test book, ignore it. This does not grant anybody access to your Amazon account.`,
-          },
-        ],
-      },
-      new Map(),
-      new Date(this.clock() * 1000),
-    );
-    const r = await this.newReceipt(
-      owner,
-      `challenge:${generation}`,
-      'challenge',
-      built.hash,
-      destination,
-      null,
-    );
-    const payload = await prepareEmail({
-      bytes: built.bytes,
-      expectedHash: built.hash,
-      type: 'application/epub+zip',
-      filename: 'Confirm-Palim.epub',
-      from: this.env.SENDER,
-      to: destination,
-      receiptId: r.id,
-    });
-    await this.store.setChallenge({
-      owner,
-      destination,
-      label: label.trim(),
-      generation,
-      code_hash: codeHash,
-      attempts: 0,
-      expires_at: this.clock() + 3600,
-    });
-    if (!(await this.store.reserveDelivery(r, user.destination_version))) {
-      await this.env.DB.prepare('DELETE FROM challenges WHERE owner=? AND generation=?')
-        .bind(owner, generation)
-        .run();
-      throw new PalimError(
-        'SEND_LIMIT',
-        'The verification sending allowance is full. No new code was sent.',
-        429,
-      );
-    }
-    // The challenge is never persisted as a downloadable artifact or returned to the caller.
-    await this.submit(r.id, payload);
-    const receipt = await this.store.delivery(owner, r.id);
-    if (receipt.state === 'rejected')
-      await this.env.DB.prepare('DELETE FROM challenges WHERE owner=? AND generation=?')
-        .bind(owner, generation)
-        .run();
-    return publicReceipt(receipt);
-  }
-  async confirm(owner: string, code: unknown) {
-    await this.store.user(owner);
-    invariant(
-      typeof code === 'string' && /^[A-Fa-f0-9]{10}$/.test(code.trim()),
-      'INVALID_CODE',
-      'Enter the ten-character code from your Kindle.',
-    );
-    const challenge = await this.store.challenge(owner);
-    if (!challenge)
-      throw new PalimError('INVALID_CODE', 'The code is invalid, expired or already used.');
-    const hash = await hmac(
-      this.env.SIGNING_SECRET,
-      `${owner}\n${challenge.generation}\n${code.trim().toUpperCase()}`,
-    );
-    invariant(
-      await this.store.confirm(owner, hash),
-      'INVALID_CODE',
-      'The code is invalid, expired or has no attempts remaining.',
-    );
-    return { confirmed: true, destination: maskAddress(challenge.destination) };
   }
   async remove(owner: string, id: string) {
     const a = await this.store.artifact(owner, id);
@@ -625,7 +517,6 @@ export class Palim {
       this.env.DB.prepare('DELETE FROM mail_attempts WHERE created_at<?').bind(
         this.clock() - LIMITS.receiptRetention,
       ),
-      this.env.DB.prepare('DELETE FROM challenges WHERE expires_at<=?').bind(this.clock()),
       this.env.DB.prepare('DELETE FROM operations WHERE created_at<?').bind(
         this.clock() - 2 * 86400,
       ),

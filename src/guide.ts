@@ -22,9 +22,11 @@ If host file transfer is unsupported, open ${origin}/app for authenticated uploa
 
 ## Send only when requested
 
-A clear delivery request is required. Saved destinations belong to the signed-in account; only confirmed ones can receive delivery; never supply an arbitrary recipient or guess destinationId. The workspace at ${origin}/app saves up to five labelled Kindle addresses immediately without email, with a default and explicit selection. Saving is not delivery approval: verify each address once before first delivery using its explicit Send verification book action. Creation/download works without destination setup.
+A clear delivery request for the document and selected recipient is required. Saved destinations belong to the signed-in account; never supply an arbitrary recipient or guess destinationId. The workspace at ${origin}/app saves up to five labelled Kindle addresses without email, with a default and explicit selection. Palim does not send verification books or ask for Kindle codes. Creation/download works without destination setup.
 
-Sign-in and consent happen in the client's browser OAuth flow. Never request inbox codes, tokens, cookies or Amazon passwords in chat. A verification book is real mail: establish recipient and purpose and obtain the user's delivery request. Its confirmation code must come from the destination, never logs or storage.
+Each account has its own stable personal Palim sender, shown only in its authenticated workspace. The user must add that exact address to Amazon's approved personal-document senders once, not approve the whole domain. Other accounts cannot use that sender. Saving a Kindle address is not proof of its ownership or Amazon acceptance. Existing users must replace the former shared sender in their Amazon settings; Amazon may apply its own checks.
+
+Sign-in and consent happen in the client's browser OAuth flow. Never request inbox codes, tokens, cookies or Amazon passwords in chat. Account sign-in still uses an inbox code; it is separate from Kindle delivery.
 
 For repeated ordinary intent, reuse the artifact and omit resendOf. Only an explicit additional-copy request permits resendOf. For uncertainty, use get_delivery instead of blindly resending. submitted means provider acceptance, not Amazon import, device receipt or reading; unknown remains uncertain. Preserve original attachment bytes and keep private links private.`;
 }

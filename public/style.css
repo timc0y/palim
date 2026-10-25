@@ -775,6 +775,10 @@ textarea {
   font-size: 1.125rem;
   margin-bottom: 0.75rem;
 }
+#sender-address {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
 .reader-panel > p {
   font-size: var(--text-meta);
 }

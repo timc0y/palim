@@ -100,7 +100,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     {
       title: 'Send a book unchanged',
       description:
-        'Read get_guide for the unchanged-original workflow. Send an owned EPUB/PDF artifact or supported host-provided file to your confirmed Kindle destination. Preserves the attachment bytes, title and cover; never edits or repacks. Only use when the user requests delivery. Repeats return the original receipt. resendOf is only for an explicitly requested new copy. If setup or host transfer is unavailable, open the Palim workspace; never request a separate skill install. Provider acceptance is not Kindle import.',
+        'Read get_guide for the unchanged-original workflow. Send an owned EPUB/PDF artifact or supported host-provided file to your selected saved Kindle destination. Preserves the attachment bytes, title and cover; never edits or repacks. Only use when the user requests delivery. Repeats return the original receipt. resendOf is only for an explicitly requested new copy. If setup or host transfer is unavailable, open the Palim workspace; never request a separate skill install. Provider acceptance is not Kindle import.',
       inputSchema: ToolSendSchema,
       _meta: {
         'openai/fileParams': ['file'],

@@ -165,10 +165,15 @@ try:
                 page.locator('#destination-form button').click()
                 expect(page.locator('#reader-list')).to_contain_text(label)
             expect(page.locator('#reader-list .reader-item')).to_have_count(2)
-            expect(page.locator('#destination-status')).to_contain_text('2 saved')
-            expect(page.locator('#confirm-form')).to_be_hidden()
+            expect(page.locator('#destination-status')).to_contain_text('2 of 5 addresses saved')
+            expect(page.locator('#confirm-form')).to_have_count(0)
+            expect(page.get_by_role('button',name='Send verification book')).to_have_count(0)
+            account = json.loads(request('/api/account')[2])
+            personal_sender = account['sender']
+            assert re.fullmatch(r'p-[0-9a-f]{32}@example.invalid', personal_sender)
+            expect(page.locator('#sender-address')).to_have_text(personal_sender)
             rows = json.loads(request('/api/account')[2])['destinations']
-            assert all(not row['confirmed'] for row in rows)
+            assert all('confirmed' not in row for row in rows)
             travel = next(row for row in rows if row['label'] == 'Travel')
             page.locator('#reader-list .reader-item').filter(has_text='Travel').get_by_role('button',name='Make default').click()
             expect(page.locator('#reader-list .reader-item').filter(has_text='Travel')).to_contain_text('Default')
@@ -183,23 +188,33 @@ try:
             page.locator('#created a.button').first.wait_for()
             page.locator('#created-reader').select_option(travel['id'])
             expect(page.locator('#created .send-target')).to_contain_text(travel['email'])
-            expect(page.locator('#created .send-action')).to_have_text('Verify before sending')
-            page.locator('#created .send-action').click()
-            assert page.locator('#verify-reader-' + travel['id']).evaluate('(e)=>e===document.activeElement')
-            artifact = json.loads(request('/api/account')[2])['artifacts'][0]
-            status,_,payload = post('/api/send', {'artifactId':artifact['artifactId'], 'destinationId':travel['id']})
-            assert status == 400 and json.loads(payload)['code'] == 'READER_UNCONFIRMED'
-            page.set_viewport_size({'width':390,'height':844})
-            page.locator('#created').screenshot(path=str(ARTIFACTS / 'saved-reader-send-mobile.png'))
+            expect(page.locator('#created .send-action')).to_have_text('Send to this Kindle')
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 0
             assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 0
+            page.locator('#created .send-action').click()
+            page.locator('#receipt-panel').wait_for(state='visible')
+            expect(page.locator('#receipt')).to_contain_text(travel['email'])
+            artifact = json.loads(request('/api/account')[2])['artifacts'][0]
+            # Repeating the same explicit intent returns the first captured-mail receipt.
+            status,_,payload = post('/api/send', {'artifactId':artifact['artifactId'], 'destinationId':travel['id']})
+            assert status == 200 and json.loads(payload)['sender'] == personal_sender
+            mail = json.loads(database.execute('SELECT payload FROM proof_mail').fetchone()[0])
+            assert mail['from']['email'] == personal_sender and mail['to'] == travel['email']
+            assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 1
+            assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 1
             assert database.execute('SELECT count(*) FROM challenges').fetchone()[0] == 0
+            page.set_viewport_size({'width':390,'height':844})
+            page.locator('#created').screenshot(path=str(ARTIFACTS / 'saved-reader-send-mobile.png'))
+            page.locator('#receipt-panel').screenshot(path=str(ARTIFACTS / 'personal-sender-receipt-mobile.png'))
+            assert post('/api/destination', {'email':travel['email']})[0] == 404
+            assert post('/api/confirm', {'code':'0000000000'})[0] == 404
             browser.close()
         cookies[:] = [foreign_cookie]
-        assert json.loads(request('/api/account')[2])['destinations'] == []
+        foreign_account=json.loads(request('/api/account')[2])
+        assert foreign_account['destinations'] == [] and foreign_account['sender'] != personal_sender
         assert post('/api/destinations/' + travel['id'] + '/default', {})[0] == 404
         assert request('/api/destinations/' + travel['id'], 'DELETE')[0] == 404
-        print('PASS: native Pages save/list/default/selection and pending-send refusal; seeded local browser sessions, zero email, no OAuth client registration or grants.')
+        print('PASS: native Pages save/list/default/selection and personal-sender delivery to captured mail, no Kindle code; isolated accounts, retired endpoints, no OAuth registration/grants or real email.')
         sys.exit(0)
     import io, zipfile
     status, bundle_headers, bundle = request('/palim-plugin.zip')
@@ -295,7 +310,7 @@ try:
     assert status == 200
     assert request(download.path + '?' + download.query)[0] == 404
     assert post('/mcp', {'jsonrpc': '2.0', 'id': 4, 'method': 'tools/list', 'params': {}}, {'Authorization': 'Bearer invalid', 'Accept': 'application/json'})[0] == 401
-    print('Native consent, PKCE, MCP create, download hash, unconfirmed-send refusal and deletion passed.')
+    print('Native consent, PKCE, MCP create, download hash, missing-destination refusal and deletion passed.')
 
     if '--browser' in sys.argv:
         from playwright.sync_api import sync_playwright, expect
@@ -449,7 +464,7 @@ try:
                 bounds = action.bounding_box()
                 assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Shelf touch target too small'
             browser_page.locator('#shelf').screenshot(path=str(ARTIFACTS / 'shelf-unconfigured-mobile.png'))
-            # Synthetic confirmed readers exercise layout and isolation, not Kindle acceptance.
+            # Synthetic saved readers exercise layout and isolation, not Kindle acceptance.
             reader_ids = [secrets.token_hex(16), secrets.token_hex(16)]
             import uuid
             reader_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
@@ -470,7 +485,7 @@ try:
             browser_page.locator('#uploaded').screenshot(path=str(ARTIFACTS / 'upload-result-confirmed-mobile.png'))
             for action in browser_page.locator('#shelf a, #shelf button').all():
                 bounds = action.bounding_box()
-                assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Confirmed shelf action too small'
+                assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Saved shelf action too small'
             browser_page.locator('#shelf').screenshot(path=str(ARTIFACTS / 'shelf-mobile.png'))
             browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
             browser_page.screenshot(path=str(ARTIFACTS / 'destinations-mobile.png'), full_page=True)
@@ -489,10 +504,8 @@ try:
             row = browser_page.locator('#reader-list .reader-item').filter(has_text='pending@kindle.com')
             row.wait_for()
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == before_save_mail
-            row.get_by_role('button', name='Send verification book').click()
-            browser_page.locator('#confirm-form').wait_for(state='visible')
-            expect(browser_page.locator('#confirm-form label')).to_contain_text('pending@kindle.com')
-            browser_page.screenshot(path=str(ARTIFACTS / 'destination-pending-mobile.png'), full_page=True)
+            expect(browser_page.locator('#confirm-form')).to_have_count(0)
+            browser_page.screenshot(path=str(ARTIFACTS / 'saved-address-added-mobile.png'), full_page=True)
             browser_page.locator('#setup-details').evaluate('(el) => el.open = false')
             browser_page.locator('h1').click()
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-mobile.png'), full_page=True)

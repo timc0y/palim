@@ -147,7 +147,7 @@
                 <option value="">Add a Kindle address to send</option>
               </select>
               <p class="field-help" id="reader-choice-help">
-                Create and download without connecting a Kindle. Each send goes to one confirmed
+                Create and download without connecting a Kindle. Each send goes to one selected
                 address.
               </p>
             </div>
@@ -158,15 +158,17 @@
           <section class="panel reader-panel">
             <h2>Kindle addresses</h2>
             <p id="destination-status">No saved Kindle addresses yet.</p>
+            <p class="field-help">
+              In Amazon, approve your personal sender once:<br />
+              <strong id="sender-address"></strong><br />
+              <button id="copy-sender" class="plain-button" type="button">Copy sender</button>
+              Use this exact address, not the whole domain. No Palim Kindle code is needed; Amazon
+              may apply its own checks.
+            </p>
             <div id="reader-list"></div>
             <details id="setup-details">
               <summary>Add a Kindle address</summary>
-              <p class="field-help">
-                Save up to five labelled addresses without sending email. Before first delivery, add
-                <strong id="sender-address"></strong> to Amazon’s approved personal-document
-                senders. Check that personal-document archiving is enabled to keep books in your
-                library.
-              </p>
+              <p class="field-help">Save up to five labelled addresses. Saving sends no email.</p>
               <form id="destination-form">
                 <label for="reader-label">Reader name</label
                 ><input id="reader-label" maxlength="40" required placeholder="My Kindle" />
@@ -179,25 +181,6 @@
                   placeholder="your-reader@kindle.com"
                 /><button type="submit" class="secondary">Save address</button>
               </form>
-              <form id="confirm-form" hidden>
-                <label for="verification-code">Code from your requested verification book</label
-                ><input
-                  id="verification-code"
-                  maxlength="10"
-                  minlength="10"
-                  required
-                  autocomplete="off"
-                  autocapitalize="characters"
-                  spellcheck="false"
-                  pattern="[A-Fa-f0-9]{10}"
-                  placeholder="10 characters"
-                /><button type="submit" class="secondary">Confirm reader</button>
-              </form>
-              <p class="field-help" id="verification-help" hidden>
-                This is for a verification book you requested earlier. Saving an address does not
-                request a book or send email. The code is inside that book and expires after one
-                hour.
-              </p>
             </details>
           </section>
           <section class="panel connect-panel">

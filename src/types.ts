@@ -18,7 +18,7 @@ export interface User {
   id: string;
   name: string;
   destination: string | null;
-  destination_version: string;
+  sender_alias: string;
   disabled: number;
   created_at: number;
   default_destination_id: string | null;
@@ -28,7 +28,6 @@ export interface ReaderDestination {
   owner: string;
   label: string;
   email: string;
-  confirmed_at: number | null;
 }
 export interface Artifact {
   id: string;
@@ -47,8 +46,10 @@ export interface Delivery {
   id: string;
   owner: string;
   send_key: string;
+  // Historical verification receipts remain readable; new sends are documents only.
   purpose: 'document' | 'challenge';
   artifact_id: string | null;
+  sender?: string | null;
   sha256: string;
   destination_hash: string;
   destination_mask: string;
@@ -60,13 +61,4 @@ export interface Delivery {
   resend_of: string | null;
   created_at: number;
   updated_at: number;
-}
-export interface Challenge {
-  owner: string;
-  destination: string;
-  generation: string;
-  code_hash: string;
-  attempts: number;
-  expires_at: number;
-  label: string;
 }

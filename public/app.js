@@ -75,7 +75,6 @@ async function busy(element, work) {
     'create-form': 'Creating…',
     'upload-form': 'Uploading…',
     'destination-form': 'Saving address…',
-    'confirm-form': 'Confirming…',
     'login-email-form': 'Requesting code…',
     'login-code-form': 'Signing in…',
   };
@@ -106,9 +105,7 @@ function chosenReader() {
 function sendActionText() {
   const reader = chosenReader();
   return reader
-    ? reader.confirmed
-      ? 'Send to this Kindle'
-      : 'Verify before sending'
+    ? 'Send to this Kindle'
     : currentAccount?.destinations.length
       ? 'Choose a Kindle address'
       : 'Add a Kindle address';
@@ -125,16 +122,6 @@ function sendButton(artifactId) {
       }
       return;
     }
-    const reader = chosenReader();
-    if (!reader.confirmed) {
-      const control = document.getElementById(`verify-reader-${reader.id}`);
-      control?.scrollIntoView({ block: 'center' });
-      control?.focus();
-      notice(
-        'This address is saved. Request one verification book before its first delivery. No document was sent.',
-      );
-      return;
-    }
     await send(artifactId);
   });
   b.classList.add('send-action');
@@ -145,12 +132,7 @@ function syncReaderChoices() {
   for (const select of document.querySelectorAll('select[data-reader-choice]')) {
     select.replaceChildren(new Option('Choose a saved Kindle address', ''));
     for (const d of destinations)
-      select.append(
-        new Option(
-          `${d.label} · ${d.email}${d.isDefault ? ' (default)' : ''}${d.confirmed ? '' : ' · verify before sending'}`,
-          d.id,
-        ),
-      );
+      select.append(new Option(`${d.label} · ${d.email}${d.isDefault ? ' (default)' : ''}`, d.id));
     select.value = selectedReaderId;
     const picker = select.closest('.reader-picker');
     if (picker)
@@ -165,8 +147,8 @@ function updateSendTargets() {
     target.textContent = d
       ? `${d.label} · ${d.email}`
       : currentAccount?.destinations.length
-        ? 'Choose one of your confirmed Kindle addresses to send a copy.'
-        : 'Add a confirmed Kindle address if you want to send a copy.';
+        ? 'Choose one of your saved Kindle addresses to send a copy.'
+        : 'Add a Kindle address if you want to send a copy.';
   for (const b of document.querySelectorAll('.send-action')) b.textContent = sendActionText();
 }
 function resultSendControls(target, artifactId) {
@@ -204,7 +186,7 @@ function showReceipt(receipt) {
   const recipient = document.createElement('p');
   const target = currentAccount?.destinations.find((d) => d.id === receipt.destinationId);
   const file = currentAccount?.artifacts.find((a) => a.artifactId === receipt.artifactId);
-  recipient.textContent = `${file?.filename || (receipt.artifactId ? 'Document' : 'Verification book')} · To: ${target?.email || receipt.destination || 'Your requested verification address'}`;
+  recipient.textContent = `${file?.filename || 'Document'} · To: ${target?.email || receipt.destination || 'Your selected Kindle address'}`;
   box.append(state, recipient, message, id);
   box.tabIndex = -1;
   box.focus();
@@ -212,7 +194,7 @@ function showReceipt(receipt) {
 }
 async function send(artifactId) {
   const destinationId = chosenReader()?.id;
-  if (!destinationId) throw new Error('Choose a confirmed Kindle address first.');
+  if (!destinationId) throw new Error('Choose a saved Kindle address first.');
   const receipt = await post('/api/send', { artifactId, destinationId });
   showReceipt(receipt);
   await refresh();
@@ -316,17 +298,10 @@ async function refresh() {
     $('sender-address').textContent = currentAccount.sender;
     if (!currentAccount.destinations.some((d) => d.id === selectedReaderId))
       selectedReaderId = currentAccount.defaultDestinationId || '';
-    const ready = currentAccount.destinations.filter((reader) => reader.confirmed).length;
     $('destination-status').textContent = currentAccount.destinations.length
-      ? `${currentAccount.destinations.length} saved · ${ready} ready to send`
+      ? `${currentAccount.destinations.length} of 5 addresses saved`
       : 'No saved Kindle addresses yet.';
-    $('setup-details').open =
-      !!currentAccount.pendingDestination || !currentAccount.destinations.length;
-    $('confirm-form').hidden = !currentAccount.pendingDestination;
-    $('verification-help').hidden = !currentAccount.pendingDestination;
-    $('confirm-form').querySelector('label').textContent = currentAccount.pendingDestination
-      ? `Code from the verification book you requested for ${currentAccount.pendingDestination}`
-      : 'Code from your requested verification book';
+    $('setup-details').open = !currentAccount.destinations.length;
     const list = $('reader-list');
     list.replaceChildren();
     for (const d of currentAccount.destinations) {
@@ -335,24 +310,8 @@ async function refresh() {
       const name = document.createElement('strong');
       name.textContent = d.label;
       const address = document.createElement('p');
-      address.textContent =
-        d.email +
-        (d.isDefault ? ' · Default' : '') +
-        (d.confirmed ? ' · Ready to send' : ' · Verify before first send');
+      address.textContent = d.email + (d.isDefault ? ' · Default' : '');
       row.append(name, address);
-      if (!d.confirmed) {
-        const verify = button(
-          'Send verification book',
-          async () => {
-            showReceipt(await post('/api/destination', { email: d.email, label: d.label }));
-            await refresh();
-            $('confirm-form').querySelector('input').focus();
-          },
-          'plain-button',
-        );
-        verify.id = `verify-reader-${d.id}`;
-        row.append(verify);
-      }
       if (!d.isDefault)
         row.append(
           button(
@@ -497,16 +456,7 @@ $('destination-form').addEventListener('submit', (event) => {
     $('reader-label').value = '';
     await refresh();
     $('setup-details').open = currentAccount.destinations.length < 5;
-    notice('Kindle address saved. No email was sent. Verify it once before its first delivery.');
-  });
-});
-$('confirm-form').addEventListener('submit', (event) => {
-  event.preventDefault();
-  busy(event.submitter, async () => {
-    const result = await post('/api/confirm', { code: $('verification-code').value.trim() });
-    $('verification-code').value = '';
-    notice(`Reader confirmed: ${result.destination}`);
-    await refresh();
+    notice('Kindle address saved. No email was sent.');
   });
 });
 $('refresh-receipt').addEventListener('click', (event) =>
@@ -515,6 +465,12 @@ $('refresh-receipt').addEventListener('click', (event) =>
   }),
 );
 $('mcp-url').textContent = `${location.origin}/mcp`;
+$('copy-sender').addEventListener('click', (event) =>
+  busy(event.currentTarget, async () => {
+    await navigator.clipboard.writeText(currentAccount.sender);
+    notice('Your personal sender copied. Add this exact address to Amazon’s approved senders.');
+  }),
+);
 $('copy-mcp').addEventListener('click', (event) =>
   busy(event.currentTarget, async () => {
     await navigator.clipboard.writeText(`${location.origin}/mcp`);

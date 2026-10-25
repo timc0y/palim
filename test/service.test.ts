@@ -80,7 +80,7 @@ test('no reader means no send', async () => {
   const f = await fixture();
   f.sql.prepare('UPDATE users SET default_destination_id=NULL WHERE id=?').run('alice');
   const a = await f.palim.upload('alice', pdf(), 'a.pdf');
-  await assert.rejects(f.palim.send('alice', a.artifactId), /confirm your Kindle/);
+  await assert.rejects(f.palim.send('alice', a.artifactId), /save a Kindle/);
   assert.equal(f.sent.length, 0);
 });
 test('tenant isolation covers sending, files and receipts', async () => {
@@ -148,33 +148,6 @@ test('send quota stops a fourth distinct send even in a race', async () => {
   assert.equal(outcomes.filter((r) => r.status === 'fulfilled').length, 3);
   assert.equal(f.sent.length, 3);
 });
-test('challenge code is only in the emailed book, confirmation is single use', async () => {
-  const f = await fixture();
-  const response = await f.palim.challenge('alice', 'new-reader@kindle.com');
-  const bytes = Buffer.from(f.sent[0]!.attachments[0]!.content, 'base64');
-  const zip = await JSZip.loadAsync(bytes);
-  const chapter = await zip.file('EPUB/chapter-1.xhtml')!.async('text');
-  const code = /<strong>([A-F0-9]{10})<\/strong>/.exec(chapter)![1]!;
-  assert.doesNotMatch(JSON.stringify(response), new RegExp(code));
-  assert.equal(f.objects.size, 0);
-  const row = f.sql.prepare('SELECT * FROM challenges').get()!;
-  assert.notEqual(row.code_hash, code);
-  const result = await f.palim.confirm('alice', code);
-  assert.equal(result.confirmed, true);
-  assert.equal(
-    (await f.palim.store.readers('alice')).some((d) => d.email === 'new-reader@kindle.com'),
-    true,
-  );
-  assert.equal((await f.palim.store.user('alice')).destination, 'alice@kindle.com');
-  await assert.rejects(f.palim.confirm('alice', code), /already used/);
-});
-test('wrong codes exhaust attempts without changing the reader', async () => {
-  const f = await fixture();
-  await f.palim.challenge('alice', 'new@kindle.com');
-  for (let i = 0; i < 7; i++) await assert.rejects(f.palim.confirm('alice', '0000000000'));
-  assert.equal((await f.palim.store.user('alice')).destination, 'alice@kindle.com');
-  assert.equal(f.sql.prepare('SELECT attempts FROM challenges').get()!.attempts, 5);
-});
 test('expired files are inaccessible before cleanup and removed by cleanup', async () => {
   const f = await fixture();
   const a = await f.palim.create('alice', simpleBook);
@@ -228,49 +201,6 @@ test('stale in-flight records are reported unknown, never assumed failed', async
   assert.equal((await f.palim.store.delivery('alice', r.deliveryId)).state, 'unknown');
   await f.palim.send('alice', a.artifactId);
   assert.equal(f.sent.length, 1);
-});
-test('concurrent destination challenges claim one code and send one verification book', async () => {
-  const f = await fixture();
-  const results = await Promise.allSettled([
-    f.palim.challenge('alice', 'first@kindle.com'),
-    f.palim.challenge('alice', 'second@kindle.com'),
-  ]);
-  assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
-  assert.equal(f.sent.length, 1);
-  assert.equal(f.sql.prepare('SELECT COUNT(*) AS n FROM deliveries').get()?.n, 1);
-});
-test('a rejected challenge is removable immediately, but an uncertain one stays active', async () => {
-  const f = await fixture();
-  f.env.EMAIL.send = async () => {
-    throw Object.assign(new Error('rejected'), { code: 'E_RECIPIENT_NOT_ALLOWED' });
-  };
-  assert.equal((await f.palim.challenge('alice', 'first@kindle.com')).state, 'rejected');
-  assert.equal(await f.palim.store.challenge('alice'), null);
-  f.env.EMAIL.send = async () => {
-    throw new Error('connection interrupted');
-  };
-  assert.equal((await f.palim.challenge('alice', 'second@kindle.com')).state, 'unknown');
-  await assert.rejects(f.palim.challenge('alice', 'third@kindle.com'), /already active/);
-});
-test('global challenge budget cannot consume the entire document-sending allowance', async () => {
-  const f = await fixture();
-  for (let i = 0; i < 20; i++) {
-    f.sql
-      .prepare(
-        "INSERT INTO deliveries(id,owner,send_key,purpose,sha256,destination_hash,destination_mask,state,created_at,updated_at) VALUES(?,?,?,'challenge','hash','destination','hidden','submitted',?,?)",
-      )
-      .run(`challenge-${i}`, 'bob', `challenge-${i}`, NOW, NOW);
-    f.sql
-      .prepare(
-        "INSERT INTO mail_attempts(id,purpose,owner,recipient_hash,created_at) VALUES(?,'challenge','bob','destination',?)",
-      )
-      .run(`challenge-${i}`, NOW);
-  }
-  await assert.rejects(f.palim.challenge('alice', 'reader@kindle.com'), /allowance/);
-  const book = await f.palim.create('alice', simpleBook);
-  const receipt = await f.palim.send('alice', book.artifactId);
-  assert.equal(receipt.state, 'submitted');
-  assert.equal(await f.palim.store.challenge('alice'), null);
 });
 test('host-file download is denied before network work when upload allowance is spent', async () => {
   const f = await fixture();

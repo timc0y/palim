@@ -1,5 +1,13 @@
 # Verification record
 
+## Personal sender and no Kindle code — 25 October 2026
+
+The approved replacement removes Palim's verification-book/code workflow. Each account has a unique stable random personal sender on the existing onboarded domain, assigned atomically and never accepted from caller input. Login still uses the existing inbox OTP. Save up to five labelled Kindle addresses, choose a default or explicit recipient, then request document delivery. Amazon still requires approval of the exact personal sender; existing users must update the former shared address. A saved destination is not ownership or device-acceptance proof.
+
+Passed 74 unit/protocol/package tests and independent read-only security review. Obsolete challenge tests were replaced with personal-sender stability/concurrency/separation, no-code sending, retired-endpoint refusal, migration preservation and atomic owner/sender admission checks. The grant-free native HTTPS Pages/browser proof uses synthetic local session fixtures and captured mail: saves/default/selection send nothing, one requested document submits from the personal sender to the selected address, and repeats reuse that receipt. No real email or OAuth grants were created. Formatting, dry-run Worker build and EPUBCheck passed. Full native OAuth-grant tests and push/CI remain held by the existing unanswered approval; user-approved sender migration does not authorize that test.
+
+Read-only production investigation found one historical verification-book submission at 15:31:27 UTC on 25 October, with a provider message ID and no error. Cloudflare's matching event reports delivered at 15:31:28 UTC, with no rejection/bounce in the inspected events. This means recipient mail-server acceptance, not Amazon import or Kindle display; the reason for absent Kindle content is unestablished. Worker historical logging was disabled and email content previews remain disabled. A secondary analytics check hit the provider's rate limit and was not retried. No recipient, provider ID, code or email contents are published here. Historical challenge/receipt rows and saved addresses are retained by the additive migration.
+
 ## Live save-first address list — 25 October 2026
 
 Deployed source is local commit `4adc528537f858d5b98319646434b6041d2c81b4`, Worker `7c0b6024-b61b-4154-8e80-14b6ee22c265`, Pages `c53b1d00-76d1-4b4a-aca3-3d5f93ad4142`. Cloudflare production metadata reports this exact successful revision, and live app/assets/package bytes match generated local files.

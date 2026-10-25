@@ -40,7 +40,7 @@ The local website is at `http://localhost:8787`. A usable authenticated hosted i
 
 ## Connect Palim
 
-Connect once and sign in. Your agent reads `get_guide`, then creates a reading edition or forwards an original unchanged when asked. There is no skill to install. Creating/downloading needs no Kindle setup. Save addresses immediately; verify each once before first delivery. Sending remains a separate requested action.
+Connect once and sign in. Your agent reads `get_guide`, then creates a reading edition or forwards an original unchanged when asked. There is no skill to install. Creating/downloading needs no Kindle setup. Save up to five Kindle addresses immediately, with labels and a default. Approve the account's personal sender once in Amazon; Palim asks for no Kindle code. Sending remains a separate requested action.
 
 ### ChatGPT
 
@@ -82,7 +82,7 @@ Examples:
 
 > Explain this architectural decision with a worked example and a small diagram. Make a reading edition, but do not send it yet.
 
-> Send this existing EPUB to my confirmed reader. Do not change its title, cover or contents.
+> Send this existing EPUB to my saved Kindle address. Do not change its title, cover or contents.
 
 > Did the previous submission finish? Read its receipt; do not send another copy.
 

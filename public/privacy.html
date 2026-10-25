@@ -43,10 +43,9 @@
         Sign-in codes expire after five minutes and allow three attempts. Codes are encrypted in the
         database; expired codes and sessions are removed by scheduled cleanup. Session records
         include the connecting IP address and browser user agent. Short-lived authentication rate
-        counters are removed after an hour of inactivity. Reader confirmation codes expire after one
-        hour and permit five attempts. Minimal delivery records and keyed destination hashes are
-        retained for 35 days for recovery, abuse prevention and monthly allowances. Manuscripts, raw
-        destinations and provider error text are not application logs.
+        counters are removed after an hour of inactivity. Minimal delivery records and keyed
+        destination hashes are retained for 35 days for recovery, abuse prevention and monthly
+        allowances. Manuscripts, raw destinations and provider error text are not application logs.
       </p>
       <h2>Originals remain original</h2>
       <p>
@@ -60,10 +59,11 @@
         and headers, so some valid uploads cannot be emailed. Generated guides are bounded in
         length, figure complexity and image dimensions. The default account allowance is two
         renders, six uploads and three email submissions per UTC day, with a shared service ceiling.
-        Verification books count as email submissions. Sign-in codes also count toward the shared
-        email ceiling, with their own smaller allowance. Up to five labelled, confirmed Kindle
-        addresses may be saved privately; removing an address does not recall an email already
-        submitted.
+        Sign-in codes also count toward the shared email ceiling, with their own smaller allowance.
+        Up to five labelled Kindle addresses may be saved privately; removing an address does not
+        recall an email already submitted. Each account has a stable personal sending address to
+        approve in Amazon. Palim does not require a Kindle verification code; Amazon may apply its
+        own checks.
       </p>
       <p>
         An accepted email submission is not confirmed Kindle delivery. A timeout is not permission

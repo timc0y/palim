@@ -48,7 +48,7 @@ npx wrangler secret put AUTH_SECRET
 npx wrangler secret put SIGNING_SECRET
 ```
 
-Wrangler also supports an additive `deploy --secrets-file` containing both secrets. Keep that file private, ignored and mode 600; remove the temporary local copy after upload. Never reuse another project's secrets. Authentication-secret rotation invalidates sessions and outstanding encrypted login codes. Signing-secret rotation invalidates private links and reader confirmation hashes. Plan rotation deliberately.
+Wrangler also supports an additive `deploy --secrets-file` containing both secrets. Keep that file private, ignored and mode 600; remove the temporary local copy after upload. Never reuse another project's secrets. Authentication-secret rotation invalidates sessions and outstanding encrypted login codes. Signing-secret rotation invalidates private links. Personal sender aliases are stored independently and remain stable. Plan rotation deliberately.
 
 `FILE_ORIGINS` is empty by default. To support a client's file attachments, verify that client's actual download origin and explicitly add its exact HTTPS origin. Never use a wildcard or allow an arbitrary user-controlled host. The fetch path refuses credentials and redirects, uses a deadline and bounds downloaded bytes. A host whose redirects cannot meet that contract is unsupported; use the authenticated file-upload workspace instead.
 
@@ -69,7 +69,7 @@ npm run build
 
 Open `/` and `/app` on the real HTTPS host. Verify that unauthenticated `/mcp` responds with OAuth discovery guidance. Complete a fresh email-code login, connect a real MCP client and approve consent. Wrong-origin writes and invalid bearer tokens must fail.
 
-Add the exact sender to Amazon's approved personal-document email list, confirm personal-document archiving for library use, enter your Kindle address and request one verification book. Read the code from the Kindle—not logs or a captured local fixture—and submit it in the workspace.
+In the authenticated workspace, copy the account's personal sender into Amazon's approved personal-document email list as an exact address, not the whole domain. Confirm personal-document archiving for library use, then save up to five labelled Kindle addresses and select one. Palim does not send verification books or request Kindle codes. Existing users must update Amazon from the former shared sender to their personal sender.
 
 Create one guide through the intended phone/client workflow. Inspect its download, sources, cover, table of contents, diagrams, code and larger-font reflow. Send it and independently check Amazon import and the physical device. Then upload an existing EPUB and compare its source hash with the decoded attachment in a controlled mail test. A real send must never rewrite that original.
 
@@ -77,7 +77,7 @@ Record actual deployment version, client/device versions and each observed resul
 
 ## Operation and recovery
 
-Default sending allowance: three document/verification submissions per account per UTC day, 80 shared emails per day and 2,400 per month. Sign-in codes, confirmation books and documents all consume this same atomic ledger. Login and confirmation each have a lower ceiling of 20 per day and 600 per month. Login requests also have a per-address one-minute cooldown and five-per-day cap; verification books have a two-per-destination daily cap. These ceilings deliberately count uncertain attempts. The edge limiter and Better Auth D1 rate counters add anonymous abuse controls. Review the actual Cloudflare account allowances, which may be shared with other projects. Rate limiting is not a monetary guarantee.
+Default sending allowance: three document submissions per account per UTC day, 80 shared emails per day and 2,400 per month. Sign-in codes and documents all consume this same atomic ledger. Login has a lower ceiling of 20 per day and 600 per month. Login requests also have a per-address one-minute cooldown and five-per-day cap. These ceilings deliberately count uncertain attempts. The edge limiter and Better Auth D1 rate counters add anonymous abuse controls. Review the actual Cloudflare account allowances, which may be shared with other projects. Rate limiting is not a monetary guarantee.
 
 A `submitted` record has a provider message ID. Inspect it in Cloudflare if troubleshooting is needed. `unknown` must not automatically become a new submission. A user can explicitly request another copy, accepting the possibility of a duplicate.
 
@@ -97,4 +97,6 @@ Control HTML uses Referrer-Policy: same-origin so browser consent/logout forms r
 
 ## Saved addresses
 
-Apply migration 0003 before deploying save-only address support. It preserves existing confirmed IDs/defaults and permits a nullable confirmation timestamp for saved-only entries. Saving, labelling, choosing a default and selecting an address send no mail. One explicit verification-book action proves ownership before first document delivery; both service validation and atomic D1 admission refuse unconfirmed addresses. The grant-free --saved-addresses-only native proof uses synthetic local browser-session fixtures and checks real UI/API storage with zero mail attempts; it exits before OAuth registration/consent.
+Apply migrations through 0004 before deploying the personal-sender flow. These additive changes preserve saved/confirmed address IDs, labels, defaults and historical receipts/challenges; legacy confirmation state is no longer used for admission. Each enabled account atomically receives an immutable random sender alias on first authenticated access. Documents use only that alias on the existing onboarded SENDER domain; the shared address remains for login mail. No new credential or provider is needed. A missing/invalid domain or alias fails closed without falling back to the shared sender. Changing the domain requires users to update Amazon's approved sender.
+
+Saving, labelling, choosing a default and selecting an address send no mail. Document delivery checks current account/recipient ownership and personal sender binding in atomic D1 admission, along with all existing budgets. No Palim Kindle verification endpoint remains. The grant-free --saved-addresses-only native proof uses synthetic local browser-session fixtures and captured mail, never OAuth registration/consent or actual provider mail. Full native OAuth tests remain subject to their separate grant approval.
