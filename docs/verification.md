@@ -1,5 +1,17 @@
 # Verification record
 
+## Live save-first address list — 25 October 2026
+
+Deployed source is local commit `4adc528537f858d5b98319646434b6041d2c81b4`, Worker `7c0b6024-b61b-4154-8e80-14b6ee22c265`, Pages `c53b1d00-76d1-4b4a-aca3-3d5f93ad4142`. Cloudflare production metadata reports this exact successful revision, and live app/assets/package bytes match generated local files.
+
+Up to five labelled Kindle addresses save immediately without email. Defaults and explicit selection also send nothing. Pending addresses are clearly marked, and the final action directs users to the separate verification-book control rather than sending a document. One-time ownership proof remains required before delivery, and Amazon's approved-sender requirement is unchanged. Delivery refuses pending addresses both in service validation and atomic D1 admission; ownership, quotas, explicit send confirmation and default-intent idempotency remain intact.
+
+Passed 77 unit/protocol/package tests, formatting, dry-run build, EPUBCheck and independent security review. The grant-free native Pages/browser address proof used seeded synthetic local browser sessions, not a real inbox/OAuth login. It exercised saving two rows, default changes, selected recipient, refused pending send and foreign-owner default/removal refusal. It observed zero proof_mail, mail_attempts and challenges rows. Reviewed captures: saved-readers-mobile.png, saved-readers-desktop.png and saved-reader-send-mobile.png in local artifacts. Full OAuth tests/CI remain held; those captures are not authenticated ChatGPT acceptance.
+
+Migration 0003 preserves confirmed IDs/defaults and adds a nullable confirmation state. Its first Cloudflare request failed internally with code 7429; schema/migration inspection confirmed no change before one successful retry. Production schema and migration metadata were rechecked, with no foreign-key errors. Existing production destination count was zero; preservation of nonempty verified/default data was tested against SQLite fixtures. Deploy only code that understands pending destinations after this migration; an older version that assumes every saved row is verified is not a safe rollback once pending rows exist.
+
+No production credentials, OAuth grants or mail were created. Source and evidence are committed locally. GitHub push/full grant-creating CI remain held by the earlier automatic approval rejection; the new address-list request did not approve that test. The user's report that the ChatGPT plugin connected is recorded as user evidence, not an independent tool-use test.
+
 ## Live origin fix and guide-only release — 25 October 2026
 
 Live deployed source is local commit `f6bfba9c728290756b7b45c85be02de4724e1593`, Worker `49fda6c2-97b5-4802-b51b-91f21b8af860`, Pages `5e47e67e-dbb8-4aa7-9e57-be864516c968`. Cloudflare production metadata reports the exact successful revision. App/sample/assets and the v0.3.0 MCP-only ZIP/checksum match generated local bytes. ZIP SHA-256 is `68ac62d47ac9964cd5ac5977f365ca82e8c92ea1d3f69d591672ff3ad2b94ff3`.
