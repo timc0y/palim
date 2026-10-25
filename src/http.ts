@@ -1,5 +1,4 @@
 import { PalimError } from './errors.js';
-import { randomToken } from './xml.js';
 export async function readBytes(request: Request | Response, max: number): Promise<Uint8Array> {
   const length = request.headers.get('content-length');
   if (length && (!/^\d+$/.test(length) || Number(length) > max))
@@ -65,14 +64,6 @@ export function checkOrigin(request: Request, origin: string): void {
   )
     throw new PalimError('ORIGIN', 'Open this action from the Palim site.', 403);
 }
-export function cookie(request: Request, name: string): string | null {
-  const entries = request.headers.get('Cookie')?.split(';') ?? [];
-  for (const entry of entries) {
-    const p = entry.trim().indexOf('=');
-    if (entry.trim().slice(0, p) === name) return entry.trim().slice(p + 1);
-  }
-  return null;
-}
 export function secureHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set('X-Content-Type-Options', 'nosniff');
@@ -119,4 +110,3 @@ export async function guardAuthentication(request: Request, limiter: RateLimit):
 export function json(data: unknown, status = 200): Response {
   return Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
 }
-export const newSecret = randomToken;

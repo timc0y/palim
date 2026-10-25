@@ -9,15 +9,15 @@ Turn conversations, code and complex ideas into illustrated EPUBs. Or send an ex
 
 An independent open-source project by [Tim Coy](https://timcoy.uk). Not affiliated with Amazon or Kindle.
 
-## What works in the implementation
+## What Palim does
 
 - A bounded EPUB publisher: chapters, title/creator/language metadata, automatic cover, Mermaid diagrams, labelled bar charts, uploaded PNG/JPEG figures, source notes and table of contents.
 - A responsive reading workspace: create a draft, preview/download it, export the manuscript, upload an original, sign in by email code, save up to five labelled Kindle addresses without email, choose a default and inspect an honest delivery receipt.
-- One read-only guide and three publishing tools: `get_guide`, `create_book`, `send_document`, `get_delivery`.
+- Four MCP tools: `get_guide`, `create_book`, `send_document`, `get_delivery`.
 - Cloudflare Email submission with attachment hashes, registered destinations, atomic sending allowances and no blind retry after an uncertain outcome.
 - Private temporary files, expiring download links, isolated accounts and scheduled cleanup.
 
-**Release boundary:** source checks and captured-mail runtime proofs do not establish live inbox delivery or Kindle import. The app is deployed at the linked Pages hostname with dedicated resources and a verified sender. [The verification record](docs/verification.md) owns the exact deployed revision and observed results.
+The owner has confirmed a readable Kindle copy through the hosted service. This is one observed journey, not a compatibility guarantee. [Verification](docs/verification.md) records the deployed source, tests and remaining limits.
 
 ## Try the publisher locally
 
@@ -69,8 +69,6 @@ The archive is an inspectable Codex compatibility package, not an invented one-c
 npm run plugin -- https://your-real-palim-host
 ```
 
-The canonical agent guide is `src/guide.ts`. The optional client package is `plugins/palim/`; `.agents/plugins/marketplace.json` exposes it as one repository plugin. The command writes the complete ZIP and checksum to `public/` and `artifacts/`, without installing, authorizing or publishing anything. [Official packaging](https://developers.openai.com/plugins/build/plugins/) and [connection/testing guidance](https://developers.openai.com/plugins/deploy/connect-chatgpt/) describe the supported flows. Other clients need their own compatibility verification.
-
 | Tool            | Responsibility                                                      |
 | --------------- | ------------------------------------------------------------------- |
 | `get_guide`     | Read the canonical authoring/import guide; no data changes or mail. |
@@ -114,4 +112,4 @@ Implementation owners and limits are in [SIMPLE.md](SIMPLE.md) and [architecture
 
 ## Connection troubleshooting
 
-Use the canonical Pages address. If an old consent tab shows ORIGIN, reopen the connection flow instead of replaying that form. Control-page HTML keeps a same-origin referrer policy so ordinary browser forms retain their Origin. Foreign, null and missing origins remain refused; private previews/downloads retain no-referrer. Never paste codes, cookies or tokens into an issue. Authenticated ChatGPT acceptance is verified separately.
+Use the canonical Pages address. If an old consent tab shows ORIGIN, reopen the connection flow instead of replaying that form. Never paste codes, cookies or tokens into an issue.

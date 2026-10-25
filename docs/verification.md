@@ -1,5 +1,13 @@
 # Verification record
 
+## Owner-reported acceptance and cleanup — 25 October 2026
+
+After the binary-attachment correction, the parent submitted one expressly approved additional copy at 19:56:19 UTC. Provider transport reported recipient-server delivery at 19:56:20. The artifact/receipt hash matches the validated PNG-only EPUB; the owner subsequently said “This is good” in the Kindle-reading context. This establishes owner-reported readability for that hosted journey. Earlier owner reports established adjustable text for the same file sent personally. It is not independent physical-device instrumentation or a general Kindle/client compatibility guarantee. Earlier unverified and defective-message records below remain dated history.
+
+The bounded cleanup preserves stable MCP names and response contracts, binary attachments, PNG artwork/reflowable XHTML, authenticated public-only file imports, login, five private destinations, personal senders, per-account allowances and shared budgets. It removes unused cookie/secret helpers, an obsolete global send-limit constant and dead CSS; computes the document sender once; shortens the canonical guide/tool descriptions; and corrects stale allowlist, SVG and dependency facts. The workspace clears stale sign-in codes after successful requests, announces address saving once and uses distinct truthful receipt-state colours. Consent/privacy headings now match their purpose. Historical migrations, user records and private files are unchanged.
+
+Read-only code/security, docs/MCP and local Impeccable UI reviews found no remaining blocker within scope. Eighty-three tests include the real local email-binding contract; R2/mail remain doubles in ordinary service tests. Grant-free native Pages/browser proof exercises desktop/mobile, stale-code clearing with a synthetic request response, persisted receipt states, address/default selection, exact selected recipient, original-upload bytes and account isolation. A separate real-browser empty-form proof retains the Origin regression without identities, mail, client registration or grants. Local captures are synthetic internal evidence, not public user data. No real emails or new grants were created during cleanup. Full OAuth-grant proof and push/CI remain held; remote main was fetched and remained at the previously published revision, without concurrent commits to reconcile.
+
 ## Binary attachment correction — 25 October 2026
 
 Deployed source is `1ea55a2db18f98f26bf64dc21f84f33a7509c797`, Worker `cdccc382-e67e-428d-ae18-81989c491be2`. The unchanged Pages front door remains `2783e992-534f-4f1e-867b-4a81eef8211c`. Deployment itself sent no email; a new real test requires separate approval.

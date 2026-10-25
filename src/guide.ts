@@ -1,32 +1,32 @@
-/** Canonical agent workflow. Both MCP initialization and get_guide use this text. */
+/** Canonical workflow, shared by MCP initialization and get_guide. */
 export function agentGuide(origin: string): string {
   return `# Palim agent guide
 
-Use this connection directly; no skill installation is required. Read get_guide before creating a reading edition or forwarding an original. The guide is advisory: authorization, ownership, validation and sending limits are always enforced by the service.
+Create a reading edition or forward an existing EPUB/PDF unchanged. Read get_guide before either workflow. This guide is advisory; tools independently enforce authorization, ownership and limits.
 
-## Create a reading edition
+## Create an edition
 
-The existing agent researches and writes; Palim does not call an authoring model or crawl repositories. Start with the reader's question, a concrete worked example, its mechanism and the useful decision. Cite actual HTTPS sources; distinguish evidence, interpretation and proposals. Keep private material within the user's authorized scope.
+Research and write within the user's authorized scope. Palim renders the supplied manuscript; it does not call an authoring model or crawl repositories. Start with the reader's question, explain one useful worked example, cite actual HTTPS sources and distinguish evidence from interpretation. Credit the actual creator.
 
-Call create_book with title, language and chapters: [{title, markdown}]. Optional metadata includes subtitle, creator, description, edition and sourceRevision. Credit the actual creator. Use short sections, ordinary text, narrow tables and readable code. Explain uncertainty rather than inventing facts.
+Call create_book with title, language and chapters [{title, markdown}]. The schema defines optional metadata and size limits. Use short sections, readable code and narrow tables. Define figures with unique ids, meaningful alt text and captions, then reference each on its own line: ![description](figure:id). Use mermaid for small relationships, bars for supported numbers with units/source, or image with an owned uploaded assetId. Never invent data. Raw HTML, scripts and remote image URLs are unsupported.
 
-Define each figure with a unique id, meaningful alt and caption. Reference it on its own line as ![description](figure:id). Use mermaid for a small relationship or sequence, bars only for supported numbers with units and a source, or image with an already owned uploaded assetId. Never invent chart values. Raw HTML, scripts and remote image URLs are unsupported. The tool schema supplies size/count limits.
+A draft never sends email or needs Kindle setup. Return its private download/preview, expiry and warnings. Files expire after 24 hours; signed links after 15 minutes.
 
-A draft never sends email and needs no Kindle setup. Return its private download/preview, expiry and material warnings. Artifacts expire after 24 hours and signed links after 15 minutes; this is not a permanent library. Browser/EPUB validation is not Kindle conversion evidence.
+## Forward an original
 
-## Forward an existing EPUB or PDF
+Call send_document with an owned artifactId or the client's actual file object: download_url and file_id, optionally mime_type and file_name. Downloads must use public HTTPS/443 without credentials or redirects. If the client cannot supply a downloadable file, use ${origin}/app for authenticated upload.
 
-Use send_document with either an owned artifactId or the client's actual host file object: download_url and file_id, optionally mime_type and file_name. Never call create_book to forward an original. Do not rewrite, repair, convert, repackage, change metadata/cover, invent a URL, turn a local path into a remote file, or reconstruct bytes as Base64.
+Never call create_book to forward an original. Preserve its bytes and metadata: do not repair, convert, repackage, invent a URL, turn a local path into a URL or reconstruct it as Base64. Oversized originals stay downloadable; do not shrink them silently.
 
-Host files must have a public HTTPS download URL on port 443, without credentials or redirects. If the client cannot supply a downloadable file object, open ${origin}/app for authenticated upload. Oversized originals remain unchanged and downloadable; never shrink them silently or claim an emailed link imports a book.
+## Account and Kindle setup
 
-## Send only when requested
+Sign in through the client's browser flow; never request inbox codes, tokens, cookies or Amazon passwords in chat. No skill installation is required. The workspace at ${origin}/app saves up to five labelled Kindle addresses and a default. Saving sends no email. Copy the complete Kindle address from Amazon, including any suffix; never derive it from an inbox address or guess destinationId.
 
-A clear delivery request for the document and selected recipient is required. Saved destinations belong to the signed-in account; never supply an arbitrary recipient or guess destinationId. The workspace at ${origin}/app saves up to five labelled Kindle addresses without email, with a default and explicit selection. Palim does not send verification books or ask for Kindle codes. Creation/download works without destination setup.
+Approve the account's exact personal Palim sender in Amazon once, not the whole domain. Setup instructions and the sender are in the workspace. Addresses and documents are private to their account. The sign-in inbox receives no extra book copy.
 
-Each account has its own stable personal Palim sender, shown only in its authenticated workspace. The user must add that exact address to Amazon's approved personal-document senders once, not approve the whole domain. Other accounts cannot use that sender. For UK accounts, open https://www.amazon.co.uk/mycd, then Preferences → Personal Document Settings → Approved Personal Document Email List. Copy the entire Kindle destination from Send-to-Kindle email settings on the same page, including any device-specific underscore suffix; never reconstruct it from the user’s inbox address. Use the Amazon store where the Kindle is registered. Books go only to the selected Kindle address; the sign-in inbox does not receive an additional book copy. Saving a Kindle address is not proof of its ownership or Amazon acceptance. Existing users must replace the former shared sender in their Amazon settings; Amazon may apply its own checks.
+## Send and check
 
-Sign-in and consent happen in the client's browser OAuth flow. Never request inbox codes, tokens, cookies or Amazon passwords in chat. Account sign-in still uses an inbox code; it is separate from Kindle delivery.
+Send only when the user requests this document to the selected saved recipient. Use destinationId only when established from the account. For ordinary repeated intent, reuse the artifact and omit resendOf. An explicit additional-copy request permits resendOf; an unknown outcome does not. Use get_delivery instead of blindly resending.
 
-For repeated ordinary intent, reuse the artifact and omit resendOf. Only an explicit additional-copy request permits resendOf. For uncertainty, use get_delivery instead of blindly resending. submitted means provider acceptance, not Amazon import, device receipt or reading; unknown remains uncertain. Preserve original attachment bytes and keep private links private.`;
+submitted means Cloudflare acceptance, not Amazon import or device receipt. Amazon controls conversion. Keep private links private and report only the evidence available.`;
 }

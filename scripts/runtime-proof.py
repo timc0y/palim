@@ -238,9 +238,37 @@ try:
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 1
             assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 1
             assert database.execute('SELECT count(*) FROM challenges').fetchone()[0] == 0
+            # Render actual persisted receipt failures without a new submission.
+            receipt_id = json.loads(payload)['deliveryId']
+            colours = {}
+            for state in ['submitted', 'unknown', 'rejected']:
+                database.execute('UPDATE deliveries SET state=? WHERE id=?', (state, receipt_id))
+                database.commit()
+                page.locator('#refresh-receipt').click()
+                expect(page.locator('.receipt-state')).to_have_attribute('data-state', state)
+                colours[state] = page.locator('.receipt-state').evaluate('(e)=>getComputedStyle(e).color')
+                page.locator('#receipt-panel').screenshot(path=str(ARTIFACTS / f'cleanup-receipt-{state}-mobile.png'))
+            assert len(set(colours.values())) == 3
+            database.execute("UPDATE deliveries SET state='submitted' WHERE id=?", (receipt_id,))
+            database.commit()
+            page.locator('#refresh-receipt').click()
             page.set_viewport_size({'width':390,'height':844})
             page.locator('#created').screenshot(path=str(ARTIFACTS / 'saved-reader-send-mobile.png'))
             page.locator('#receipt-panel').screenshot(path=str(ARTIFACTS / 'personal-sender-receipt-mobile.png'))
+            anonymous = browser.new_context(ignore_https_errors=True, viewport={'width':390,'height':844})
+            login_page = anonymous.new_page()
+            login_page.route('**/auth/email-otp/send-verification-otp', lambda route: route.fulfill(status=200, content_type='application/json', body='{"message":"Check your inbox."}'))
+            login_page.goto(ORIGIN + '/app', wait_until='networkidle')
+            login_page.locator('#login-email').fill('synthetic@example.invalid')
+            login_page.locator('#login-email-form button').click()
+            expect(login_page.locator('#login-code-form')).to_be_visible()
+            login_page.locator('#login-code').fill('123456')
+            login_page.locator('#resend-login').click()
+            expect(login_page.locator('#login-code')).to_have_value('')
+            login_page.screenshot(path=str(ARTIFACTS / 'cleanup-signin-mobile.png'), full_page=True)
+            login_page.set_viewport_size({'width':1440,'height':1000})
+            login_page.screenshot(path=str(ARTIFACTS / 'cleanup-signin-desktop.png'), full_page=True)
+            anonymous.close()
             assert post('/api/destination', {'email':travel['email']})[0] == 404
             assert post('/api/confirm', {'code':'0000000000'})[0] == 404
             # Optional name, first default, five-address limit, and useful capacity feedback.
@@ -275,6 +303,14 @@ try:
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 1
             login_page.screenshot(path=str(ARTIFACTS / 'ux-login-inbox-mobile.png'),full_page=True)
             signed_out.close()
+            surface = context.new_page()
+            for path, label in [('/app','workspace'), ('/','landing'), ('/privacy.html','privacy')]:
+                surface.goto(ORIGIN + path, wait_until='networkidle')
+                for width, height, size in [(390,844,'mobile'), (1440,1000,'desktop')]:
+                    surface.set_viewport_size({'width':width,'height':height})
+                    assert not surface.evaluate('document.documentElement.scrollWidth > innerWidth')
+                    surface.screenshot(path=str(ARTIFACTS / f'cleanup-{label}-{size}.png'))
+            surface.close()
             browser.close()
         cookies[:] = [foreign_cookie]
         foreign_account=json.loads(request('/api/account')[2])

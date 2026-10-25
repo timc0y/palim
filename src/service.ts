@@ -387,16 +387,17 @@ export class Palim {
     invariant(object, 'ARTIFACT_NOT_FOUND', 'This document has expired.');
     const bytes = new Uint8Array(await object.arrayBuffer());
     const r = await this.newReceipt(owner, key, a.sha256, selected.email, a.id, resendOf);
+    const sender = this.documentSender(user);
     const payload = await prepareEmail({
       bytes,
       expectedHash: a.sha256,
       type: a.type,
       filename: a.filename,
-      from: this.documentSender(user),
+      from: sender,
       to: selected.email,
       receiptId: r.id,
     });
-    r.sender = this.documentSender(user);
+    r.sender = sender;
     r.destination_id = selected.id;
     r.default_intent_key = defaultKey;
     if (!(await this.store.reserveDelivery(r, selected.id, user.sender_alias))) {

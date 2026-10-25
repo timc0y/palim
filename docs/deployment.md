@@ -1,6 +1,6 @@
 # Deploy your own Palim
 
-The hosted app is deployed; end-to-end inbox and Kindle acceptance remain separate release gates. Deploy only to resources you control. The checked-in configuration now targets Tim's dedicated personal-account resources and the reserved `palim-timc0y.pages.dev` hostname. Resource creation is not a deployed or verified application. Other operators must replace the account, resource IDs, origin, project name, sender and landing-page canonical metadata with their own values.
+The hosted owner has reported a readable Kindle copy. Each new deployment still needs its own inbox and Kindle acceptance checks; see the current evidence in docs/verification.md. Deploy only to resources you control. The checked-in configuration now targets Tim's dedicated personal-account resources and the reserved `palim-timc0y.pages.dev` hostname. Resource creation is not a deployed or verified application. Other operators must replace the account, resource IDs, origin, project name, sender and landing-page canonical metadata with their own values.
 
 ## Pages front door
 
@@ -101,6 +101,6 @@ Control HTML uses Referrer-Policy: same-origin so browser consent/logout forms r
 
 ## Saved addresses
 
-Apply migrations through 0004 before deploying the personal-sender flow. These additive changes preserve saved/confirmed address IDs, labels, defaults and historical receipts/challenges; legacy confirmation state is no longer used for admission. Each enabled account atomically receives an immutable random sender alias on first authenticated access. Documents use only that alias on the existing onboarded SENDER domain; the shared address remains for login mail. No new credential or provider is needed. A missing/invalid domain or alias fails closed without falling back to the shared sender. Changing the domain requires users to update Amazon's approved sender.
+Apply all checked-in migrations before deployment, including 0004 for personal senders and 0005 for account allowances. These additive changes preserve saved/confirmed address IDs, labels, defaults and historical receipts/challenges; legacy confirmation state is no longer used for admission. Each enabled account atomically receives an immutable random sender alias on first authenticated access. Documents use only that alias on the existing onboarded SENDER domain; the shared address remains for login mail. No new credential or provider is needed. A missing/invalid domain or alias fails closed without falling back to the shared sender. Changing the domain requires users to update Amazon's approved sender.
 
 Saving, labelling, choosing a default and selecting an address send no mail. Document delivery checks current account/recipient ownership and personal sender binding in atomic D1 admission, along with all existing budgets. No Palim Kindle verification endpoint remains. The grant-free --saved-addresses-only native proof uses synthetic local browser-session fixtures and captured mail, never OAuth registration/consent or actual provider mail. Full native OAuth tests remain subject to their separate grant approval.

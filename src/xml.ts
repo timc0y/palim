@@ -31,7 +31,3 @@ export async function sha256(bytes: Uint8Array | string): Promise<string> {
   const result = await crypto.subtle.digest('SHA-256', new Uint8Array(source).buffer);
   return Array.from(new Uint8Array(result), (n) => n.toString(16).padStart(2, '0')).join('');
 }
-export function randomToken(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return Array.from(bytes, (n) => n.toString(16).padStart(2, '0')).join('');
-}

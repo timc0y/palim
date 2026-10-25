@@ -4,17 +4,17 @@ Palim has two complete journeys. New books pass through a deterministic publishe
 
 ## Creation
 
-The authoring agent supplies metadata, chapter Markdown, figure specifications, owned image handles and sources. Zod validates the whole bounded manuscript. Markdown-it renders escaped XHTML; Pele renders bounded Mermaid SVG; the chart renderer uses only explicitly supplied numbers. JSZip packages the EPUB with a first, stored `mimetype`, OPF metadata, spine, navigation, stylesheet and embedded assets.
+The authoring agent supplies metadata, chapter Markdown, figure specifications, owned image handles and sources. Zod validates the whole bounded manuscript. Markdown-it renders escaped XHTML; Pele renders bounded Mermaid diagrams; the chart renderer uses only explicitly supplied numbers. Generated diagrams and covers are rasterized to PNG with resvg before EPUB packaging; text remains reflowable XHTML. JSZip packages the EPUB with a first, stored `mimetype`, OPF metadata, spine, navigation, stylesheet and embedded assets.
 
 The service stores the EPUB, canonical JSON source and script-free HTML preview under private owned R2 keys. D1 stores ownership, hashes, sizes and expiry. A short-lived HMAC URL gives access to one artifact part. Every access checks the account and current artifact expiry. The preview has its own sandboxed Content Security Policy.
 
 ## Unchanged forwarding
 
-The service takes an owned upload or an exact allowlisted host attachment URL. It does not fetch arbitrary web pages or follow redirects. Host URL admission is deny-by-default. An upload is bounded by actual streamed bytes, not just Content-Length.
+The service takes an owned upload or an authenticated public HTTPS/443 attachment URL. Native workerd public-only networking filters DNS-resolved destinations; the application rejects IP literals, local names, credentials, unsafe ports and redirects. No caller credentials are forwarded. An upload is bounded by actual streamed bytes, not just Content-Length.
 
 EPUB inspection preflights the ZIP directory and then reads only bounded metadata streams. PDF inspection checks the header and size; it is not a complete PDF validator. Font obfuscation and content encryption are distinguished. No source archive is extracted to disk or rewritten. The original bytes are stored and hashed.
 
-Delivery reads the stored bytes and verifies the hash before encoding the attachment. The encoded-message budget includes line and header headroom. Oversized input is refused without alteration. Cloudflare owns SMTP retries after accepting a submission; Palim never sends a second message to simulate a retry.
+Delivery reads the stored bytes and verifies the hash before passing binary attachment bytes to Cloudflare for MIME encoding. The encoded-message budget includes line and header headroom. Oversized input is refused without alteration. Cloudflare owns SMTP retries after accepting a submission; Palim never sends a second message to simulate a retry.
 
 ## Identity and authority
 
@@ -40,4 +40,4 @@ Repository truth, research quality and authorial judgement stay with the authori
 
 ## Bounded choices
 
-SVG figures are standards-based and independently validated, but their Kindle conversion must be tested before promising device support. The current MCP v1 SDK version is pinned and exercised through its official client and web-standard transport; review its supported maintenance window before upgrading or claiming a newer protocol generation. The public service needs provider setup, fresh-client OAuth proof and device evidence, not only a bundle that compiles.
+Generated EPUBs contain PNG artwork and reflowable XHTML. EPUBCheck and browser previews do not establish compatibility with every Kindle device. The current MCP v1 SDK version is pinned and exercised through its official client and web-standard transport; review its supported maintenance window before upgrading or claiming a newer protocol generation. The public service needs provider setup, fresh-client OAuth proof and device evidence, not only a bundle that compiles.

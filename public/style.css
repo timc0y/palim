@@ -27,6 +27,8 @@
   --white: #ffffff;
   --ink: #11151b;
   --muted: #626975;
+  --success: #2c584c;
+  --danger: #8f2424;
   --line: #d9dce0;
   --accent: #baccf4;
   --action: #11151b;
@@ -361,12 +363,6 @@ button:hover {
 
 .edition-intro {
   padding-top: 1.75rem;
-}
-.section-index {
-  font-size: var(--text-meta);
-  display: block;
-  color: var(--muted);
-  margin-bottom: 2rem;
 }
 .edition-intro h2 {
   font-size: var(--text-section);
@@ -843,9 +839,6 @@ summary {
   border-top: 1px solid var(--line);
   padding-top: var(--space-2);
 }
-.connect-panel h3 {
-  font-size: 1.125rem;
-}
 .connect-panel code {
   display: block;
   font-size: 0.75rem;
@@ -856,15 +849,17 @@ summary {
   border-top: 1px solid var(--line);
   padding-top: var(--space-3);
 }
-.receipt-panel .eyebrow {
-  font-size: 0.75rem;
-  font-weight: 500;
-}
 .receipt-state {
   font-size: 0.875rem !important;
   font-weight: 600;
-  color: #2c584c !important;
+  color: var(--muted) !important;
   text-transform: capitalize;
+}
+.receipt-state[data-state='submitted'] {
+  color: var(--success) !important;
+}
+.receipt-state[data-state='rejected'] {
+  color: var(--danger) !important;
 }
 .receipt-panel code {
   font-size: 0.75rem;
@@ -1099,9 +1094,6 @@ summary {
   .edition-intro {
     padding-top: 0;
   }
-  .section-index {
-    margin-bottom: 1.25rem;
-  }
   .edition-intro h2 {
     font-size: 2.25rem;
   }
@@ -1254,10 +1246,6 @@ summary {
     transition: none !important;
     animation: none !important;
   }
-}
-
-.wordmark > span {
-  display: none;
 }
 
 /* Download leads the result; recipient selection belongs to the send context. */

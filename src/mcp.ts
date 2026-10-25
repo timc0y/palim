@@ -68,7 +68,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     {
       title: 'Read the Palim agent guide',
       description:
-        'Read before creating a reading edition or forwarding an original EPUB/PDF. Explains authoring, figures, sources, setup and safe delivery. Read-only; never creates a book, installs a skill or sends mail.',
+        'Read the authoring, unchanged-file and delivery guide before creating or sending a book. Read-only; no mail or data changes.',
       inputSchema: z.object({}).strict(),
       annotations: {
         readOnlyHint: true,
@@ -84,7 +84,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     {
       title: 'Create an illustrated EPUB',
       description:
-        'Build a new EPUB from a supplied manuscript. This writes a private temporary artifact, never sends mail. Read get_guide first. No skill installation is needed: supply title, language and chapters [{title, markdown}]. Use sources and ![description](figure:id) for defined figures. Return download/preview and warnings. No Kindle setup is needed. Does not fetch repositories or call an authoring model.',
+        'Create a private temporary EPUB from supplied title, language and chapters [{title, markdown}]. Read get_guide for authoring and figures. Return download/preview, expiry and warnings. Never sends mail; no Kindle setup needed.',
       inputSchema: BookSchema,
       annotations: {
         readOnlyHint: false,
@@ -100,7 +100,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     {
       title: 'Send a book unchanged',
       description:
-        'Read get_guide for the unchanged-original workflow. Send an owned EPUB/PDF artifact or supported host-provided file to your selected saved Kindle destination. Preserves the attachment bytes, title and cover; never edits or repacks. Only use when the user requests delivery. Repeats return the original receipt. resendOf is only for an explicitly requested new copy. If setup or host transfer is unavailable, open the Palim workspace; never request a separate skill install. Provider acceptance is not Kindle import.',
+        'Send an owned EPUB/PDF artifact or host file unchanged to a selected saved Kindle address, only when requested. Read get_guide for file transfer and setup. Repeated intent returns its receipt; resendOf requires an explicit additional copy. Acceptance is not Kindle import.',
       inputSchema: ToolSendSchema,
       _meta: {
         'openai/fileParams': ['file'],

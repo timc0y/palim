@@ -187,6 +187,7 @@ function showReceipt(receipt) {
   box.replaceChildren();
   const state = document.createElement('p');
   state.className = 'receipt-state';
+  state.dataset.state = receipt.state;
   state.textContent =
     {
       submitted: 'Email submitted',
@@ -481,7 +482,6 @@ $('destination-form').addEventListener('submit', (event) => {
     $('reader-label').value = '';
     await refresh();
     $('setup-details').open = currentAccount.destinations.length < 5;
-    notice('Kindle address saved. No email was sent.');
     const feedback = $('destination-form').querySelector('.action-feedback');
     feedback.textContent = 'Address saved. No email sent.';
     feedback.className = 'action-feedback';
@@ -522,6 +522,7 @@ async function requestLogin() {
   if (/@(?:free\.)?kindle\.com$/i.test(email))
     throw new Error('Use your normal inbox to sign in. Save your Kindle address after signing in.');
   const result = await post('/auth/email-otp/send-verification-otp', { email, type: 'sign-in' });
+  $('login-code').value = '';
   $('login-sent').textContent = `Sign-in code requested for ${email}. ${result.message}`;
   $('login-email-form').hidden = true;
   $('login-code-form').hidden = false;
