@@ -2,6 +2,8 @@
 
 ## Reflow investigation — 25 October 2026
 
+Deployed source: local commit `4bf1c37a6376168d139d5ad93ef00d17867bff0b`, Worker `649a0c15-98b2-4e7e-b164-c6a2631ca6e0`, Pages `2783e992-534f-4f1e-867b-4a81eef8211c`. Provider metadata and live byte comparisons match that source, including the sample HTML/EPUB and existing app/plugin assets. Live checks pass unauthenticated and invalid-token refusal, wrong-origin refusal, canonical OAuth issuer, alternate-host refusal, private R2 and disabled Worker preview URLs. The existing sender remains enabled with stored email previews disabled. The deployment did not send mail or create OAuth grants.
+
 The owner reports that the diagnostic EPUB imported when sent from their own inbox, but Amazon returned E016 and preserved its original layout. That is evidence of import with a reflow failure, not successful adjustable-text rendering. The actual diagnostic archive contains an SVG cover and chart, no fixed-layout metadata, no scripts/audio/video, and one table. Amazon's [Send-to-Kindle E016 guidance](https://www.amazon.co.uk/gp/help/customer/display.html?nodeId=T48rsVm3gY7KeGkKUk) explicitly recommends removing SVG images. EPUBCheck had accepted those images; EPUB conformance therefore did not establish Amazon compatibility.
 
 Generated covers and diagrams now use bounded PNG artwork from maintained resvg WASM with an offline OFL font. Text, headings, navigation and captions remain XHTML, and OPF explicitly declares reflowable layout. Images are processed sequentially and raster dimensions are bounded. Original uploads, retained artifacts, sender selection, mail payloads, ownership and budgets are unchanged. This removes an evidenced compatibility risk; Amazon reflow must still be tested independently.
