@@ -16,7 +16,7 @@ export function githubAuthorizationUrl(env: Env, state: string): string {
 }
 
 export async function githubAccessToken(env: Env, code: string): Promise<string> {
-  const bounded = request.defaults({ request: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(10000), redirect: 'error' }) } });
+  const bounded = request.defaults({ request: { fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, { ...init, signal: AbortSignal.timeout(10000), redirect: 'error' }) } });
   const result = await exchangeWebFlowCode({ ...config(env), code, request: bounded });
   return z.string().min(1).max(2048).parse(result.authentication.token);
 }

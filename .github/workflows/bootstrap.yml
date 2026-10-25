@@ -34,8 +34,12 @@ jobs:
           unzip -q epubcheck.zip -d .local
           java -jar .local/epubcheck-5.4.0/epubcheck.jar artifacts/palim-sample.epub --failonwarnings 2>&1 | tee artifacts/epubcheck.txt
           rm epubcheck.zip
-      - name: Exercise the native runtime
-        run: python3 scripts/runtime-proof.py 2>&1 | tee artifacts/runtime-proof.txt
+      - name: Install the browser acceptance runner
+        run: |
+          python3 -m pip install playwright==1.56.0
+          python3 -m playwright install --with-deps chromium
+      - name: Exercise the native runtime and actual browser workflow
+        run: python3 scripts/runtime-proof.py --browser 2>&1 | tee artifacts/runtime-proof.txt
       - name: Commit only the lock and mechanical formatting
         run: |
           git config user.name 'github-actions[bot]'
