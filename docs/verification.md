@@ -2,6 +2,8 @@
 
 ## Binary attachment correction — 25 October 2026
 
+Deployed source is `1ea55a2db18f98f26bf64dc21f84f33a7509c797`, Worker `cdccc382-e67e-428d-ae18-81989c491be2`. The unchanged Pages front door remains `2783e992-534f-4f1e-867b-4a81eef8211c`. Deployment itself sent no email; a new real test requires separate approval.
+
 The owner reports that the same PNG-only EPUB reflows correctly when emailed personally, but the 19:44 Palim copy shows Base64-like text inside Kindle. A private exact comparison finds the reported excerpt inside the Base64 encoding of the unchanged stored candidate. No excerpt or private book content is published here. This identifies attachment data rather than a new authoring/reflow defect.
 
 Palim had supplied a Base64 string in the structured attachment field. Cloudflare's reference describes strings as Base64, while its attachment examples also demonstrate binary buffers. The installed real Miniflare/workerd email binding preserves string content as literal attachment text rather than decoding it. A new binding-level regression reproduces that difference using a synthetic PDF: the Base64-string attachment is stored as ASCII, while the binary attachment is byte-identical to the original. Earlier self-decoding tests validated Palim's own assumption and did not exercise this provider boundary.
