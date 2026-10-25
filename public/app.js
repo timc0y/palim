@@ -25,6 +25,7 @@ async function api(path, options = {}) {
       ),
       {
         status: response.status,
+        code: data.code,
       },
     );
   return data;
@@ -91,6 +92,14 @@ async function busy(element, work) {
     if (form?.id === 'login-code-form' && e.status === 400) {
       $('login-code').setAttribute('aria-invalid', 'true');
       $('login-code').setAttribute('aria-describedby', `login-sent ${feedback.id}`);
+    }
+    if (form?.id === 'destination-form' && ['KINDLE_ADDRESS', 'READER_LABEL'].includes(e.code)) {
+      const field = $(e.code === 'KINDLE_ADDRESS' ? 'kindle-email' : 'reader-label');
+      field.setAttribute('aria-invalid', 'true');
+      field.setAttribute(
+        'aria-describedby',
+        `${field.id === 'kindle-email' ? 'kindle-email-help ' : ''}${feedback.id}`,
+      );
     }
     feedback.focus();
   } finally {
@@ -178,7 +187,13 @@ function showReceipt(receipt) {
   box.replaceChildren();
   const state = document.createElement('p');
   state.className = 'receipt-state';
-  state.textContent = receipt.state;
+  state.textContent =
+    {
+      submitted: 'Email submitted',
+      submitting: 'Submitting email…',
+      rejected: 'Email not accepted',
+      unknown: 'Submission status unknown',
+    }[receipt.state] || receipt.state;
   const message = document.createElement('p');
   message.textContent = receipt.message;
   const id = document.createElement('code');
@@ -187,7 +202,12 @@ function showReceipt(receipt) {
   const target = currentAccount?.destinations.find((d) => d.id === receipt.destinationId);
   const file = currentAccount?.artifacts.find((a) => a.artifactId === receipt.artifactId);
   recipient.textContent = `${file?.filename || 'Document'} · To: ${target?.email || receipt.destination || 'Your selected Kindle address'}`;
-  box.append(state, recipient, message, id);
+  const details = document.createElement('details');
+  details.className = 'technical-details';
+  const summary = document.createElement('summary');
+  summary.textContent = 'Submission details';
+  details.append(summary, id);
+  box.append(state, recipient, message, details);
   box.tabIndex = -1;
   box.focus();
   notice(receipt.message);
@@ -282,7 +302,9 @@ function showShelf(artifacts) {
     );
     const recipient = document.createElement('p');
     recipient.className = 'send-target';
-    item.append(title, info, recipient, links);
+    item.append(title, info);
+    if (a.emailEligible) item.append(recipient);
+    item.append(links);
     shelf.append(item);
   }
 }
@@ -302,6 +324,9 @@ async function refresh() {
       ? `${currentAccount.destinations.length} of 5 addresses saved`
       : 'No saved Kindle addresses yet.';
     $('setup-details').open = !currentAccount.destinations.length;
+    const full = currentAccount.destinations.length >= 5;
+    $('destination-form').hidden = full;
+    $('reader-limit').hidden = !full;
     const list = $('reader-list');
     list.replaceChildren();
     for (const d of currentAccount.destinations) {
@@ -378,7 +403,7 @@ $('create-form').addEventListener('submit', (event) => {
   event.preventDefault();
   busy(event.submitter, async () => {
     const body = {
-      title: $('title').value,
+      title: $('title').value.trim(),
       language: $('language').value,
       chapters: [{ title: 'The guide', markdown: $('manuscript').value }],
     };
@@ -450,13 +475,17 @@ $('destination-form').addEventListener('submit', (event) => {
   busy(event.submitter, async () => {
     await post('/api/destinations', {
       email: $('kindle-email').value,
-      label: $('reader-label').value,
+      label: $('reader-label').value.trim() || 'My Kindle',
     });
     $('kindle-email').value = '';
     $('reader-label').value = '';
     await refresh();
     $('setup-details').open = currentAccount.destinations.length < 5;
     notice('Kindle address saved. No email was sent.');
+    const feedback = $('destination-form').querySelector('.action-feedback');
+    feedback.textContent = 'Address saved. No email sent.';
+    feedback.className = 'action-feedback';
+    feedback.setAttribute('role', 'status');
   });
 });
 $('refresh-receipt').addEventListener('click', (event) =>
@@ -467,8 +496,12 @@ $('refresh-receipt').addEventListener('click', (event) =>
 $('mcp-url').textContent = `${location.origin}/mcp`;
 $('copy-sender').addEventListener('click', (event) =>
   busy(event.currentTarget, async () => {
-    await navigator.clipboard.writeText(currentAccount.sender);
-    notice('Your personal sender copied. Add this exact address to Amazon’s approved senders.');
+    try {
+      await navigator.clipboard.writeText(currentAccount.sender);
+      $('copy-sender-status').textContent = 'Copied.';
+    } catch {
+      throw new Error('Copy is unavailable. Select and copy the sender address above.');
+    }
   }),
 );
 $('copy-mcp').addEventListener('click', (event) =>
@@ -486,6 +519,8 @@ document.addEventListener('change', (event) => {
 });
 async function requestLogin() {
   const email = $('login-email').value.trim();
+  if (/@(?:free\.)?kindle\.com$/i.test(email))
+    throw new Error('Use your normal inbox to sign in. Save your Kindle address after signing in.');
   const result = await post('/auth/email-otp/send-verification-otp', { email, type: 'sign-in' });
   $('login-sent').textContent = `Sign-in code requested for ${email}. ${result.message}`;
   $('login-email-form').hidden = true;

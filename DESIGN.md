@@ -50,7 +50,7 @@ The user rejected the previous pale serif design on 25 October 2026. This replac
 
 One full-width graphite stage carries an upright modern sans headline, two literal actions and the selected sculptural folio artwork. There is no leaf mark, tilted book card, hoops, slogan divider or repeated philosophy band. A short second section presents text from the actual downloadable sample. The serif face belongs only to that reading specimen. Wordmark, product headings and controls use self-hosted OFL Manrope, with no third-party font request.
 
-The reading desk shows one task panel at a time and preserves entered fields on switching. The active task leads; the temporary shelf follows. Confirmed recipient selection remains explicit, while address management and MCP sit in secondary disclosures. Inbox sign-in codes and Kindle-book confirmation codes remain separate. Actual expiry, target and provider-versus-device receipts stay visible.
+The reading desk shows one task panel at a time and preserves entered fields on switching. The active task leads; the temporary shelf follows. Saved recipient selection remains explicit, while address management and MCP sit in secondary disclosures. Sign-in uses the normal inbox; Kindle destinations require no Palim codes. Personal sender setup is separate from saved addresses. Actual expiry, target and provider-versus-device receipts stay visible.
 
 ## Shared implementation rules
 
@@ -68,7 +68,7 @@ Compare the current branch's desktop/mobile CI screenshots with the previously d
 
 The deterministic UI scan was reviewed against the actual renders. Its full-bleed-stage and flex-height navigation padding findings describe intentional container ownership, and its specimen-font finding is the explicitly scoped reading excerpt. Display/privacy tracking was relaxed. Palette/transparency and type-role findings are not a claim of a clean detector report; the rendered review remains the aesthetic authority.
 
-Astra accepted the cinematic landing, artwork and typography, then requested a bounded workspace hierarchy correction. Empty Create starts with title/manuscript; recipient selection lives beside file results and the shelf. Download EPUB is the primary result action, Preview is secondary, Kindle sending is a separate optional context, and checksums/source exports sit under Technical details. A single transient client selection synchronizes owned confirmed-address pickers; the existing backend still enforces ownership and explicit send safety. Dark header/hero focus uses ice, light surfaces use dark blue, and placeholders use the muted text role. Native browser checks measure the actual focused outline and placeholder colours, including the dark workspace nav.
+Astra accepted the cinematic landing, artwork and typography, then requested a bounded workspace hierarchy correction. Empty Create starts with title/manuscript; recipient selection lives beside file results and the shelf. Download EPUB is the primary result action, Preview is secondary, Kindle sending is a separate optional context, and checksums/source exports sit under Technical details. A single transient client selection synchronizes owned saved-address pickers; the existing backend still enforces ownership and explicit send safety. Dark header/hero focus uses ice, light surfaces use dark blue, and placeholders use the muted text role. Native browser checks measure the actual focused outline and placeholder colours, including the dark workspace nav.
 
 ## Reading sample refinement
 

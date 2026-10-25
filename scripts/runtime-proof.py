@@ -158,6 +158,18 @@ try:
             page = context.new_page()
             page.goto(ORIGIN + '/app', wait_until='networkidle')
             page.locator('#desk').wait_for(state='visible')
+            assert page.locator('.skip-link').evaluate('(e)=>getComputedStyle(e).clipPath') == 'inset(50%)'
+            page.keyboard.press('Tab')
+            expect(page.locator('.skip-link')).to_be_focused()
+            assert page.locator('.skip-link').evaluate('(e)=>getComputedStyle(e).clipPath') == 'none'
+            page.locator('h1').click()
+            # A normal email is valid HTML but not a Kindle destination: field-local API error.
+            page.locator('#reader-label').fill('')
+            page.locator('#kindle-email').fill('normal@example.invalid')
+            page.locator('#destination-form button').click()
+            expect(page.locator('#kindle-email')).to_have_attribute('aria-invalid','true')
+            expect(page.locator('#destination-form .action-feedback')).to_contain_text('@kindle.com')
+            page.locator('#destination-form').screenshot(path=str(ARTIFACTS / 'ux-address-error-mobile.png'))
             for label, address in [('Bedside','palim-address-fixture-bedside@kindle.com'), ('Travel','palim-address-fixture-travel@kindle.com')]:
                 page.locator('#setup-details').evaluate('(e)=>e.open=true')
                 page.locator('#reader-label').fill(label)
@@ -172,6 +184,15 @@ try:
             personal_sender = account['sender']
             assert re.fullmatch(r'p-[0-9a-f]{32}@example.invalid', personal_sender)
             expect(page.locator('#sender-address')).to_have_text(personal_sender)
+            assert page.locator('.amazon-setup a').first.get_attribute('href') == 'https://www.amazon.co.uk/mycd'
+            context.grant_permissions(['clipboard-read','clipboard-write'])
+            page.locator('#copy-sender').click()
+            expect(page.locator('#copy-sender-status')).to_have_text('Copied.')
+            assert page.evaluate('navigator.clipboard.readText()') == personal_sender
+            page.locator('.amazon-setup').evaluate('(e)=>e.open=true')
+            page.locator('h1').click()
+            page.locator('.reader-panel').screenshot(path=str(ARTIFACTS / 'ux-amazon-setup-mobile.png'))
+            page.locator('.amazon-setup').evaluate('(e)=>e.open=false')
             rows = json.loads(request('/api/account')[2])['destinations']
             assert all('confirmed' not in row for row in rows)
             travel = next(row for row in rows if row['label'] == 'Travel')
@@ -182,10 +203,24 @@ try:
                 page.set_viewport_size({'width':width,'height':height})
                 assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
                 page.locator('.reader-panel').screenshot(path=str(ARTIFACTS / f'saved-readers-{label}.png'))
+            page.set_viewport_size({'width':390,'height':844})
             page.locator('#title').fill('Saved-address proof')
             page.locator('#manuscript').fill('A local synthetic draft. No email was requested.')
             page.locator('#create-form button[type=submit]').click()
             page.locator('#created a.button').first.wait_for()
+            page.locator('#created').screenshot(path=str(ARTIFACTS / 'ux-create-result-mobile.png'))
+            page.get_by_role('link',name='Send an existing file',exact=True).click()
+            original = b'%PDF-1.7\n% Synthetic original for local UX proof\n1 0 obj<</Type/Catalog>>endobj\n%%EOF'
+            page.locator('#original').set_input_files({'name':'Original.pdf','mimeType':'application/pdf','buffer':original})
+            page.locator('#upload-form button[type=submit]').click()
+            page.locator('#uploaded a.button').first.wait_for()
+            expect(page.locator('#uploaded')).to_contain_text('Original file preserved')
+            page.locator('#uploaded').screenshot(path=str(ARTIFACTS / 'ux-upload-result-mobile.png'))
+            uploaded = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if not a['generated'])
+            url = urllib.parse.urlsplit(uploaded['downloadUrl'])
+            assert request(url.path+'?'+url.query)[2] == original
+            page.get_by_role('link',name='Create an EPUB',exact=True).click()
+            expect(page.locator('#title')).to_have_value('Saved-address proof')
             page.locator('#created-reader').select_option(travel['id'])
             expect(page.locator('#created .send-target')).to_contain_text(travel['email'])
             expect(page.locator('#created .send-action')).to_have_text('Send to this Kindle')
@@ -194,7 +229,7 @@ try:
             page.locator('#created .send-action').click()
             page.locator('#receipt-panel').wait_for(state='visible')
             expect(page.locator('#receipt')).to_contain_text(travel['email'])
-            artifact = json.loads(request('/api/account')[2])['artifacts'][0]
+            artifact = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if a['generated'])
             # Repeating the same explicit intent returns the first captured-mail receipt.
             status,_,payload = post('/api/send', {'artifactId':artifact['artifactId'], 'destinationId':travel['id']})
             assert status == 200 and json.loads(payload)['sender'] == personal_sender
@@ -208,6 +243,38 @@ try:
             page.locator('#receipt-panel').screenshot(path=str(ARTIFACTS / 'personal-sender-receipt-mobile.png'))
             assert post('/api/destination', {'email':travel['email']})[0] == 404
             assert post('/api/confirm', {'code':'0000000000'})[0] == 404
+            # Optional name, first default, five-address limit, and useful capacity feedback.
+            for i in range(3):
+                page.locator('#setup-details').evaluate('(e)=>e.open=true')
+                page.locator('#kindle-email').fill(f'extra-{i}@kindle.com')
+                page.locator('#reader-label').fill('')
+                page.locator('#destination-form button').click()
+                expect(page.locator('#reader-list .reader-item')).to_have_count(3+i)
+            assert any(d['label']=='My Kindle' for d in json.loads(request('/api/account')[2])['destinations'])
+            expect(page.locator('#destination-form')).to_be_hidden()
+            page.locator('#setup-details').evaluate('(e)=>e.open=true')
+            expect(page.locator('#reader-limit')).to_be_visible()
+            page.locator('.reader-panel').screenshot(path=str(ARTIFACTS / 'ux-address-limit-mobile.png'))
+            for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
+                page.set_viewport_size({'width':width,'height':height})
+                assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
+                page.screenshot(path=str(ARTIFACTS / f'ux-workspace-{label}.png'),full_page=True)
+            page.set_viewport_size({'width':390,'height':844})
+            page.evaluate('document.documentElement.style.fontSize="200%"')
+            assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
+            page.screenshot(path=str(ARTIFACTS / 'ux-text-zoom-mobile.png'),full_page=True)
+            page.evaluate('document.documentElement.style.fontSize=""')
+            page.emulate_media(reduced_motion='reduce')
+            assert page.evaluate('getComputedStyle(document.documentElement).scrollBehavior') == 'auto'
+            signed_out=browser.new_context(ignore_https_errors=True,viewport={'width':390,'height':844})
+            login_page=signed_out.new_page()
+            login_page.goto(ORIGIN+'/app',wait_until='networkidle')
+            login_page.locator('#login-email').fill('reader@kindle.com')
+            login_page.locator('#login-email-form button').click()
+            expect(login_page.locator('#login-email-form .action-feedback')).to_contain_text('normal inbox')
+            assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 1
+            login_page.screenshot(path=str(ARTIFACTS / 'ux-login-inbox-mobile.png'),full_page=True)
+            signed_out.close()
             browser.close()
         cookies[:] = [foreign_cookie]
         foreign_account=json.loads(request('/api/account')[2])

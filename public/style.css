@@ -226,10 +226,14 @@ button:hover {
   background: var(--white);
   color: var(--ink);
   border-radius: 8px;
-  transform: translateY(-180%);
 }
-.skip-link:focus {
-  transform: translateY(0);
+.skip-link:not(:focus) {
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 /* One editorial stage, with the artwork integrated into its field. */
 .landing {
@@ -776,8 +780,26 @@ textarea {
   margin-bottom: 0.75rem;
 }
 #sender-address {
+  flex-basis: 100%;
+  font-size: var(--text-label);
+  font-weight: 500;
   overflow-wrap: anywhere;
   word-break: break-all;
+}
+.sender-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+.amazon-setup ol {
+  padding-left: 1.25rem;
+  margin-block: var(--space-2);
+  font-size: var(--text-label);
+  line-height: 1.7;
+}
+.amazon-setup li + li {
+  margin-top: var(--space-2);
 }
 .reader-panel > p {
   font-size: var(--text-meta);

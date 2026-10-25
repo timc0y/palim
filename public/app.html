@@ -34,7 +34,7 @@
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
       <section id="signin" class="signin-panel" hidden>
         <h2>Sign in to Palim</h2>
-        <p>Enter your inbox email. We’ll send a six-digit sign-in code.</p>
+        <p>Use your normal inbox, not your Kindle address. We’ll email a six-digit sign-in code.</p>
         <form id="login-email-form">
           <label for="login-email">Your inbox email</label>
           <input
@@ -64,7 +64,7 @@
           <button id="resend-login" type="button" class="plain-button">Request another code</button>
         </form>
         <p class="quiet">
-          No password. Codes expire after five minutes. Sign-in never sends a book.
+          The sign-in code expires after five minutes. No books are sent when you sign in.
         </p>
       </section>
       <div id="desk" class="desk" hidden>
@@ -84,8 +84,7 @@
                 <summary>Author and language</summary>
                 <div class="field-row">
                   <div>
-                    <label for="creator"
-                      >Author / creator <span class="optional">optional</span></label
+                    <label for="creator">Author <span class="optional">optional</span></label
                     ><input
                       id="creator"
                       name="creator"
@@ -95,7 +94,17 @@
                   </div>
                   <div>
                     <label for="language">Language</label
-                    ><input id="language" name="language" value="en" maxlength="35" required />
+                    ><input
+                      id="language"
+                      name="language"
+                      value="en"
+                      maxlength="35"
+                      aria-describedby="language-help"
+                      required
+                    />
+                    <p id="language-help" class="field-help">
+                      en for English, fr for French, or another language code.
+                    </p>
                   </div>
                 </div>
               </details>
@@ -106,9 +115,9 @@
                 rows="11"
                 maxlength="50000"
                 required
-                placeholder="Start with the question. Explain with an example.&#10;&#10;Markdown headings, code and tables are supported."
+                placeholder="Write or paste the text you want to read."
               ></textarea>
-              <p class="field-help">Use the example to try an illustrated reading edition.</p>
+              <p class="field-help">Markdown headings, lists, code and tables are supported.</p>
               <div class="actions">
                 <button type="submit">Create EPUB <span aria-hidden="true">↗</span></button
                 ><button class="plain-button" type="button" id="example-button">
@@ -133,7 +142,7 @@
                   required
               /></label>
               <p class="field-help">
-                Email has a lower 5 MiB encoded-message limit. Uploading a file does not send it.
+                Upload first, then choose where to send. Email is limited to 5 MiB after encoding.
               </p>
               <button type="submit">Upload unchanged ↗</button>
             </form>
@@ -147,8 +156,7 @@
                 <option value="">Add a Kindle address to send</option>
               </select>
               <p class="field-help" id="reader-choice-help">
-                Create and download without connecting a Kindle. Each send goes to one selected
-                address.
+                Each Send uses the selected address. Creating and downloading need no Kindle setup.
               </p>
             </div>
             <div id="shelf" class="shelf"><p class="quiet">Your recent files appear here.</p></div>
@@ -158,39 +166,85 @@
           <section class="panel reader-panel">
             <h2>Kindle addresses</h2>
             <p id="destination-status">No saved Kindle addresses yet.</p>
-            <p class="field-help">
-              In Amazon, approve your personal sender once:<br />
-              <strong id="sender-address"></strong><br />
-              <button id="copy-sender" class="plain-button" type="button">Copy sender</button>
-              Use this exact address, not the whole domain. No Palim Kindle code is needed; Amazon
-              may apply its own checks.
-            </p>
+            <p class="field-help">Approve this personal sender once in Amazon:</p>
+            <div class="sender-controls">
+              <strong id="sender-address"></strong>
+              <button
+                id="copy-sender"
+                class="plain-button"
+                type="button"
+                aria-describedby="copy-sender-status"
+              >
+                Copy sender
+              </button>
+              <span id="copy-sender-status" class="field-help" role="status"></span>
+            </div>
+            <details class="amazon-setup">
+              <summary>Amazon setup (UK)</summary>
+              <ol>
+                <li>
+                  <a href="https://www.amazon.co.uk/mycd" target="_blank" rel="noopener noreferrer"
+                    >Open Content and Devices</a
+                  >, then choose <strong>Preferences → Personal Document Settings</strong>.
+                </li>
+                <li>
+                  Under <strong>Approved Personal Document Email List</strong>, add the exact sender
+                  above, not the whole domain.
+                </li>
+                <li>
+                  Find your <strong>Send-to-Kindle email address</strong> in the same settings and
+                  save it below.
+                </li>
+              </ol>
+              <p class="field-help">
+                Use the Amazon store your Kindle is registered to.
+                <a
+                  href="https://www.amazon.co.uk/gp/help/customer/display.html?nodeId=GX9XLEVV8G4DB28H"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Amazon’s instructions</a
+                >. Amazon may apply its own checks.
+              </p>
+            </details>
             <div id="reader-list"></div>
             <details id="setup-details">
               <summary>Add a Kindle address</summary>
-              <p class="field-help">Save up to five labelled addresses. Saving sends no email.</p>
+              <p class="field-help">
+                Saving sends no email. Your first address becomes the default.
+              </p>
+              <p id="reader-limit" class="field-help" hidden>
+                Five addresses saved. Remove one to add another.
+              </p>
               <form id="destination-form">
-                <label for="reader-label">Reader name</label
-                ><input id="reader-label" maxlength="40" required placeholder="My Kindle" />
-                <label for="kindle-email">Kindle email address</label
-                ><input
+                <label for="kindle-email">Kindle email address</label>
+                <input
                   id="kindle-email"
                   type="email"
+                  inputmode="email"
                   required
                   autocomplete="off"
-                  placeholder="your-reader@kindle.com"
-                /><button type="submit" class="secondary">Save address</button>
+                  autocapitalize="none"
+                  spellcheck="false"
+                  maxlength="180"
+                  placeholder="Paste the full address from Amazon"
+                  aria-describedby="kindle-email-help"
+                />
+                <p id="kindle-email-help" class="field-help">
+                  Copy the full address Amazon assigned to your device, including any underscores or
+                  suffix. This is different from your inbox email.
+                </p>
+                <label for="reader-label">Name <span class="optional">optional</span></label>
+                <input id="reader-label" maxlength="40" placeholder="e.g. Bedside or Travel" />
+                <button type="submit" class="secondary">Save address</button>
               </form>
             </details>
           </section>
           <section class="panel connect-panel">
             <details>
               <summary>Connect your agent</summary>
-              <h3>Connect Palim.</h3>
               <p>
-                Connect Palim once and sign in. Your agent reads get_guide, then creates a reading
-                edition or forwards an original unchanged when asked. No skills or setup hooks are
-                needed.
+                Connect once and sign in. Your agent uses the guide to create books or send existing
+                files when you ask.
               </p>
               <code id="mcp-url"></code
               ><button id="copy-mcp" class="secondary">Copy MCP address</button>
@@ -198,13 +252,12 @@
                 <a href="https://github.com/timc0y/palim#connect-palim"
                   >Connection and installation steps</a
                 >
-                · <a href="/palim-plugin.zip">Optional Codex connection package</a>. The get_guide
-                tool explains both workflows. Creating a draft never sends it.
+                · <a href="/palim-plugin.zip">Codex connection package</a>
               </p>
             </details>
           </section>
           <section class="panel receipt-panel" id="receipt-panel" hidden>
-            <p class="eyebrow">DELIVERY RECEIPT</p>
+            <h2>Latest submission</h2>
             <div id="receipt"></div>
             <button class="secondary" id="refresh-receipt">Refresh receipt</button>
           </section>
