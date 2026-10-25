@@ -87,12 +87,7 @@ export async function buildBook(
         ),
       );
   };
-  addPage(
-    'cover',
-    book.title,
-    `<section class="cover" epub:type="cover"><img src="cover.svg" alt="${e(book.title)}"/></section>`,
-    false,
-  );
+  // Kindle consumes the OPF cover image; a duplicate HTML cover in the spine can fail conversion.
   addPage(
     'title',
     book.title,

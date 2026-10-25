@@ -31,6 +31,16 @@ test('same input and clock produce byte-identical books', async () => {
   assert.equal(a.hash, b.hash);
   assert.equal(JSON.parse(a.source).title, simpleBook.title);
 });
+test('generated EPUB declares its cover image without a duplicate HTML cover in the spine', async () => {
+  const book = await buildBook(simpleBook, new Map(), time);
+  const zip = await JSZip.loadAsync(book.bytes);
+  const opf = await zip.file('EPUB/package.opf')!.async('text');
+  assert.match(opf, /id="cover-image"[^>]+properties="cover-image"/);
+  assert.ok(zip.file('EPUB/cover.svg'));
+  assert.equal(zip.file('EPUB/cover.xhtml'), null);
+  assert.doesNotMatch(opf, /<itemref idref="cover"/);
+  assert.match(opf, /<spine><itemref idref="title"/);
+});
 test('manuscript XML characters and metadata are escaped', async () => {
   const b = await buildBook(
     { ...simpleBook, title: 'A & B < C', creator: '"Someone" & Co' },
