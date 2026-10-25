@@ -204,7 +204,7 @@ try:
             browser_code = re.search(r'code is (\d{6})', browser_mail['text']).group(1)
             browser_page.locator('#login-code').fill('111111' if browser_code == '000000' else '000000')
             browser_page.locator('#login-code-form button[type=submit]').click()
-            expect(browser_page.locator('#login-code-form .action-feedback.error')).not_to_have_text('')
+            expect(browser_page.locator('#login-code-form .action-feedback.error')).to_have_text('That code is invalid or expired. Try again or request a new code.')
             browser_page.screenshot(path=str(ARTIFACTS / 'login-error-mobile.png'), full_page=True)
             browser_page.locator('#login-code').fill(browser_code)
             browser_page.locator('#login-code-form button[type=submit]').click()
@@ -219,6 +219,7 @@ try:
             expect(browser_page.locator('#title')).to_have_value('The shape of an idea')
             browser_page.locator('#create-form button[type=submit]').click()
             browser_page.locator('#created a', has_text='Download').wait_for()
+            browser_page.locator('#created').screenshot(path=str(ARTIFACTS / 'create-result-mobile.png'))
             preview_url = browser_page.locator('#created a', has_text='Preview').get_attribute('href')
             preview_page = context.new_page()
             preview_page.set_viewport_size({'width': 390, 'height': 844})
@@ -232,6 +233,12 @@ try:
             browser_page.locator('#upload-form button[type=submit]').click()
             browser_page.locator('#uploaded a', has_text='Download').wait_for()
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
+            expect(browser_page.locator('#shelf .shelf-item')).to_have_count(2)
+            browser_page.locator('#uploaded').screenshot(path=str(ARTIFACTS / 'upload-result-mobile.png'))
+            for action in browser_page.locator('#shelf a, #shelf button').all():
+                bounds = action.bounding_box()
+                assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Shelf touch target too small'
+            browser_page.locator('#shelf').screenshot(path=str(ARTIFACTS / 'shelf-unconfigured-mobile.png'))
             # Synthetic confirmed readers exercise layout and isolation, not Kindle acceptance.
             reader_ids = [secrets.token_hex(16), secrets.token_hex(16)]
             import uuid
@@ -242,6 +249,10 @@ try:
             database.commit()
             browser_page.reload(wait_until='networkidle')
             expect(browser_page.locator('#send-reader option')).to_have_count(3)
+            for action in browser_page.locator('#shelf a, #shelf button').all():
+                bounds = action.bounding_box()
+                assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Confirmed shelf action too small'
+            browser_page.locator('#shelf').screenshot(path=str(ARTIFACTS / 'shelf-mobile.png'))
             browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
             browser_page.screenshot(path=str(ARTIFACTS / 'destinations-mobile.png'), full_page=True)
             browser_page.locator('#setup-details').evaluate('(el) => el.open = false')

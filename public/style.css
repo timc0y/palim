@@ -788,13 +788,18 @@ textarea::placeholder {
 }
 .shelf-links {
   display: flex;
-  gap: 16px;
+  gap: 8px;
   flex-wrap: wrap;
-  font-size: 13px;
+  font-size: 14px;
 }
+.shelf-links a,
 .shelf-links button {
-  padding: 0;
-  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 12px;
+  font-size: 14px;
 }
 .receipt-state {
   text-transform: uppercase;

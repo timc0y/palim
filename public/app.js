@@ -16,9 +16,16 @@ async function api(path, options = {}) {
     throw new Error('The server did not return a readable response.');
   }
   if (!response.ok)
-    throw Object.assign(new Error(data.message || 'The operation could not finish.'), {
-      status: response.status,
-    });
+    throw Object.assign(
+      new Error(
+        path === '/auth/sign-in/email-otp' && [400, 401].includes(response.status)
+          ? 'That code is invalid or expired. Try again or request a new code.'
+          : data.message || 'The operation could not finish.',
+      ),
+      {
+        status: response.status,
+      },
+    );
   return data;
 }
 const post = (path, value) =>
