@@ -155,7 +155,7 @@ export class Store {
         .prepare(
           `INSERT INTO deliveries(id,owner,send_key,purpose,artifact_id,sha256,destination_hash,destination_mask,destination_id,default_intent_key,state,resend_of,created_at,updated_at)
         SELECT ?,id,?,?,?,?,?,?,?,?,'submitting',?,?,? FROM users WHERE id=? AND disabled=0
-        AND (?='challenge' OR EXISTS(SELECT 1 FROM reader_destinations WHERE owner=? AND id=?))
+        AND (?='challenge' OR EXISTS(SELECT 1 FROM reader_destinations WHERE owner=? AND id=? AND confirmed_at IS NOT NULL))
         AND (SELECT COUNT(*) FROM deliveries WHERE owner=? AND created_at>=?) < ?
         AND (SELECT COUNT(*) FROM mail_attempts WHERE created_at>=?) < ?
         AND (SELECT COUNT(*) FROM mail_attempts WHERE created_at>=?) < ?
@@ -236,11 +236,38 @@ export class Store {
       .first();
     return row ? id : null;
   }
+  async saveReader(owner: string, email: string, label: string): Promise<ReaderDestination> {
+    await this.user(owner);
+    const row = await this.db
+      .prepare(
+        `INSERT INTO reader_destinations(id,owner,label,email,confirmed_at)
+      SELECT ?,id,?,?,NULL FROM users WHERE id=? AND disabled=0
+      AND ((SELECT COUNT(*) FROM reader_destinations WHERE owner=?)<5 OR EXISTS(SELECT 1 FROM reader_destinations WHERE owner=? AND email=?))
+      ON CONFLICT(owner,email) DO UPDATE SET label=excluded.label RETURNING *`,
+      )
+      .bind(crypto.randomUUID(), label, email, owner, owner, owner, email)
+      .first<ReaderDestination>();
+    if (!row)
+      throw new PalimError(
+        'READER_LIMIT',
+        'You can save up to five Kindle addresses. Remove one before adding another.',
+        409,
+      );
+    await this.db
+      .prepare(
+        'UPDATE users SET default_destination_id=? WHERE id=? AND disabled=0 AND default_destination_id IS NULL AND EXISTS(SELECT 1 FROM reader_destinations WHERE id=? AND owner=?)',
+      )
+      .bind(row.id, owner, row.id, owner)
+      .run();
+    return row;
+  }
   async readers(owner: string): Promise<ReaderDestination[]> {
     await this.user(owner);
     return (
       await this.db
-        .prepare('SELECT * FROM reader_destinations WHERE owner=? ORDER BY confirmed_at,id')
+        .prepare(
+          'SELECT * FROM reader_destinations WHERE owner=? ORDER BY confirmed_at IS NULL,confirmed_at,id',
+        )
         .bind(owner)
         .all<ReaderDestination>()
     ).results;
@@ -252,7 +279,7 @@ export class Store {
       .bind(owner, id)
       .first<ReaderDestination>();
     if (!row)
-      throw new PalimError('READER_NOT_FOUND', 'Choose one of your confirmed readers.', 404);
+      throw new PalimError('READER_NOT_FOUND', 'Choose one of your saved Kindle addresses.', 404);
     return row;
   }
   async defaultReader(owner: string, id: string): Promise<void> {
@@ -264,14 +291,16 @@ export class Store {
       .bind(id, owner, id, owner)
       .first();
     if (!row)
-      throw new PalimError('READER_NOT_FOUND', 'Choose one of your confirmed readers.', 404);
+      throw new PalimError('READER_NOT_FOUND', 'Choose one of your saved Kindle addresses.', 404);
   }
   async removeReader(owner: string, id: string): Promise<void> {
-    await this.reader(owner, id);
-    await this.db
-      .prepare('DELETE FROM reader_destinations WHERE owner=? AND id=?')
-      .bind(owner, id)
-      .run();
+    const reader = await this.reader(owner, id);
+    await this.db.batch([
+      this.db
+        .prepare('DELETE FROM challenges WHERE owner=? AND destination=?')
+        .bind(owner, reader.email),
+      this.db.prepare('DELETE FROM reader_destinations WHERE owner=? AND id=?').bind(owner, id),
+    ]);
   }
 
   async outcome(
@@ -319,7 +348,7 @@ export class Store {
         SELECT ?,id,?,?,? FROM users WHERE id=? AND disabled=0
         AND ((SELECT COUNT(*) FROM reader_destinations WHERE owner=?)<5 OR EXISTS(SELECT 1 FROM reader_destinations WHERE owner=? AND email=?))
         AND EXISTS(SELECT 1 FROM challenges WHERE owner=? AND generation=? AND code_hash=? AND expires_at>?)
-        ON CONFLICT(owner,email) DO UPDATE SET label=excluded.label,confirmed_at=excluded.confirmed_at`,
+        ON CONFLICT(owner,email) DO UPDATE SET confirmed_at=excluded.confirmed_at`,
         )
         .bind(
           challenge.generation,

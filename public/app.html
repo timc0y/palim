@@ -157,14 +157,15 @@
         <aside class="desk-aside">
           <section class="panel reader-panel">
             <h2>Kindle addresses</h2>
-            <p id="destination-status">No confirmed reader yet.</p>
+            <p id="destination-status">No saved Kindle addresses yet.</p>
             <div id="reader-list"></div>
             <details id="setup-details">
               <summary>Add a Kindle address</summary>
               <p class="field-help">
-                First add <strong id="sender-address"></strong> to Amazon’s approved
-                personal-document senders. Check that personal-document archiving is enabled to keep
-                books in your library.
+                Save up to five labelled addresses without sending email. Before first delivery, add
+                <strong id="sender-address"></strong> to Amazon’s approved personal-document
+                senders. Check that personal-document archiving is enabled to keep books in your
+                library.
               </p>
               <form id="destination-form">
                 <label for="reader-label">Reader name</label
@@ -176,7 +177,7 @@
                   required
                   autocomplete="off"
                   placeholder="your-reader@kindle.com"
-                /><button type="submit" class="secondary">Send verification book</button>
+                /><button type="submit" class="secondary">Save address</button>
               </form>
               <form id="confirm-form" hidden>
                 <label for="verification-code">Code from the verification book</label
@@ -192,7 +193,7 @@
                   placeholder="10 characters"
                 /><button type="submit" class="secondary">Confirm reader</button>
               </form>
-              <p class="field-help">
+              <p class="field-help" id="verification-help" hidden>
                 The code is inside the book, not in this workspace. It expires after one hour.
               </p>
             </details>

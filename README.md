@@ -12,7 +12,7 @@ An independent open-source project by [Tim Coy](https://timcoy.uk). Not affiliat
 ## What works in the implementation
 
 - A bounded EPUB publisher: chapters, title/creator/language metadata, automatic cover, Mermaid diagrams, labelled bar charts, uploaded PNG/JPEG figures, source notes and table of contents.
-- A responsive reading workspace: create a draft, preview/download it, export the manuscript, upload an original, sign in by email code, save up to five labelled confirmed Kindle addresses, choose a default and inspect an honest delivery receipt.
+- A responsive reading workspace: create a draft, preview/download it, export the manuscript, upload an original, sign in by email code, save up to five labelled Kindle addresses without email, choose a default and inspect an honest delivery receipt.
 - One read-only guide and three publishing tools: `get_guide`, `create_book`, `send_document`, `get_delivery`.
 - Cloudflare Email submission with attachment hashes, registered destinations, atomic sending allowances and no blind retry after an uncertain outcome.
 - Private temporary files, expiring download links, isolated accounts and scheduled cleanup.
@@ -40,7 +40,7 @@ The local website is at `http://localhost:8787`. A usable authenticated hosted i
 
 ## Connect Palim
 
-Connect once and sign in. Your agent reads `get_guide`, then creates a reading edition or forwards an original unchanged when asked. There is no skill to install. Creating and downloading a reading edition needs no Kindle setup; sending is a separate requested action.
+Connect once and sign in. Your agent reads `get_guide`, then creates a reading edition or forwards an original unchanged when asked. There is no skill to install. Creating/downloading needs no Kindle setup. Save addresses immediately; verify each once before first delivery. Sending remains a separate requested action.
 
 ### ChatGPT
 

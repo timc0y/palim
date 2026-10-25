@@ -28,7 +28,7 @@ export interface ReaderDestination {
   owner: string;
   label: string;
   email: string;
-  confirmed_at: number;
+  confirmed_at: number | null;
 }
 export interface Artifact {
   id: string;

@@ -22,7 +22,7 @@ If host file transfer is unsupported, open ${origin}/app for authenticated uploa
 
 ## Send only when requested
 
-A clear delivery request is required. Saved confirmed destinations belong to the signed-in account; never supply an arbitrary recipient or guess destinationId. The workspace at ${origin}/app manages optional Kindle confirmation, multiple addresses and the default. Creation/download works without destination setup.
+A clear delivery request is required. Saved destinations belong to the signed-in account; only confirmed ones can receive delivery; never supply an arbitrary recipient or guess destinationId. The workspace at ${origin}/app saves up to five labelled Kindle addresses immediately without email, with a default and explicit selection. Saving is not delivery approval: verify each address once before first delivery using its explicit Send verification book action. Creation/download works without destination setup.
 
 Sign-in and consent happen in the client's browser OAuth flow. Never request inbox codes, tokens, cookies or Amazon passwords in chat. A verification book is real mail: establish recipient and purpose and obtain the user's delivery request. Its confirmation code must come from the destination, never logs or storage.
 

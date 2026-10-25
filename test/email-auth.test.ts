@@ -148,9 +148,12 @@ test('saved readers are private and prior delivery intent stays frozen after def
     () => f.palim.store.defaultReader('alice', bob.id),
     () => f.palim.store.removeReader('alice', bob.id),
   ])
-    await assert.rejects(op(), /confirmed readers/);
+    await assert.rejects(op(), /saved Kindle addresses/);
   const a = await f.palim.create('alice', simpleBook);
-  await assert.rejects(f.palim.send('alice', a.artifactId, undefined, bob.id), /confirmed readers/);
+  await assert.rejects(
+    f.palim.send('alice', a.artifactId, undefined, bob.id),
+    /saved Kindle addresses/,
+  );
   const first = await f.palim.send('alice', a.artifactId);
   assert.equal(first.destinationId, alice.id);
   const second = crypto.randomUUID();

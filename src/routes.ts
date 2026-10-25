@@ -42,13 +42,17 @@ export async function appFetch(request: Request, env: Env): Promise<Response> {
         ),
       );
     }
-    if (path === '/api/destination' && request.method === 'POST') {
+    if (['/api/destinations', '/api/destination'].includes(path) && request.method === 'POST') {
       const value = z
         .object({ email: z.string(), label: z.string().trim().min(1).max(40).default('My reader') })
         .strict()
         .safeParse(await readJson(request, 1024));
       if (!value.success) throw new PalimError('INVALID_REQUEST', 'Enter your Kindle address.');
-      return json(await palim.challenge(owner, value.data.email, value.data.label));
+      return json(
+        path === '/api/destinations'
+          ? await palim.saveDestination(owner, value.data.email, value.data.label)
+          : await palim.challenge(owner, value.data.email, value.data.label),
+      );
     }
     if (path === '/api/confirm' && request.method === 'POST') {
       const value = z

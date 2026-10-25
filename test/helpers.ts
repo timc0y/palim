@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import type { Env } from '../src/types.js';
 import type { EmailPayload } from '../src/mail.js';
 import { Palim } from '../src/service.js';
@@ -9,10 +9,10 @@ export const NOW = Date.parse('2026-10-25T12:00:00Z') / 1000;
 /** Real SQLite exercises the same SQL; only the asynchronous D1 transport is adapted. */
 export function database() {
   const sql = new DatabaseSync(':memory:');
-  sql.exec(readFileSync(new URL('../migrations/0001.sql', import.meta.url), 'utf8'));
-  sql.exec(
-    readFileSync(new URL('../migrations/0002-email-auth-readers.sql', import.meta.url), 'utf8'),
-  );
+  for (const name of readdirSync(new URL('../migrations/', import.meta.url))
+    .filter((name) => name.endsWith('.sql'))
+    .sort())
+    sql.exec(readFileSync(new URL('../migrations/' + name, import.meta.url), 'utf8'));
   const prepare = (query: string) => {
     let values: (string | number | null | Uint8Array)[] = [];
     const run = () => {

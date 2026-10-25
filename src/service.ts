@@ -115,7 +115,7 @@ export class Palim {
         id: d.id,
         label: d.label,
         email: d.email,
-        confirmed: true,
+        confirmed: d.confirmed_at !== null,
         isDefault: d.id === user.default_destination_id,
       })),
       pendingDestination:
@@ -371,6 +371,11 @@ export class Palim {
       'Open the Palim workspace and confirm your Kindle address first.',
     );
     const selected = await this.store.reader(owner, selectedId);
+    invariant(
+      selected.confirmed_at !== null,
+      'READER_UNCONFIRMED',
+      'This Kindle address is saved. Open the Palim workspace and verify it once before sending. Nothing was sent.',
+    );
     const key = await sha256(`${owner}\n${a.sha256}\n${selected.id}\n${resendOf ?? 'original'}`);
     const previous = await this.store.deliveryByKey(owner, key);
     if (previous) {
@@ -461,23 +466,37 @@ export class Palim {
       await this.store.outcome(id, code && REJECTED.has(code) ? 'rejected' : 'unknown', null, code);
     }
   }
-  async challenge(owner: string, email: unknown, label = 'My reader') {
-    const user = await this.store.user(owner);
+  private readerInput(email: unknown, label: string) {
     const parsed = DestinationSchema.safeParse({ email });
     if (!parsed.success)
       throw new PalimError('KINDLE_ADDRESS', 'Enter your Amazon @kindle.com document address.');
-    const readers = await this.store.readers(owner);
-    invariant(
-      readers.length < 5 || readers.some((d) => d.email === parsed.data.email),
-      'READER_LIMIT',
-      'You can save up to five Kindle addresses. Remove one before adding another.',
-    );
     invariant(
       label.trim().length > 0 && label.trim().length <= 40,
       'READER_LABEL',
       'Give this reader a name of up to 40 characters.',
     );
-    const destination = parsed.data.email,
+    return { email: parsed.data.email, label: label.trim() };
+  }
+  async saveDestination(owner: string, email: unknown, label = 'My reader') {
+    const value = this.readerInput(email, label);
+    const saved = await this.store.saveReader(owner, value.email, value.label);
+    return {
+      id: saved.id,
+      label: saved.label,
+      email: saved.email,
+      confirmed: saved.confirmed_at !== null,
+    };
+  }
+  async challenge(owner: string, email: unknown, label = 'My reader') {
+    const user = await this.store.user(owner);
+    const value = this.readerInput(email, label);
+    const readers = await this.store.readers(owner);
+    invariant(
+      readers.length < 5 || readers.some((d) => d.email === value.email),
+      'READER_LIMIT',
+      'You can save up to five Kindle addresses. Remove one before adding another.',
+    );
+    const destination = value.email,
       existing = await this.store.challenge(owner);
     if (existing && existing.expires_at > this.clock())
       throw new PalimError(

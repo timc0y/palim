@@ -134,6 +134,73 @@ try:
         assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 0
         print('PASS: real browser form Origin and hostile-origin refusal; no accounts, email, client registration or OAuth grants created.')
         sys.exit(0)
+    if '--saved-addresses-only' in sys.argv:
+        # Isolated browser-session fixtures, never OAuth registration/consent or sign-in email.
+        from playwright.sync_api import sync_playwright, expect
+        def fixture_session(owner):
+            stamp = int(time.time() * 1000)
+            raw = secrets.token_hex(32)
+            database.execute('INSERT INTO users(id,name,created_at) VALUES(?,?,?)', (owner, owner, stamp // 1000))
+            database.execute('INSERT INTO auth_users(id,name,email,emailVerified,createdAt,updatedAt) VALUES(?,?,?,1,?,?)', (owner, owner, owner + '@example.invalid', stamp, stamp))
+            database.execute('INSERT INTO auth_sessions(id,expiresAt,token,createdAt,updatedAt,userId) VALUES(?,?,?,?,?,?)', (secrets.token_hex(16), stamp + 600000, raw, stamp, stamp, owner))
+            database.commit()
+            script = "import {serializeSignedCookie} from 'better-call'; let text='';for await(const chunk of process.stdin)text+=chunk;const value=JSON.parse(text);console.log((await serializeSignedCookie('__Host-palim',value.token,value.key,{secure:true,httpOnly:true,sameSite:'lax',path:'/'})).split(';')[0]);"
+            return subprocess.check_output(['node', '--input-type=module', '-e', script], input=json.dumps({'token':raw, 'key':CONFIG['vars']['AUTH_SECRET']}).encode(), cwd=ROOT, env=environment).decode().strip()
+        owner_cookie = fixture_session('saved-address-fixture')
+        foreign_cookie = fixture_session('other-address-fixture')
+        database.execute('CREATE TABLE proof_mail(payload TEXT NOT NULL)')
+        database.commit()
+        cookies[:] = [owner_cookie]
+        with sync_playwright() as runner:
+            browser = runner.chromium.launch()
+            context = browser.new_context(ignore_https_errors=True, viewport={'width':390,'height':844})
+            context.add_cookies([{'name':'__Host-palim','value':owner_cookie.split('=',1)[1],'url':ORIGIN,'httpOnly':True,'secure':True,'sameSite':'Lax'}])
+            page = context.new_page()
+            page.goto(ORIGIN + '/app', wait_until='networkidle')
+            page.locator('#desk').wait_for(state='visible')
+            for label, address in [('Bedside','palim-address-fixture-bedside@kindle.com'), ('Travel','palim-address-fixture-travel@kindle.com')]:
+                page.locator('#setup-details').evaluate('(e)=>e.open=true')
+                page.locator('#reader-label').fill(label)
+                page.locator('#kindle-email').fill(address)
+                page.locator('#destination-form button').click()
+                expect(page.locator('#reader-list')).to_contain_text(label)
+            expect(page.locator('#reader-list .reader-item')).to_have_count(2)
+            expect(page.locator('#destination-status')).to_contain_text('2 saved')
+            expect(page.locator('#confirm-form')).to_be_hidden()
+            rows = json.loads(request('/api/account')[2])['destinations']
+            assert all(not row['confirmed'] for row in rows)
+            travel = next(row for row in rows if row['label'] == 'Travel')
+            page.locator('#reader-list .reader-item').filter(has_text='Travel').get_by_role('button',name='Make default').click()
+            expect(page.locator('#reader-list .reader-item').filter(has_text='Travel')).to_contain_text('Default')
+            assert json.loads(request('/api/account')[2])['defaultDestinationId'] == travel['id']
+            for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
+                page.set_viewport_size({'width':width,'height':height})
+                assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
+                page.locator('.reader-panel').screenshot(path=str(ARTIFACTS / f'saved-readers-{label}.png'))
+            page.locator('#title').fill('Saved-address proof')
+            page.locator('#manuscript').fill('A local synthetic draft. No email was requested.')
+            page.locator('#create-form button[type=submit]').click()
+            page.locator('#created a.button').first.wait_for()
+            page.locator('#created-reader').select_option(travel['id'])
+            expect(page.locator('#created .send-target')).to_contain_text(travel['email'])
+            expect(page.locator('#created .send-action')).to_have_text('Verify before sending')
+            page.locator('#created .send-action').click()
+            assert page.locator('#verify-reader-' + travel['id']).evaluate('(e)=>e===document.activeElement')
+            artifact = json.loads(request('/api/account')[2])['artifacts'][0]
+            status,_,payload = post('/api/send', {'artifactId':artifact['artifactId'], 'destinationId':travel['id']})
+            assert status == 400 and json.loads(payload)['code'] == 'READER_UNCONFIRMED'
+            page.set_viewport_size({'width':390,'height':844})
+            page.locator('#created').screenshot(path=str(ARTIFACTS / 'saved-reader-send-mobile.png'))
+            assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 0
+            assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 0
+            assert database.execute('SELECT count(*) FROM challenges').fetchone()[0] == 0
+            browser.close()
+        cookies[:] = [foreign_cookie]
+        assert json.loads(request('/api/account')[2])['destinations'] == []
+        assert post('/api/destinations/' + travel['id'] + '/default', {})[0] == 404
+        assert request('/api/destinations/' + travel['id'], 'DELETE')[0] == 404
+        print('PASS: native Pages save/list/default/selection and pending-send refusal; seeded local browser sessions, zero email, no OAuth client registration or grants.')
+        sys.exit(0)
     import io, zipfile
     status, bundle_headers, bundle = request('/palim-plugin.zip')
     assert status == 200
@@ -417,7 +484,12 @@ try:
             browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
             browser_page.locator('#reader-label').fill('New Kindle')
             browser_page.locator('#kindle-email').fill('pending@kindle.com')
+            before_save_mail = database.execute('SELECT count(*) FROM proof_mail').fetchone()[0]
             browser_page.locator('#destination-form button').click()
+            row = browser_page.locator('#reader-list .reader-item').filter(has_text='pending@kindle.com')
+            row.wait_for()
+            assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == before_save_mail
+            row.get_by_role('button', name='Send verification book').click()
             browser_page.locator('#confirm-form').wait_for(state='visible')
             expect(browser_page.locator('#confirm-form label')).to_contain_text('pending@kindle.com')
             browser_page.screenshot(path=str(ARTIFACTS / 'destination-pending-mobile.png'), full_page=True)

@@ -18,7 +18,7 @@
 ## Current boundary
 
 - `get_guide`, `create_book`, `send_document` and `get_delivery` are the MCP operations. The workspace owns sign-in, uploads, destination confirmation and temporary downloads.
-- Better Auth owns email-code identity and the sole browser session; no social-provider application is needed. Private labelled Kindle destinations are application data, with at most five confirmed addresses and an optional default. A maintained Cloudflare OAuth provider owns MCP consent, PKCE, tokens and discovery. The tested SDK is pinned; new host compatibility requires its own proof.
+- Better Auth owns email-code identity and the sole browser session; no social-provider application is needed. Private labelled Kindle destinations are application data, with at most five saved labelled addresses and a default. Saving sends no mail; delivery requires a one-time confirmation. A maintained Cloudflare OAuth provider owns MCP consent, PKCE, tokens and discovery. The tested SDK is pinned; new host compatibility requires its own proof.
 - Diagrams and the automatic cover are embedded SVG; supplied PNG/JPEG assets are supported. Physical Kindle rendering remains unverified. No browser runtime, JEV/Clef dependency or alternate email provider is required.
 - Hosted artifacts expire after 24 hours, signed links after 15 minutes, and minimal delivery records after 35 days. Provider retention is separate. R2 lifecycle is a deployment obligation for crash-orphan cleanup.
 
