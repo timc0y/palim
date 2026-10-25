@@ -19,7 +19,7 @@
 
 - `get_guide`, `create_book`, `send_document` and `get_delivery` are the MCP operations. The workspace owns sign-in, uploads, destination confirmation and temporary downloads.
 - Better Auth owns email-code identity and the sole browser session; no social-provider application is needed. Private labelled Kindle destinations are application data, with at most five saved labelled addresses and a default. Saving sends no mail. Each account has a persistent random personal sender on the configured sending domain; the user approves that exact sender in Amazon once. Palim has no Kindle verification-book/code flow. A maintained Cloudflare OAuth provider owns MCP consent, PKCE, tokens and discovery. The tested SDK is pinned; new host compatibility requires its own proof.
-- Diagrams and the automatic cover are embedded SVG; supplied PNG/JPEG assets are supported. Physical Kindle rendering remains unverified. No browser runtime, JEV/Clef dependency or alternate email provider is required.
+- Generated diagrams and the automatic cover are rasterized to bounded PNGs with maintained resvg WASM and an embedded OFL font. Amazon's Send-to-Kindle E016 guidance excludes SVG from reflowable documents. Text remains XHTML with reflowable metadata; supplied PNG/JPEG assets and original uploads remain unchanged. Physical Kindle rendering remains unverified. No browser runtime, JEV/Clef dependency or alternate email provider is required.
 - Hosted artifacts expire after 24 hours, signed links after 15 minutes, and minimal delivery records after 35 days. Provider retention is separate. R2 lifecycle is a deployment obligation for crash-orphan cleanup.
 
 ## Ordinary paths

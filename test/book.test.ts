@@ -36,7 +36,7 @@ test('generated EPUB declares its cover image without a duplicate HTML cover in 
   const zip = await JSZip.loadAsync(book.bytes);
   const opf = await zip.file('EPUB/package.opf')!.async('text');
   assert.match(opf, /id="cover-image"[^>]+properties="cover-image"/);
-  assert.ok(zip.file('EPUB/cover.svg'));
+  assert.ok(zip.file('EPUB/cover.png'));
   assert.equal(zip.file('EPUB/cover.xhtml'), null);
   assert.doesNotMatch(opf, /<itemref idref="cover"/);
   assert.match(opf, /<spine><itemref idref="title"/);
@@ -98,8 +98,18 @@ test('Mermaid and data charts render with captions and no remote resources', asy
     ],
   });
   const zip = await JSZip.loadAsync(b.bytes);
-  assert.ok(zip.file('EPUB/fig-flow.svg'));
-  assert.ok(zip.file('EPUB/fig-bars.svg'));
+  for (const file of ['cover.png', 'fig-flow.png', 'fig-bars.png']) {
+    const png = await zip.file(`EPUB/${file}`)!.async('uint8array');
+    assert.deepEqual([...png.slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    const size = new DataView(png.buffer, png.byteOffset);
+    assert.equal(size.getUint32(16), 1200);
+    assert.ok(size.getUint32(20) > 0 && size.getUint32(20) <= 5200);
+  }
+  assert.ok(!Object.keys(zip.files).some((name) => name.endsWith('.svg')));
+  const opf = await zip.file('EPUB/package.opf')!.async('text');
+  assert.doesNotMatch(opf, /image\/svg\+xml|pre-paginated/);
+  assert.match(opf, /rendition:layout">reflowable/);
+  assert.match(await zip.file('EPUB/chapter-1.xhtml')!.async('text'), /<h1>Figures<\/h1>/);
   assert.match(await zip.file('EPUB/chapter-1.xhtml')!.async('text'), /figcaption/);
 });
 test('unused and duplicate figures fail clearly', async () => {

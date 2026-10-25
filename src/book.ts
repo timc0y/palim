@@ -5,6 +5,7 @@ import { escapeXml as e, xhtml, sha256, parseXml } from './xml.js';
 import { renderFigure, coverSvg, type Asset } from './figures.js';
 import { invariant, PalimError } from './errors.js';
 import { canEmail, safeFilename } from './mail.js';
+import { rasterize } from './raster.js';
 
 export const BOOK_CSS = `body{font-family:Georgia,"Times New Roman",serif;font-size:1em;line-height:1.65;margin:5%;overflow-wrap:break-word}h1,h2,h3{font-family:Arial,sans-serif;line-height:1.2;page-break-after:avoid;break-after:avoid;font-weight:600}h1{font-size:2em;margin:0 0 1em}h2{font-size:1.35em;margin:2em 0 .7em}h3{font-size:1.1em;margin:1.5em 0 .5em}p{margin:0 0 1em;orphans:3;widows:3}a{text-decoration:underline;text-underline-offset:.15em}img{display:block;max-width:100%;height:auto}figure{margin:2em 0;page-break-inside:avoid;break-inside:avoid}figure img{margin:auto}figcaption{font-family:Arial,sans-serif;font-size:.8em;line-height:1.5;margin-top:1em}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85em;border:1px solid;padding:1em}code{font-family:monospace}blockquote{margin:1.5em 0;padding:0 1em;border-left:1px solid}table{border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:.85em;line-height:1.5;margin:1.5em 0}th,td{overflow-wrap:anywhere;padding:.7em .4em;border-bottom:1px solid;text-align:left;vertical-align:top}th{font-weight:bold}li{margin-bottom:.6em}.title-page{text-align:center}.subtitle{font-size:1.25em}.source-note{font-size:.8em}nav ol{line-height:1.8}.cover{margin:0;text-align:center}.cover img{width:100%;max-width:100%;max-height:95vh;object-fit:contain}.caption{font-size:.85em}`;
 export const PREVIEW_CSS = `${BOOK_CSS}
@@ -55,17 +56,22 @@ export async function buildBook(
   const manifest = [
     { id: 'css', href: 'style.css', type: 'text/css', properties: '' },
     { id: 'nav', href: 'nav.xhtml', type: 'application/xhtml+xml', properties: 'nav' },
-    { id: 'cover-image', href: 'cover.svg', type: 'image/svg+xml', properties: 'cover-image' },
+    { id: 'cover-image', href: 'cover.png', type: 'image/png', properties: 'cover-image' },
   ];
-  file('EPUB/cover.svg', coverSvg(book.title, book.subtitle, book.creator));
-  const rendered = new Map(
-    book.figures.map((f) => {
-      const r = renderFigure(f, assets);
-      file(`EPUB/${r.filename}`, r.bytes, r.type !== 'image/svg+xml');
-      manifest.push({ id: `fig-${r.id}`, href: r.filename, type: r.type, properties: '' });
-      return [f.id, r] as const;
-    }),
-  );
+  file('EPUB/cover.png', await rasterize(coverSvg(book.title, book.subtitle, book.creator)), true);
+  const rendered = new Map<string, ReturnType<typeof renderFigure>>();
+  // Render sequentially to bound WASM image memory across a manuscript's figures.
+  for (const f of book.figures) {
+    const r = renderFigure(f, assets);
+    if (r.type === 'image/svg+xml') {
+      r.bytes = await rasterize(new TextDecoder().decode(r.bytes));
+      r.type = 'image/png';
+      r.filename = r.filename.replace(/\.svg$/, '.png');
+    }
+    file(`EPUB/${r.filename}`, r.bytes, true);
+    manifest.push({ id: `fig-${r.id}`, href: r.filename, type: r.type, properties: '' });
+    rendered.set(f.id, r);
+  }
   const spine: string[] = [],
     toc: { title: string; href: string }[] = [],
     preview: string[] = [],
@@ -178,7 +184,7 @@ export async function buildBook(
   );
   file(
     'EPUB/package.opf',
-    `<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="book-id">${identifier}</dc:identifier><dc:title>${e(book.title)}</dc:title><dc:language>${e(book.language)}</dc:language>${book.creator ? `<dc:creator>${e(book.creator)}</dc:creator>` : ''}${book.description ? `<dc:description>${e(book.description)}</dc:description>` : ''}<meta property="dcterms:modified">${modified}</meta></metadata><manifest>${manifest.map((m) => `<item id="${m.id}" href="${m.href}" media-type="${m.type}"${m.properties ? ` properties="${m.properties}"` : ''}/>`).join('')}</manifest><spine>${spine.map((id) => `<itemref idref="${id}"/>`).join('')}</spine></package>`,
+    `<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="book-id">${identifier}</dc:identifier><dc:title>${e(book.title)}</dc:title><dc:language>${e(book.language)}</dc:language>${book.creator ? `<dc:creator>${e(book.creator)}</dc:creator>` : ''}${book.description ? `<dc:description>${e(book.description)}</dc:description>` : ''}<meta property="dcterms:modified">${modified}</meta><meta property="rendition:layout">reflowable</meta></metadata><manifest>${manifest.map((m) => `<item id="${m.id}" href="${m.href}" media-type="${m.type}"${m.properties ? ` properties="${m.properties}"` : ''}/>`).join('')}</manifest><spine>${spine.map((id) => `<itemref idref="${id}"/>`).join('')}</spine></package>`,
   );
   const bytes = await zip.generateAsync({
     type: 'uint8array',
@@ -195,15 +201,11 @@ export async function buildBook(
     warnings.push('The book is downloadable but exceeds the Cloudflare email budget.');
   const inlinePreview = preview
     .join('\n')
-    .replace(/src="(cover\.svg|fig-[a-z0-9-]+\.(?:svg|png|jpg))"/g, (_, filename: string) => {
-      const f = [...rendered.values()].find((r) => r.filename === filename);
-      const content =
-        filename === 'cover.svg'
-          ? new TextEncoder().encode(coverSvg(book.title, book.subtitle, book.creator))
-          : f!.bytes;
+    .replace(/src="(fig-[a-z0-9-]+\.(?:png|jpg))"/g, (_, filename: string) => {
+      const f = [...rendered.values()].find((r) => r.filename === filename)!;
       let bin = '';
-      for (const byte of content) bin += String.fromCharCode(byte);
-      return `src="data:${f?.type ?? 'image/svg+xml'};base64,${btoa(bin)}"`;
+      for (const byte of f.bytes) bin += String.fromCharCode(byte);
+      return `src="data:${f.type};base64,${btoa(bin)}"`;
     });
   return {
     bytes,
