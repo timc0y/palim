@@ -106,25 +106,25 @@ export function renderFigure(figure: Figure, assets: ReadonlyMap<string, Asset>)
       };
       const max = Math.max(...figure.data.map((point) => point.value)) || 1;
       const marks: string[] = [];
-      let y = 34;
+      let y = 42;
       for (const line of wrap(figure.unit)) {
         marks.push(`<text x="24" y="${y}" fill="#333">${e(line)}</text>`);
-        y += 28;
+        y += 36;
       }
       y += 12;
       for (const point of figure.data) {
         for (const line of wrap(point.label)) {
           marks.push(`<text x="24" y="${y}" fill="#222">${e(line)}</text>`);
-          y += 28;
+          y += 36;
         }
         const exact = String(point.value);
         const displayed = exact.length <= 12 ? exact : `≈ ${point.value.toPrecision(4)}`;
         marks.push(
-          `<rect x="24" y="${y - 12}" width="${Math.round((point.value / max) * 340)}" height="24" fill="#333"><title>${e(point.label)}: ${e(exact)} ${e(figure.unit)}</title></rect><text x="536" y="${y + 8}" text-anchor="end" fill="#222">${e(displayed)}</text>`,
+          `<rect x="24" y="${y - 12}" width="${Math.round((point.value / max) * 340)}" height="24" fill="#333"><title>${e(point.label)}: ${e(exact)} ${e(figure.unit)}</title></rect><text x="${Math.min(390, 24 + Math.round((point.value / max) * 340) + 16)}" y="${y + 8}" text-anchor="start" fill="#222">${e(displayed)}</text>`,
         );
-        y += 48;
+        y += 64;
       }
-      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="${y}" viewBox="0 0 560 ${y}" font-family="sans-serif" font-size="24"><rect width="560" height="${y}" fill="white"/>${marks.join('')}</svg>`;
+      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="${y}" viewBox="0 0 560 ${y}" font-family="sans-serif" font-size="30"><rect width="560" height="${y}" fill="white"/>${marks.join('')}</svg>`;
     }
     bytes = encode(staticSvg(svg));
     type = 'image/svg+xml';

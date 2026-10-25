@@ -3,12 +3,26 @@ import { buildBook, PREVIEW_CSS } from '../src/book.js';
 const manuscript = JSON.parse(
   await readFile(new URL('../examples/first-edition.json', import.meta.url), 'utf8'),
 ) as unknown;
-const book = await buildBook(manuscript, new Map(), new Date('2026-10-25T00:00:00Z'));
+const book = await buildBook(
+  manuscript,
+  new Map([
+    [
+      '00000000-0000-4000-8000-000000000001',
+      {
+        bytes: new Uint8Array(
+          await readFile(new URL('../public/images/sample-exposure.png', import.meta.url)),
+        ),
+        type: 'image/png' as const,
+      },
+    ],
+  ]),
+  new Date('2026-10-25T00:00:00Z'),
+);
 const publicPreview = book.preview
   .replace(`<style>${PREVIEW_CSS}</style>`, '<link rel="stylesheet" href="/reader.css"/>')
   .replace(
     '<a href="/app">Back to desk</a>',
-    '<a href="/">Palim</a><a href="/sample.epub">Download EPUB</a>',
+    '<a class="reader-wordmark" href="/">palim</a><a href="/sample.epub">Download EPUB</a>',
   );
 await mkdir('artifacts', { recursive: true });
 await mkdir('public', { recursive: true });

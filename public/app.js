@@ -339,7 +339,7 @@ async function refresh() {
       );
       list.append(row);
     }
-    showShelf(currentAccount.artifacts);
+    showShelf(currentAccount.artifacts.filter((artifact) => artifact.kind === 'document'));
     syncReaderChoices();
     updateSendTargets();
   } catch (e) {
@@ -388,9 +388,25 @@ $('create-form').addEventListener('submit', (event) => {
     };
     if ($('creator').value.trim()) body.creator = $('creator').value.trim();
     if (example) {
-      body.figures = example.figures.filter((f) =>
-        $('manuscript').value.includes(`figure:${f.id}`),
-      );
+      const originalText = example.chapters
+        .map((c) => `# ${c.title}\n\n${c.markdown}`)
+        .join('\n\n');
+      if ($('manuscript').value === originalText) body.chapters = example.chapters;
+      body.figures = example.figures
+        .filter((f) => $('manuscript').value.includes(`figure:${f.id}`))
+        .map((f) => ({ ...f }));
+      for (const figure of body.figures) {
+        if (figure.kind === 'image' && figure.assetId === '00000000-0000-4000-8000-000000000001') {
+          const illustration = await fetch('/images/sample-exposure.png');
+          if (!illustration.ok) throw new Error('The example illustration could not be loaded.');
+          const uploaded = await api('/api/files?kind=image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'image/png', 'X-Filename': 'sample-exposure.png' },
+            body: await illustration.blob(),
+          });
+          figure.assetId = uploaded.artifactId;
+        }
+      }
       body.sources = example.sources;
       body.subtitle = example.subtitle;
     }

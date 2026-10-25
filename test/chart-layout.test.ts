@@ -21,10 +21,10 @@ test('reader charts use readable stacked labels and preserve exact values when d
   );
   const svg = new TextDecoder().decode(figure.bytes);
   assert.match(svg, /width="560"/);
-  assert.match(svg, /font-size="24"/);
+  assert.match(svg, /font-size="30"/);
   assert.match(svg, /width="170"/);
   assert.match(svg, /width="340"/);
   assert.match(svg, /0\.1234567890123456/);
   assert.match(svg, /≈ 0\.1235/);
-  assert.match(svg, /text-anchor="end"/);
+  assert.match(svg, /text-anchor="start"/);
 });

@@ -254,6 +254,7 @@ test('combined reading preview has one title and unique chapter anchors', async 
   const ids = [...book.preview.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length);
   assert.match(book.preview, /href="#chapter-2"/);
-  assert.match(book.preview, /id="chapter-2-section-1"/);
+  assert.match(book.preview, /<h3 id="chapter-2-section-1"/);
+  assert.doesNotMatch(book.preview, /<h4/);
   assert.doesNotMatch(book.preview, /class="cover"/);
 });

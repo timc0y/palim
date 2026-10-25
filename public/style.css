@@ -1268,7 +1268,7 @@ summary {
 .exposure-example {
   margin-top: 2rem;
   padding-block: 1.25rem;
-  border-block: 1px solid var(--line);
+  border-top: 1px solid var(--line);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;

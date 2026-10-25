@@ -224,6 +224,9 @@ try:
                 response = sample_page.goto(ORIGIN + '/sample.html', wait_until='networkidle')
                 assert "style-src 'self'" in response.headers['content-security-policy']
                 expect(sample_page.locator('h1')).to_have_count(1)
+                expect(sample_page.locator('h4')).to_have_count(0)
+                assert sample_page.locator('main h3').count() >= 3
+                assert sample_page.evaluate("[...document.fonts].some(f=>f.family==='Manrope' && f.status==='loaded')")
                 assert sample_page.locator('body').evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)') >= 18
                 assert not sample_page.evaluate('document.documentElement.scrollWidth > innerWidth')
                 assert sample_page.locator('main p').first.bounding_box()['y'] < height - 80
@@ -252,7 +255,7 @@ try:
                     assert not epub_page.evaluate('document.documentElement.scrollWidth > innerWidth')
                     epub_page.screenshot(path=str(ARTIFACTS / f'epub-{chapter}-{label}.png'), full_page=True)
             epub_page.close()
-            print('Public sample strict CSP, first-screen prose, unique headings/anchors and actual EPUB reflow passed.')
+            print('Public sample strict CSP, first-screen prose, unique headings/anchors and packaged EPUB XHTML reflow in Chromium passed (not an EPUB-reader engine).')
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#signin').wait_for(state='visible')
             placeholder = browser_page.locator('#login-email').evaluate('(e)=>getComputedStyle(e,"::placeholder").color')
@@ -310,9 +313,13 @@ try:
             preview_page.goto(preview_url, wait_until='networkidle')
             expect(preview_page.locator('figure')).to_have_count(2)
             expect(preview_page.locator('h1')).to_have_count(1)
+            assert preview_page.evaluate("[...document.fonts].some(f=>f.family==='Manrope' && f.status==='loaded')")
+            assert not preview_page.evaluate("[...document.querySelectorAll('h1,h2,h3,h4')].some(e=>e.tagName==='H4')")
             assert preview_page.locator('body').evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)') >= 18
             preview_page.screenshot(path=str(ARTIFACTS / 'private-reader-mobile.png'), full_page=True)
             assert not preview_page.evaluate('document.documentElement.scrollWidth > innerWidth')
+            chart = preview_page.locator('figure img').nth(1)
+            assert chart.bounding_box()['width'] / 560 * 30 >= 14
             preview_page.locator('figure').nth(1).screenshot(path=str(ARTIFACTS / 'chart-mobile.png'))
             preview_page.locator('figure').nth(0).screenshot(path=str(ARTIFACTS / 'diagram-mobile.png'))
             preview_page.close()

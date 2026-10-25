@@ -76,5 +76,12 @@ export async function appFetch(request: Request, env: Env): Promise<Response> {
   }
   if (request.method !== 'GET' && request.method !== 'HEAD')
     return new Response('Method not allowed', { status: 405 });
-  return env.ASSETS.fetch(request);
+  const asset = await env.ASSETS.fetch(request);
+  if (/^\/fonts\/Manrope-(?:Latin|Extended)\.woff2$/.test(path) && asset.ok) {
+    // Public fonts are anonymous resources, including in an opaque-origin preview sandbox.
+    const headers = new Headers(asset.headers);
+    headers.set('Access-Control-Allow-Origin', '*');
+    return new Response(asset.body, { status: asset.status, headers });
+  }
+  return asset;
 }

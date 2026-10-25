@@ -208,7 +208,7 @@ export class Palim {
     else
       headers.set(
         'Content-Security-Policy',
-        "sandbox; default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
+        `sandbox; default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src ${this.env.ORIGIN}/fonts/; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`,
       );
     return new Response(object.body, { headers });
   }
