@@ -40,7 +40,10 @@ export class Palim {
     return new Response(object.body,{headers});
   }
   async upload(owner:string,bytes:Uint8Array,filename:string,image=false){
-    await this.store.user(owner);await this.store.admit(owner,'upload');invariant(bytes.length>0&&bytes.length<=LIMITS.upload,'FILE_SIZE','Supply a file up to 20 MiB.');
+    await this.store.user(owner);await this.store.admit(owner,'upload');return this.saveUpload(owner,bytes,filename,image);
+  }
+  private async saveUpload(owner:string,bytes:Uint8Array,filename:string,image=false){
+    invariant(bytes.length>0&&bytes.length<=LIMITS.upload,'FILE_SIZE','Supply a file up to 20 MiB.');
     const info=image?{type:imageType(bytes),sha256:await sha256(bytes),bytes:bytes.length}:await inspectDocument(bytes);
     const id=crypto.randomUUID(),key=`${owner}/${id}`;
     const a:Artifact={id,owner,kind:image?'image':'document',filename:image?`image.${info.type==='image/png'?'png':'jpg'}`:safeFilename(filename,info.type),type:info.type,sha256:info.sha256,bytes:bytes.length,object_key:key,generated:0,created_at:this.clock(),expires_at:this.clock()+LIMITS.retention};
@@ -60,8 +63,9 @@ export class Palim {
   async importHostFile(owner:string,file:{download_url:string;filename:string}){
     const url=new URL(file.download_url),origins=(this.env.FILE_ORIGINS??'').split(',').map(s=>s.trim()).filter(Boolean);
     invariant(url.protocol==='https:'&&!url.username&&!url.password&&origins.includes(url.origin),'FILE_HOST_UNSUPPORTED','This host is not configured for secure file transfer. Upload the file in the Palim workspace instead.');
+    await this.store.user(owner);await this.store.admit(owner,'upload');
     const response=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(20000)});invariant(response.ok,'FILE_UNAVAILABLE','The host could not provide this file. Reattach it or upload it in Palim.');
-    return this.upload(owner,await readBytes(response,LIMITS.upload),file.filename);
+    return this.saveUpload(owner,await readBytes(response,LIMITS.upload),file.filename);
   }
   async send(owner:string,artifactId:string,resendOf?:string){
     const user=await this.store.user(owner),a=await this.store.artifact(owner,artifactId);
@@ -91,10 +95,16 @@ export class Palim {
     const built=await buildBook({title:'Confirm your Palim reader',chapters:[{title:'Your private confirmation code',markdown:`Enter **${code}** in the Palim workspace within one hour.\n\nIf you did not request this test book, ignore it. This does not grant anybody access to your Amazon account.`}]},new Map(),new Date(this.clock()*1000));
     const r=await this.newReceipt(owner,`challenge:${generation}`,'challenge',built.hash,destination,null);
     const payload=await prepareEmail({bytes:built.bytes,expectedHash:built.hash,type:'application/epub+zip',filename:'Confirm-Palim.epub',from:this.env.SENDER,to:destination,receiptId:r.id});
-    if(!await this.store.reserveDelivery(r,user.destination_version))throw new PalimError('SEND_LIMIT','The verification sending allowance is full. No new code was sent.',429);
     await this.store.setChallenge({owner,destination,generation,code_hash:codeHash,attempts:0,expires_at:this.clock()+3600});
+    if(!await this.store.reserveDelivery(r,user.destination_version)){
+      await this.env.DB.prepare('DELETE FROM challenges WHERE owner=? AND generation=?').bind(owner,generation).run();
+      throw new PalimError('SEND_LIMIT','The verification sending allowance is full. No new code was sent.',429);
+    }
     // The challenge is never persisted as a downloadable artifact or returned to the caller.
-    await this.submit(r.id,payload);return publicReceipt(await this.store.delivery(owner,r.id));
+    await this.submit(r.id,payload);
+    const receipt=await this.store.delivery(owner,r.id);
+    if(receipt.state==='rejected')await this.env.DB.prepare('DELETE FROM challenges WHERE owner=? AND generation=?').bind(owner,generation).run();
+    return publicReceipt(receipt);
   }
   async confirm(owner:string,code:unknown){await this.store.user(owner);invariant(typeof code==='string'&&/^[A-Fa-f0-9]{10}$/.test(code.trim()),'INVALID_CODE','Enter the ten-character code from your Kindle.');const challenge=await this.store.challenge(owner);if(!challenge)throw new PalimError('INVALID_CODE','The code is invalid, expired or already used.');const hash=await hmac(this.env.SIGNING_SECRET,`${owner}\n${challenge.generation}\n${code.trim().toUpperCase()}`);invariant(await this.store.confirm(owner,hash),'INVALID_CODE','The code is invalid, expired or has no attempts remaining.');return {confirmed:true,destination:maskAddress(challenge.destination)};}
   async remove(owner:string,id:string){const a=await this.store.artifact(owner,id);await this.env.BOOKS.delete([a.object_key,`${a.object_key}.source`,`${a.object_key}.preview`]);await this.env.DB.prepare('DELETE FROM artifacts WHERE owner=? AND id=?').bind(owner,id).run();return {deleted:true};}

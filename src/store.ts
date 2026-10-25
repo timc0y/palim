@@ -56,10 +56,10 @@ export class Store {
       AND (SELECT COUNT(*) FROM deliveries WHERE owner=? AND created_at>=?) < ?
       AND (SELECT COUNT(*) FROM deliveries WHERE created_at>=?) < ?
       AND (SELECT COUNT(*) FROM deliveries WHERE created_at>=?) < ?
-      AND (? <> 'challenge' OR (SELECT COUNT(*) FROM deliveries WHERE destination_hash=? AND purpose='challenge' AND created_at>=?) < 2)
+      AND (? <> 'challenge' OR ((SELECT COUNT(*) FROM deliveries WHERE destination_hash=? AND purpose='challenge' AND created_at>=?) < 2 AND (SELECT COUNT(*) FROM deliveries WHERE purpose='challenge' AND created_at>=?) < 20 AND (SELECT COUNT(*) FROM deliveries WHERE purpose='challenge' AND created_at>=?) < 600))
       ON CONFLICT(owner,send_key) DO NOTHING RETURNING id`)
       .bind(r.id,r.send_key,r.purpose,r.artifact_id,r.sha256,r.destination_hash,r.destination_mask,r.resend_of,r.created_at,r.updated_at,
-        r.owner,r.purpose,destinationVersion,r.owner,floor,LIMITS.sends,floor,LIMITS.globalDaily,month,LIMITS.globalMonthly,r.purpose,r.destination_hash,floor).first();
+        r.owner,r.purpose,destinationVersion,r.owner,floor,LIMITS.sends,floor,LIMITS.globalDaily,month,LIMITS.globalMonthly,r.purpose,r.destination_hash,floor,floor,month).first();
     return !!result;
   }
   async outcome(id:string,state:Delivery['state'],provider:string|null,error:string|null):Promise<void> {
@@ -67,8 +67,9 @@ export class Store {
   }
   async challenge(owner:string):Promise<Challenge|null> { return this.db.prepare('SELECT * FROM challenges WHERE owner=?').bind(owner).first<Challenge>(); }
   async setChallenge(c:Challenge):Promise<void> {
-    await this.db.prepare('INSERT INTO challenges(owner,destination,generation,code_hash,attempts,expires_at) VALUES(?,?,?,?,0,?) ON CONFLICT(owner) DO UPDATE SET destination=excluded.destination,generation=excluded.generation,code_hash=excluded.code_hash,attempts=0,expires_at=excluded.expires_at')
-      .bind(c.owner,c.destination,c.generation,c.code_hash,c.expires_at).run();
+    const claim = await this.db.prepare('INSERT INTO challenges(owner,destination,generation,code_hash,attempts,expires_at) VALUES(?,?,?,?,0,?) ON CONFLICT(owner) DO UPDATE SET destination=excluded.destination,generation=excluded.generation,code_hash=excluded.code_hash,attempts=0,expires_at=excluded.expires_at WHERE challenges.expires_at<=? RETURNING owner')
+      .bind(c.owner,c.destination,c.generation,c.code_hash,c.expires_at,this.now()).first();
+    if (!claim) throw new PalimError('CHALLENGE_ACTIVE','A verification book is already active. Use its code, or wait for it to expire.');
   }
   async confirm(owner:string,codeHash:string):Promise<boolean> {
     // Count attempts before comparing; all concurrent requests consume an attempt.
