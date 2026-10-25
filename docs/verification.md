@@ -1,6 +1,18 @@
 # Verification record
 
-## Current cinematic deployment — 25 October 2026
+## Current reading-sample refinement — 25 October 2026
+
+Live sample: [palim-timc0y.pages.dev/sample.html](https://palim-timc0y.pages.dev/sample.html). Deployed source is `f5a47f2997dbaaa399228f3892c5fc4d6e354947`, Worker `7c48665c-2274-4def-9174-208d920d40e7`, Pages `1e4af1e4-2ab2-423e-91f9-9702f2aa3817`. Cloudflare production metadata reports this exact source and success. Live landing, reader, stylesheet, EPUB, app assets and font bytes match generated/committed files. The previous deployment below is historical.
+
+The prior public sample was broken under its actual response policy: strict CSP blocked the inline stylesheet; Chromium measured a 1,200px cover and 1,208px document in a 390px viewport. The public sample now loads same-origin reader.css generated from the reader's shared style source. Global CSP is unchanged. Private previews retain their existing sandbox, no-script policy and allowed self-contained styles; their styling was not the same CSP defect.
+
+“One stop of light” replaces the generic product essay and arbitrary chart values with an original short photography guide, a worked exposure comparison, calculated light ratios, an exercise and a primary source. Landing excerpt, browser reader and downloadable EPUB share the edition. The browser omits the full cover and duplicate title page, uses one h1 and unique chapter/section anchors, and offers native contents navigation. The EPUB retains a responsive graphite cover and reflowable reading pages. No source photographs are reused.
+
+Local verification passed strict TypeScript and 69 tests, dry-run bundle, zero production audit vulnerabilities, EPUBCheck with zero errors/warnings and native Pages/browser journeys. Browser regressions exercise the real served public CSP, computed 18px/20px reading type, opening prose in the first viewport, unique heading/anchor structure, actual unpacked EPUB cover/chapter pages and private generated previews. A fresh live 200% zoom check caught comparison-table overflow; cell wrapping was corrected and regression-tested. Live 390px and 1440px readers, contents links, dark preference, 200% mobile zoom and the unchanged public auth/origin/privacy boundaries passed. Opening prose begins at y=570px on the 844px phone viewport. No browser CSP errors remained.
+
+[Final exact-source CI](https://github.com/timc0y/palim/actions/runs/40199675627) owns the source identity, full public reader/landing desktop/mobile screenshots, body and figure captures, actual EPUB reading-page renders, private reader and enlarged-text view. Its terminal result and independent Astra aesthetic acceptance must be checked separately; local verification is not that verdict. All runtime mail uses synthetic capture. No live email or Kindle send occurred; inbox/provider/device and fresh intended-client gates remain open.
+
+## Previous cinematic deployment — 25 October 2026
 
 Live URL: [palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). Deployed application source is `fb45cd50a0999eba63d5f75abf5d9542f977423b`, Worker version `c9e411d3-331d-47ff-8c16-36e5e4284ee0`, Pages production deployment `7a98241c-00f6-4763-a1a8-d509d3a05304`. Main was fast-forwarded to the exact reviewed revision without changing concurrent work. Cloudflare reports successful Pages production at that commit; live homepage, workspace, CSS, JavaScript, selected folio artwork and Manrope font bytes match committed files.
 
