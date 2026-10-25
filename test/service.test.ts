@@ -38,7 +38,7 @@ test('original EPUB is stored and forwarded byte for byte without authoring', as
   const receipt = await f.palim.send('alice', uploaded.artifactId);
   assert.equal(receipt.state, 'submitted');
   assert.equal(f.sent.length, 1);
-  const attached = Buffer.from(f.sent[0]!.attachments[0]!.content, 'base64');
+  const attached = Buffer.from(f.sent[0]!.attachments[0]!.content);
   assert.deepEqual(attached, Buffer.from(original));
   assert.equal(await sha256(attached), uploaded.sha256);
   assert.equal(receipt.kindleReceipt, 'unverified');
@@ -48,7 +48,7 @@ test('PDF follows the same byte-preserving path', async () => {
   const bytes = pdf();
   const a = await f.palim.upload('alice', bytes, 'Manual.pdf');
   await f.palim.send('alice', a.artifactId);
-  assert.deepEqual(Buffer.from(f.sent[0]!.attachments[0]!.content, 'base64'), Buffer.from(bytes));
+  assert.deepEqual(Buffer.from(f.sent[0]!.attachments[0]!.content), Buffer.from(bytes));
 });
 test('creating a draft never sends an email', async () => {
   const f = await fixture();

@@ -27,7 +27,7 @@ CONFIG = json.loads((ROOT / 'wrangler.jsonc').read_text())
 CONFIG['name'] = 'palim-native-proof'
 # A disposable wrapper replaces only the external mail boundary. Product code has no fixture flag.
 wrapper = WORK / 'capture-worker.ts'
-wrapper.write_text("import app from " + json.dumps(str(ROOT / 'src/index.ts')) + ";\nexport default { fetch(request, env, ctx) { const local = {...env, EMAIL: { async send(payload) { await env.DB.prepare('INSERT INTO proof_mail(payload) VALUES(?)').bind(JSON.stringify(payload)).run(); return {messageId: crypto.randomUUID()}; } }}; return app.fetch(request, local, ctx); }, scheduled: app.scheduled };\n")
+wrapper.write_text("import app from " + json.dumps(str(ROOT / 'src/index.ts')) + ";\nexport default { fetch(request, env, ctx) { const local = {...env, EMAIL: { async send(payload) { await env.DB.prepare('INSERT INTO proof_mail(payload) VALUES(?)').bind(JSON.stringify(payload, (_key, value) => ArrayBuffer.isView(value) ? Array.from(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)) : value)).run(); return {messageId: crypto.randomUUID()}; } }}; return app.fetch(request, local, ctx); }, scheduled: app.scheduled };\n")
 CONFIG['main'] = str(wrapper)
 CONFIG['assets']['directory'] = str(ROOT / 'public')
 CONFIG['d1_databases'][0]['migrations_dir'] = str(ROOT / 'migrations')

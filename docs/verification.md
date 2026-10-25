@@ -1,5 +1,13 @@
 # Verification record
 
+## Binary attachment correction — 25 October 2026
+
+The owner reports that the same PNG-only EPUB reflows correctly when emailed personally, but the 19:44 Palim copy shows Base64-like text inside Kindle. A private exact comparison finds the reported excerpt inside the Base64 encoding of the unchanged stored candidate. No excerpt or private book content is published here. This identifies attachment data rather than a new authoring/reflow defect.
+
+Palim had supplied a Base64 string in the structured attachment field. Cloudflare's reference describes strings as Base64, while its attachment examples also demonstrate binary buffers. The installed real Miniflare/workerd email binding preserves string content as literal attachment text rather than decoding it. A new binding-level regression reproduces that difference using a synthetic PDF: the Base64-string attachment is stored as ASCII, while the binary attachment is byte-identical to the original. Earlier self-decoding tests validated Palim's own assumption and did not exercise this provider boundary.
+
+Attachments now supply copied `Uint8Array` bytes directly and are statically checked against Cloudflare's `EmailMessageBuilder`. The provider owns MIME transfer encoding. EPUB/PDF integrity, filename, MIME type, attachment disposition and conservative encoded-message limit remain enforced; artifacts and historical receipts are not rewritten. Eighty-three tests, formatting and dry-run build pass, including the real local binding contract, original EPUB/PDF forwarding and existing security/quota checks. The local capture wrapper serializes binary bytes as arrays only for synthetic test evidence. No remote email binding, new grants or real mail was used. Actual production wire MIME remains unavailable, and the correction has not been resent or verified on Kindle; the previous one-send approval is consumed.
+
 ## Authenticated public file imports — 25 October 2026
 
 Source `66df028bb446e6b6cc91d66983e095d6fb8e4d16`, Worker `d54dc04d-6f94-4648-9cd4-084058af851d`, replaces provider-specific host lists with authenticated, quota-checked public HTTPS/443 imports. The application refuses credentials, IP literals (including normalized IPv4 and mapped IPv6), local hostnames, fragments and unsafe ports. It forwards no caller credentials. Streaming limits and actual EPUB/PDF inspection run before private storage; owner checks, send confirmation, account allowances and shared budgets are unchanged. No extra service, credentials or routing configuration was created.

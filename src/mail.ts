@@ -6,7 +6,7 @@ export interface EmailPayload {
   to: string;
   subject: string;
   text: string;
-  attachments: { content: string; filename: string; type: string; disposition: 'attachment' }[];
+  attachments: { content: Uint8Array; filename: string; type: string; disposition: 'attachment' }[];
   headers: Record<string, string>;
 }
 export interface EmailBinding {
@@ -22,12 +22,6 @@ export function safeFilename(value: string, type: string): string {
       .slice(0, 100)
       .trim() || 'reading') + ext
   );
-}
-export function base64(bytes: Uint8Array): string {
-  let s = '';
-  for (let i = 0; i < bytes.length; i += 8192)
-    s += String.fromCharCode(...bytes.subarray(i, i + 8192));
-  return btoa(s);
 }
 export function messageBudget(bytes: number): number {
   const encoded = 4 * Math.ceil(bytes / 3);
@@ -68,9 +62,16 @@ export async function prepareEmail(input: {
     subject: filename.replace(/\.(epub|pdf)$/, ''),
     text: 'Your requested reading is attached. Palim preserves this file’s original bytes. Amazon controls conversion and library import.',
     attachments: [
-      { content: base64(input.bytes), filename, type: input.type, disposition: 'attachment' },
+      // The binding accepts binary content. A Base64 string can become literal
+      // attachment text; leave MIME transfer encoding to the email service.
+      {
+        content: new Uint8Array(input.bytes),
+        filename,
+        type: input.type,
+        disposition: 'attachment',
+      },
     ],
     headers: { 'X-Palim-Receipt': input.receiptId },
-  };
+  } satisfies EmailMessageBuilder;
 }
 export const maskAddress = (address: string) => address.replace(/^(.{2}).*(@.*)$/, '$1…$2');

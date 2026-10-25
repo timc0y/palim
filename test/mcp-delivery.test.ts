@@ -46,10 +46,7 @@ test('MCP send_document and get_delivery preserve bytes and never double-send a 
     const receipt = output(sent);
     assert.equal(receipt.state, 'submitted');
     assert.equal(receipt.kindleReceipt, 'unverified');
-    assert.deepEqual(
-      Buffer.from(f.sent[0]!.attachments[0]!.content, 'base64'),
-      Buffer.from(original),
-    );
+    assert.deepEqual(Buffer.from(f.sent[0]!.attachments[0]!.content), Buffer.from(original));
     const read = await c.client.callTool({
       name: 'get_delivery',
       arguments: { deliveryId: receipt.deliveryId },
@@ -97,10 +94,7 @@ test('MCP accepts a real host-file shape and forwards the fetched bytes unchange
     assert.equal(output(response).state, 'submitted');
     assert.equal(fetched, 1);
     assert.equal(f.sent.length, 1);
-    assert.deepEqual(
-      Buffer.from(f.sent[0]!.attachments[0]!.content, 'base64'),
-      Buffer.from(original),
-    );
+    assert.deepEqual(Buffer.from(f.sent[0]!.attachments[0]!.content), Buffer.from(original));
     const objects = f.sql.prepare('SELECT generated FROM artifacts').all();
     assert.equal(objects.length, 1);
     assert.equal(objects[0]?.generated, 0);
