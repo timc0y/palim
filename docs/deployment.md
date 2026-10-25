@@ -15,7 +15,7 @@ npm run deploy
 npm run deploy:pages
 ```
 
-The Pages command runs from `pages/` so Wrangler reads its Pages configuration. Its production branch is `main`. A service binding is required; do not replace it with a public fetch proxy or rewrite the URL, Origin, cookies or authorization headers. Direct upload does not establish Git-connected automatic deployment. Pages adds no replacement for the Worker's cleanup schedule or rate limiter.
+The Pages helper runs from `pages/` so Wrangler reads its Pages configuration, and passes the Worker configuration’s account ID through `CLOUDFLARE_ACCOUNT_ID`. Pages rejects `account_id` inside its own Wrangler file; the helper keeps the chosen account explicit. Its production branch is `main`. A service binding is required; do not replace it with a public fetch proxy or rewrite the URL, Origin, cookies or authorization headers. Direct upload does not establish Git-connected automatic deployment. Pages adds no replacement for the Worker's cleanup schedule or rate limiter.
 
 Run `python3 scripts/runtime-proof.py --pages --browser` to exercise the actual local Pages-to-Worker binding over HTTPS, in addition to the direct-Worker proof. Both disposable configurations set local and upstream protocols to HTTPS: Wrangler otherwise forwards local multi-Worker requests with an HTTP origin. Do not weaken the production origin check to accommodate that development default.
 
