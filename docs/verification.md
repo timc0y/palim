@@ -1,5 +1,13 @@
 # Verification record
 
+## Account-only allowance and owner reflow report — 25 October 2026
+
+The owner reports that the PNG-only candidate opens with adjustable text size after their own email test. This is owner-reported Kindle reflow evidence; it does not establish Palim email delivery. The exact original provider recipient and envelope address match a currently saved owner-scoped address under a new ID, so the removed historical ID is not a recipient mismatch.
+
+Source `ea19c2854b0029f6d175b551daf07ce988611cb8` adds an operator-managed per-account allowance (migration 0005), default three and bounded at ten. Seventy-six unit/protocol/package tests and the dry-run build pass, including account isolation, retained attempts and existing shared-mail-budget checks. Only the owner-approved account was changed to ten; its existing three submissions were preserved, and all other accounts remain at three. No counter reset, global-budget increase, provider-plan change or grant occurred. Worker version is `cb7572ea-83b6-4127-b120-1b965416a1ac`; the unchanged Pages front door remains `2783e992-534f-4f1e-867b-4a81eef8211c`.
+
+The requested single Palim test remains unsent. The native host has no supported secure-file transfer, and the personal Mac workspace is signed out. The owner must complete normal workspace sign-in before the candidate can use authenticated upload; no inbox code was requested or read by the agent. No additional mail was sent. Full OAuth-grant tests and push/CI remain held.
+
 ## Reflow investigation — 25 October 2026
 
 Deployed source: local commit `4bf1c37a6376168d139d5ad93ef00d17867bff0b`, Worker `649a0c15-98b2-4e7e-b164-c6a2631ca6e0`, Pages `2783e992-534f-4f1e-867b-4a81eef8211c`. Provider metadata and live byte comparisons match that source, including the sample HTML/EPUB and existing app/plugin assets. Live checks pass unauthenticated and invalid-token refusal, wrong-origin refusal, canonical OAuth issuer, alternate-host refusal, private R2 and disabled Worker preview URLs. The existing sender remains enabled with stored email previews disabled. The deployment did not send mail or create OAuth grants.
