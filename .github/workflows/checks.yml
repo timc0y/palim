@@ -49,6 +49,8 @@ jobs:
           python3 -m playwright install --with-deps chromium
       - name: Native HTTPS OAuth, storage, MCP and browser journeys
         run: python3 scripts/runtime-proof.py --browser 2>&1 | tee artifacts/runtime-proof.txt
+      - name: Pages front door with real Worker service binding
+        run: python3 scripts/runtime-proof.py --pages --browser 2>&1 | tee artifacts/pages-runtime-proof.txt
       - name: Record exact verified revision
         run: git rev-parse HEAD > artifacts/source-commit.txt
       - uses: actions/upload-artifact@v4

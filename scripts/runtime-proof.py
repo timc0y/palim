@@ -30,6 +30,7 @@ CONFIG['assets']['directory'] = str(ROOT / 'public')
 CONFIG['d1_databases'][0]['migrations_dir'] = str(ROOT / 'migrations')
 CONFIG['vars'] = {'ORIGIN': ORIGIN, 'SENDER': 'fixture@example.invalid', 'SIGNING_SECRET': secrets.token_hex(32), 'FILE_ORIGINS': ''}
 CONFIG.pop('triggers', None)
+CONFIG['dev'] = {'local_protocol': 'https', 'upstream_protocol': 'https'}
 config_path = WORK / 'wrangler.json'
 config_path.write_text(json.dumps(CONFIG))
 state = WORK / 'state'
@@ -37,7 +38,20 @@ command = ['node', str(ROOT / 'node_modules/wrangler/bin/wrangler.js')]
 environment = dict(os.environ, WRANGLER_SEND_METRICS='false', CLOUDFLARE_CF_FETCH_ENABLED='false', CI='true')
 log = (WORK / 'worker.log').open('w')
 subprocess.run(command + ['d1', 'migrations', 'apply', 'palim', '--local', '--config', str(config_path), '--persist-to', str(state)], cwd=WORK, env=environment, stdout=log, stderr=log, check=True)
-process = subprocess.Popen(command + ['dev', '--local', '--local-protocol', 'https', '--port', '8791', '--ip', '127.0.0.1', '--config', str(config_path), '--persist-to', str(state)], cwd=WORK, env=environment, stdout=log, stderr=log)
+serve_cwd = WORK
+if '--pages' in sys.argv:
+    pages_config = json.loads((ROOT / 'pages/wrangler.jsonc').read_text())
+    pages_config['pages_build_output_dir'] = str(ROOT / 'pages/public')
+    pages_config['services'][0]['service'] = CONFIG['name']
+    pages_config['dev'] = {'local_protocol': 'https', 'upstream_protocol': 'https'}
+    pages_path = WORK / 'pages' / 'wrangler.json'
+    pages_path.parent.mkdir()
+    pages_path.write_text(json.dumps(pages_config))
+    serve_cwd = pages_path.parent
+    serve = ['pages', 'dev', '--config', str(pages_path), '--config', str(config_path)]
+else:
+    serve = ['dev', '--local', '--config', str(config_path)]
+process = subprocess.Popen(command + serve + ['--local-protocol', 'https', '--port', '8791', '--ip', '127.0.0.1', '--persist-to', str(state)], cwd=serve_cwd, env=environment, stdout=log, stderr=log)
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *args, **kwargs):
@@ -97,8 +111,13 @@ try:
 
     assert request('/app')[0] == 200, 'Workspace asset redirect loop'
     assert request('/mcp')[0] == 401, 'Unauthenticated MCP must be refused'
-    assert request('/.well-known/oauth-authorization-server')[0] == 200
+    status, _, metadata = request('/.well-known/oauth-authorization-server')
+    assert status == 200 and json.loads(metadata)['issuer'] == ORIGIN
     assert request('/api/account')[0] == 200
+    assert request('/api/account', headers={'Cookie': ''})[0] == 401
+    assert request('/', headers={'Host': 'preview.invalid'})[0] == 400
+    status, _, payload = post('/api/books', {'title': 'Refused'}, {'Origin': 'https://wrong-origin.invalid', 'X-Forwarded-Host': 'localhost:8791'})
+    assert status == 403 and json.loads(payload)['code'] == 'ORIGIN'
     print('Native assets, D1 identity, discovery and authentication boundaries passed.')
 
     status, _, payload = post('/oauth/register', {'client_name': 'Disposable runtime proof', 'redirect_uris': ['http://localhost:3333/callback'], 'grant_types': ['authorization_code', 'refresh_token'], 'response_types': ['code'], 'token_endpoint_auth_method': 'none'})
@@ -182,6 +201,8 @@ try:
             assert not errors, errors
             browser.close()
         print('Real Chromium navigation, mobile layout, illustrated preview, browser create and original-upload journeys passed.')
+    if '--pages' in sys.argv:
+        print('Pages front door and real Worker service binding preserved public OAuth origin, cookies, bearer tokens, request bodies, private downloads and wrong-origin refusal.')
     print('PASS: disposable local runtime proof. Synthetic local identity; no live GitHub sign-in, provider email, Amazon import or physical Kindle claim.')
 finally:
     process.terminate()

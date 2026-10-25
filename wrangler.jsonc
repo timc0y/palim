@@ -1,6 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "palim",
+  "account_id": "04d3e478b1ddf0f5147120cacbf430de",
+  "workers_dev": false,
+  "preview_urls": false,
   "main": "src/index.ts",
   "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -9,12 +12,12 @@
     {
       "binding": "DB",
       "database_name": "palim",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "7328bb73-47d8-415c-9c21-7efe595961e8",
       "migrations_dir": "migrations"
     }
   ],
   "r2_buckets": [{ "binding": "BOOKS", "bucket_name": "palim-books" }],
-  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "00000000000000000000000000000000" }],
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "dc5983f38af844d6bf40e27b8c720937" }],
   "send_email": [{ "name": "EMAIL" }],
   "ratelimits": [
     {
@@ -27,8 +30,8 @@
   "limits": { "cpu_ms": 30000 },
   "observability": { "enabled": false },
   "vars": {
-    "ORIGIN": "http://localhost:8787",
-    "SENDER": "reading@your-verified-domain.example",
+    "ORIGIN": "https://palim-timc0y.pages.dev",
+    "SENDER": "reading@palim.timc0y.com",
     "FILE_ORIGINS": ""
   }
 }

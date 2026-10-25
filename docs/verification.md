@@ -1,5 +1,19 @@
 # Verification record
 
+## 25 October 2026 Pages and sender preparation
+
+The user selected a Pages public address and the existing paid personal `tims` account. Cloudflare created the dedicated direct-upload project `palim-timc0y` and assigned `https://palim-timc0y.pages.dev`; this is an assigned hostname, not a published application. The first attempt at the project name `palim` failed with provider error 8000000; a subsequent inventory confirmed no project was created before the distinct name was used.
+
+The Pages entrypoint forwards every request unchanged through a native service binding to the existing Worker. The Worker owns the only OAuth issuer, app session, data operations, static assets, rate limiter and cleanup schedule. Its configuration disables public Worker and version URLs and uses the canonical Pages origin. The additional CI acceptance step exercises the actual local Pages-to-Worker binding rather than a forwarding test double.
+
+The Mac passed all 62 tests, TypeScript, formatting, Worker dry-run build and EPUBCheck with zero errors or warnings after this change. Both direct Worker and Pages-fronted disposable HTTPS journeys passed with Chromium, including OAuth discovery and consent, PKCE, MCP creation, private-download hashes, session isolation, wrong-origin refusal, invalid bearer refusal, deletion, mobile illustrated previews and original upload. Local Pages development required HTTPS upstream configuration for both Workers; the production origin check was preserved.
+
+Dedicated Palim D1, OAuth KV and Standard R2 resources were created in the personal account, and the empty D1 received migration `0001.sql`. R2 public access is disabled, there are no custom bucket domains, and the verified `palim-expiry` lifecycle removes objects after two days. No other project's resources were changed or reused.
+
+The user separately approved `reading@palim.timc0y.com` and its mail-verification DNS. Cloudflare enabled only that dedicated sending subdomain. Its authoritative DNS publishes three MX records at `cf-bounce.palim.timc0y.com`, SPF at the same name, DKIM at `cf-bounce._domainkey.palim.timc0y.com` and DMARC `p=reject` at `_dmarc.palim.timc0y.com`. The exact dedicated names had no published mail records before onboarding. Activity-log email previews were disabled through the documented API and a subsequent GET confirmed `preview_enabled=false`. The provider reports `enabled=true`; no email was submitted. Account-specific sending quotas and recipient acceptance remain unverified.
+
+Identity-provider selection is pending at the user's request. No GitHub OAuth app, replacement auth provider, persistent application credential or permission expansion was created. The existing GitHub sign-in implementation remains in source. The Worker and Pages application have not been deployed, and no production health, real login, MCP-client connection, email delivery, Amazon import or physical Kindle acceptance is claimed.
+
 ## 25 October 2026 Mac deployment preparation
 
 A clean checkout of GitHub main `00c7d5c5a199189f94e1ac14172c36899cd6459e` was independently checked on the operator's Mac. No application fixes were needed.

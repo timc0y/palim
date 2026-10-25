@@ -1,6 +1,23 @@
 # Deploy your own Palim
 
-The repository is not a live hosted service. Deploy only to resources you control. The checked-in resource IDs and sender are placeholders; `npm run deploy` refuses those placeholders.
+The repository is not yet a verified live hosted service. Deploy only to resources you control. The checked-in configuration now targets Tim's dedicated personal-account resources and the reserved `palim-timc0y.pages.dev` hostname. Resource creation is not a deployed or verified application. Other operators must replace the account, resource IDs, origin, project name and sender with their own values.
+
+## Pages front door
+
+The user selected a `pages.dev` address. The personal `tims` account owns the direct-upload Pages project `palim-timc0y`; Cloudflare assigned `https://palim-timc0y.pages.dev`. No first deployment has been published yet. Do not assume `palim.pages.dev` is available.
+
+`pages/public/_worker.js` forwards every request unchanged through the `PALIM` service binding to the `palim` Worker. That Worker still owns static assets, GitHub sign-in, MCP OAuth, D1, private R2, email, rate limiting and scheduled cleanup. There is no cross-origin browser API or duplicate authentication layer. Worker `ORIGIN` must be the canonical Pages origin; OAuth callbacks and signed downloads use that same origin. The Worker public `workers.dev` route and version URLs are disabled. Alternate Pages preview hostnames must fail the canonical origin check.
+
+Deploy the Worker first, once identity and signing credentials are approved and configured, then publish the Pages front door from the same verified source:
+
+```sh
+npm run deploy
+npm run deploy:pages
+```
+
+The Pages command runs from `pages/` so Wrangler reads its Pages configuration. Its production branch is `main`. A service binding is required; do not replace it with a public fetch proxy or rewrite the URL, Origin, cookies or authorization headers. Direct upload does not establish Git-connected automatic deployment. Pages adds no replacement for the Worker's cleanup schedule or rate limiter.
+
+Run `python3 scripts/runtime-proof.py --pages --browser` to exercise the actual local Pages-to-Worker binding over HTTPS, in addition to the direct-Worker proof. Both disposable configurations set local and upstream protocols to HTTPS: Wrangler otherwise forwards local multi-Worker requests with an HTTP origin. Do not weaken the production origin check to accommodate that development default.
 
 ## Account setup
 
@@ -16,11 +33,13 @@ npx wrangler r2 bucket create palim-books
 
 Put the returned IDs in `wrangler.jsonc`. Keep the R2 bucket private. Configure an R2 lifecycle rule deleting objects after two days as crash-orphan protection; the application denies access after one day and deletes ordinary expired objects through its schedule. Do not enable a public R2 URL.
 
-Set `ORIGIN` to the actual HTTPS origin, without a path or trailing slash, and configure the Worker domain/route for that same origin. The canonical origin check is intentional. Set `SENDER` to an address on a verified Cloudflare Email sending domain. Disable stored email previews for private books and verify provider daily/monthly quotas. Do not enable email routing or change DNS on an unrelated domain as an incidental setup step.
+Set `ORIGIN` to the actual HTTPS origin, without a path or trailing slash. For the selected deployment this is the Pages front door; the Worker is reached through its service binding. The canonical origin check is intentional. Set `SENDER` to an address on a verified Cloudflare Email sending domain. Disable stored email previews for private books and verify provider daily/monthly quotas. Do not enable email routing or change DNS on an unrelated domain as an incidental setup step.
 
 Choose the Cloudflare rate-limiting namespace configured for this Worker so it does not unintentionally share counters with another application. The edge limiter is approximate protection for anonymous authentication traffic, not the application's global spend or sending budget.
 
 ## Identity and secrets
+
+The deployment owner is currently comparing authentication providers. No provider change is selected or implemented, and no application credential has been created. The following GitHub instructions describe the existing implementation; do not create its OAuth app while that choice is paused. A browser-only Access gate is not a substitute for MCP OAuth and must not overwrite the existing issuer/discovery flow.
 
 Create a GitHub OAuth application for this deployment. Its homepage is the canonical origin; its callback is `https://YOUR-HOST/auth/callback`. The code requests identity only, not repository permissions.
 

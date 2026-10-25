@@ -3,7 +3,7 @@
 ## Reality
 
 - Tim authorised the public MIT `timc0y/palim` repository and implementation on 25 October 2026. Palim is an agent publishing and unchanged-document delivery tool, not a Kindle client or repository crawler.
-- The source implements one Cloudflare Worker, D1, private R2, OAuth KV and Cloudflare Email. Public deployment and external users remain unestablished. Placeholder account resources are not a live setup.
+- The source implements one Cloudflare Worker, D1, private R2, OAuth KV and Cloudflare Email, with a thin Pages service-binding front door for the user's selected `pages.dev` address. Dedicated personal-account resources and a Pages hostname are provisioned; public deployment and external users remain unestablished.
 - The existing agent owns research/authorship. A strict bounded manuscript is rendered without an additional model. Existing EPUB/PDF forwarding bypasses that renderer.
 - `docs/verification.md` owns executed checks and unverified provider/device boundaries. Local evidence must not be restated as a live release.
 
@@ -27,6 +27,7 @@
 - `src/schema.ts` owns manuscript shapes and quotas. `src/book.ts` owns EPUB packaging, `src/figures.ts` figures, and `src/archive.ts` bounded original inspection.
 - `src/service.ts` owns artifact/delivery operations; `src/store.ts` owns atomic D1 admission and recovery. `src/mail.ts` owns the provider payload and integrity/size boundary.
 - `src/auth.ts`, `src/index.ts` and the maintained OAuth package own authentication. `src/mcp.ts` and `src/routes.ts` expose the same service rather than reimplement policy.
+- `pages/public/_worker.js` passes public requests unchanged to the Worker. `pages/wrangler.jsonc` owns that service binding; the Worker configuration owns the canonical Pages origin and all data, email, rate limiting and cleanup. The front door introduces no separate identity or browser API origin.
 - `skills/palim/SKILL.md` owns editorial workflow. `plugin.json` identifies the portable package; the packaging script supplies an operator-selected actual endpoint.
 - `docs/deployment.md` owns provider setup and acceptance. `docs/verification.md` owns proof. Change those owners instead of creating parallel status pages.
 
