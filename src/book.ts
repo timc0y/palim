@@ -29,7 +29,7 @@ export async function buildBook(value: unknown, assets: ReadonlyMap<string, Asse
   const used = new Set<string>();
   for (const [index, chapter] of book.chapters.entries()) {
     const md = new MarkdownIt({ html: false, xhtmlOut: true, linkify: false, typographer: false });
-    md.validateLink = (href: string) => { try { const u = new URL(href); return u.protocol === 'https:' && !u.username && !u.password; } catch { return href.startsWith('figure:'); } };
+    md.validateLink = (href: string) => { if (href.startsWith('figure:')) return true; try { const u = new URL(href); return u.protocol === 'https:' && !u.username && !u.password; } catch { return href.startsWith('figure:'); } };
     md.renderer.rules.image = (tokens, at) => {
       const token = tokens[at]!; const ref = token.attrGet('src') ?? ''; const image = rendered.get(ref.replace(/^figure:/, ''));
       invariant(ref.startsWith('figure:') && image, 'MISSING_FIGURE', `Use a defined figure:id reference, not a remote image: ${ref.slice(0, 100)}`);

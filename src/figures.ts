@@ -15,6 +15,7 @@ export function staticSvg(svg: string): string {
     invariant(!['script', 'foreignObject', 'iframe', 'image', 'use', 'a', 'animate', 'set'].includes(node.localName ?? node.tagName), 'UNSAFE_FIGURE', 'The figure contains unsupported interactive or remote content.');
     for (let j = 0; j < node.attributes.length; j++) {
       const attr = node.attributes.item(j)!;
+      if (attr.name === 'xmlns' && attr.value === 'http://www.w3.org/2000/svg') continue;
       invariant(!/^on/i.test(attr.name) && !/(?:href|src)$/i.test(attr.name) && !/@import|javascript:|https?:\/\/|url\s*\(/i.test(attr.value.replace(/url\(#[a-z0-9_-]+\)/gi, '')), 'UNSAFE_FIGURE', 'Remote references and event handlers are not allowed in figures.');
     }
   }

@@ -26,6 +26,5 @@ export async function appFetch(request:Request,env:Env):Promise<Response>{
     throw new PalimError('NOT_FOUND','No such operation.',404);
   }
   if(request.method!=='GET'&&request.method!=='HEAD')return new Response('Method not allowed',{status:405});
-  if(path==='/app')return env.ASSETS.fetch(new Request(new URL('/app.html',request.url),request));
   return env.ASSETS.fetch(request);
 }

@@ -41,7 +41,8 @@ async function readEntry(zip: JSZip, name: string, max = LIMITS.xml): Promise<st
   const file = zip.file(name); invariant(file, 'INVALID_EPUB', `Missing EPUB metadata: ${name}`);
   return new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = []; let total = 0; let stopped = false;
-    const stream = file.internalStream('uint8array');
+    // JSZip exposes internalStream at runtime; its object typings omit this supported streaming API.
+    const stream = (file as unknown as { internalStream(type: 'uint8array'): JSZip.JSZipStreamHelper<Uint8Array> }).internalStream('uint8array');
     stream.on('data', (chunk: Uint8Array) => { if (stopped) return; total += chunk.length; if (total > max) { stopped = true; stream.pause(); reject(new PalimError('METADATA_TOO_LARGE', 'EPUB metadata exceeds its decoded limit.')); } else chunks.push(chunk); });
     stream.on('error', reject);
     stream.on('end', () => { if (stopped) return; try { const all = new Uint8Array(total); let p = 0; for (const c of chunks) { all.set(c, p); p += c.length; } resolve(utf8.decode(all)); } catch (e) { reject(e); } });
@@ -56,7 +57,7 @@ export async function inspectDocument(bytes: Uint8Array): Promise<DocumentInfo> 
   const zip = await JSZip.loadAsync(bytes, { createFolders: false });
   invariant(await readEntry(zip, 'mimetype', 64) === 'application/epub+zip', 'INVALID_EPUB', 'The file is not an EPUB.');
   const container = parseXml(await readEntry(zip, 'META-INF/container.xml'));
-  const root = container.getElementsByTagName('rootfile').item(0)?.getAttribute('full-path');
+  const root = container.getElementsByTagNameNS('*', 'rootfile').item(0)?.getAttribute('full-path');
   invariant(root && safePath(root), 'INVALID_EPUB', 'The EPUB has no safe package document.');
   const pkg = parseXml(await readEntry(zip, root));
   const version = pkg.documentElement?.getAttribute('version');
