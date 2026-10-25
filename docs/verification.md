@@ -1,6 +1,18 @@
 # Verification record
 
-## Current single-install deployment — 25 October 2026
+## Live origin fix and guide-only release — 25 October 2026
+
+Live deployed source is local commit `f6bfba9c728290756b7b45c85be02de4724e1593`, Worker `49fda6c2-97b5-4802-b51b-91f21b8af860`, Pages `5e47e67e-dbb8-4aa7-9e57-be864516c968`. Cloudflare production metadata reports the exact successful revision. App/sample/assets and the v0.3.0 MCP-only ZIP/checksum match generated local bytes. ZIP SHA-256 is `68ac62d47ac9964cd5ac5977f365ca82e8c92ea1d3f69d591672ff3ad2b94ff3`.
+
+The live reported ORIGIN error was reproduced with a normal empty browser form: no-referrer made Chromium send Origin:null despite Sec-Fetch-Site:same-origin, yielding the exact 403/message. Control HTML now defaults to same-origin referrer policy. The identical live empty-form reproducer sends the canonical Pages Origin and reaches expected invalid-input validation (400 INVALID_JSON), without an identity, email, client registration or grant. Null/foreign/cross-site requests remain refused. Explicit no-referrer on private previews/downloads is preserved; CSRF, consent owner proof and callback validation are unchanged.
+
+get_guide is a read-only MCP operation, and src/guide.ts is the single canonical workflow source shared by initialization and that tool. Existing create/send/receipt operations keep their names and enforcement; creating a draft works without a prior guide call. Installed skills and setup hooks were removed. Native read-only Codex inspection of a fresh v0.3.0 archive reports the palim MCP server, zero skills and installed=false. Current site and local docs use one connection/sign-in and guide-before-create/forward guidance; sample content and visual system are unchanged.
+
+Passed: 72 unit/protocol/package tests with mocked OAuth boundaries, formatting, dry-run bundle, EPUBCheck, the grant-free native Pages browser origin regression, independent security/docs reviews, live exact-byte checks, protected-origin/auth/privacy configuration and the original live empty-form regression. No real email or production grant was created.
+
+Full browser OAuth consent proof was denied by automatic approval review because even a disposable local grant conflicts with the explicit no-new-grants restriction. Approval for bounded local-only test grants was requested and remains pending. Full native OAuth tests and GitHub CI have not been run for this revision; GitHub push is held because the workflow would create those test grants. This deployed commit and evidence are committed locally for review. Do not claim authenticated ChatGPT acceptance, full CI success or remote source publication. Actual owner consent remains separate.
+
+## Previous single-install deployment — 25 October 2026
 
 Deployed source `e060349e0e15c4784ab6ae49f78df2cc84bf2e68` uses Worker `d9f5bbd2-a3d1-4db4-9a64-b8c7511158ec` and Pages `a4edfaa1-14a9-400e-acef-ff43031bb8e4`. Cloudflare reports this exact successful production source. The [plugin ZIP](https://palim-timc0y.pages.dev/palim-plugin.zip) and [checksum](https://palim-timc0y.pages.dev/palim-plugin.sha256) are live and byte-identical to generated output. ZIP SHA-256 is `730fece545a9243560ca744b3ba43d225a5dcbd1b5fefa92764e8c7e6c9c9ec3`. Landing/workspace copy now describes one connection or one complete bundle, with no separate skill installation.
 
