@@ -74,7 +74,7 @@ async function busy(element, work) {
   const states = {
     'create-form': 'Creating…',
     'upload-form': 'Uploading…',
-    'destination-form': 'Sending verification book…',
+    'destination-form': 'Saving address…',
     'confirm-form': 'Confirming…',
     'login-email-form': 'Requesting code…',
     'login-code-form': 'Signing in…',
@@ -325,8 +325,8 @@ async function refresh() {
     $('confirm-form').hidden = !currentAccount.pendingDestination;
     $('verification-help').hidden = !currentAccount.pendingDestination;
     $('confirm-form').querySelector('label').textContent = currentAccount.pendingDestination
-      ? `Code inside the Kindle verification book for ${currentAccount.pendingDestination}`
-      : 'Code inside the Kindle verification book';
+      ? `Code from the verification book you requested for ${currentAccount.pendingDestination}`
+      : 'Code from your requested verification book';
     const list = $('reader-list');
     list.replaceChildren();
     for (const d of currentAccount.destinations) {
