@@ -12,15 +12,19 @@ colors:
   focus: '#315D9C'
 typography:
   display:
-    fontFamily: 'Geist, system-ui, sans-serif'
+    fontFamily: 'Manrope, system-ui, sans-serif'
     fontSize: 'clamp(3.5rem, 1.82857143rem + 6.85714286vw, 8rem)'
     fontWeight: 500
     lineHeight: 1.02
-    letterSpacing: '-0.065em'
+    letterSpacing: '-0.045em'
   body:
-    fontFamily: 'Geist, system-ui, sans-serif'
+    fontFamily: 'Manrope, system-ui, sans-serif'
     fontSize: '1rem'
     lineHeight: 1.6
+  reading:
+    fontFamily: 'Georgia, serif'
+    fontSize: '1.125rem'
+    lineHeight: 1.8
 rounded:
   control: '0.5rem'
   surface: '0.75rem'
@@ -44,7 +48,7 @@ The user rejected the previous pale serif design on 25 October 2026. This replac
 
 ## Composition and type
 
-One full-width graphite stage carries an upright modern sans headline, two literal actions and the selected sculptural folio artwork. There is no leaf mark, tilted book card, hoops, slogan divider or repeated philosophy band. A short second section presents text from the actual downloadable sample. The serif face belongs only to that reading specimen. Wordmark, product headings and controls use self-hosted OFL Geist, with no third-party font request.
+One full-width graphite stage carries an upright modern sans headline, two literal actions and the selected sculptural folio artwork. There is no leaf mark, tilted book card, hoops, slogan divider or repeated philosophy band. A short second section presents text from the actual downloadable sample. The serif face belongs only to that reading specimen. Wordmark, product headings and controls use self-hosted OFL Manrope, with no third-party font request.
 
 The reading desk shows one task panel at a time and preserves entered fields on switching. The active task leads; the temporary shelf follows. Confirmed recipient selection remains explicit, while address management and MCP sit in secondary disclosures. Inbox sign-in codes and Kindle-book confirmation codes remain separate. Actual expiry, target and provider-versus-device receipts stay visible.
 
@@ -61,3 +65,5 @@ The selected original artwork is preserved through Library materialization with 
 ## Review evidence
 
 Compare the current branch's desktop/mobile CI screenshots with the previously deployed screenshot artifact linked in docs/verification.md. A technical pass is not aesthetic approval. Parent/Astra rendered review precedes production promotion. Verify 390px and 1440px, intermediate widths, enlarged text, keyboard paths, safe original-file forwarding, task-state preservation and action-local errors. No live email is needed for these captured-mail proofs.
+
+The deterministic UI scan was reviewed against the actual renders. Its full-bleed-stage and flex-height navigation padding findings describe intentional container ownership, and its specimen-font finding is the explicitly scoped reading excerpt. Display/privacy tracking was relaxed. Palette/transparency and type-role findings are not a claim of a clean detector report; the rendered review remains the aesthetic authority.

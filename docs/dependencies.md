@@ -11,7 +11,7 @@ The production versions are fixed in package.json and the committed lockfile. Th
 - `pele`: Mermaid parsing and SVG layout. MIT.
 - `zod`: input and boundary validation. MIT.
 
-Dependencies retain their own notices. The website self-hosts Geist variable WOFF2, including its Latin-extended subset, from Google Fonts under the included SIL Open Font License (`public/fonts/Geist-OFL.txt`); body controls and generated book SVG retain system-font fallbacks. GitHub Actions downloads a checksum-pinned EPUBCheck distribution for validation, not for inclusion in the Worker.
+Dependencies retain their own notices. The website self-hosts Manrope variable WOFF2, including its Latin-extended subset, from Google Fonts under the included SIL Open Font License (`public/fonts/Manrope-OFL.txt`); body controls and generated book SVG retain system-font fallbacks. GitHub Actions downloads a checksum-pinned EPUBCheck distribution for validation, not for inclusion in the Worker.
 
 The initial audit identified outdated XML, Markdown and schema-validation versions. Those pins were patched before the release gate. The unsupported Arctic adapter was replaced with the maintained Octokit boundary. `npm audit --omit=dev --audit-level=high` is a blocking CI check, not a substitute for source review or a guarantee against future vulnerabilities.
 

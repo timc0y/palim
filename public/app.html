@@ -26,8 +26,10 @@
         <h1>Reading desk</h1>
       </div>
       <nav class="job-choices" aria-label="Choose a task">
-        <a class="button" href="#create-form">Create an EPUB</a
-        ><a class="button secondary" href="#upload-form">Send an existing file</a>
+        <a class="button" href="#create-form" aria-controls="create-panel">Create an EPUB</a
+        ><a class="button secondary" href="#upload-form" aria-controls="upload-panel"
+          >Send an existing file</a
+        >
       </nav>
       <div id="reader-choice" hidden>
         <label for="send-reader">Send to</label
@@ -85,7 +87,7 @@
                 name="title"
                 maxlength="160"
                 required
-                placeholder="Understanding the thing I’m building"
+                placeholder="A title for your idea"
               />
               <details class="book-metadata">
                 <summary>Author and language</summary>

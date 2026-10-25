@@ -31,7 +31,7 @@
       "refersTo": "button-primary",
       "description": "One clear task.",
       "html": "<button class=\"palim-button\">Create an EPUB</button>",
-      "css": ".palim-button{background:#11151B;color:#fff;border:1px solid #11151B;border-radius:.5rem;min-height:3rem;padding:.75rem 1.25rem;font:500 1rem Geist,system-ui,sans-serif}.palim-button:focus-visible{outline:2px solid #315D9C;outline-offset:4px}"
+      "css": ".palim-button{background:#11151B;color:#fff;border:1px solid #11151B;border-radius:.5rem;min-height:3rem;padding:.75rem 1.25rem;font:500 1rem Manrope,system-ui,sans-serif}.palim-button:focus-visible{outline:2px solid #315D9C;outline-offset:4px}"
     }
   ],
   "narrative": {
