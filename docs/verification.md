@@ -1,5 +1,9 @@
 # Verification record
 
+## Denied host-file origin diagnostic — 25 October 2026
+
+Source `4e786bfe21e5b6c1ed42107d6bb114db330b3913`, Worker `ac39560f-c4e0-4d7f-a852-270fe6d945b7`, changes only the unsupported-host error to identify the URL origin. Seventy-seven tests, formatting and build pass. The real MCP regression uses credentials, a private path, signed query, fragment and file identifier; the error includes none of those values. The denied request performs no fetch, artifact creation, upload admission, delivery or mail-ledger write. `FILE_ORIGINS` remains empty; no host has been trusted or granted access. The existing deployment completed after a slow 191-second upload and was not duplicated. Actual host discovery requires a subsequent owner-authorized request from the affected client; no file/send probe was performed by this agent.
+
 ## Account-only allowance and owner reflow report — 25 October 2026
 
 The owner reports that the PNG-only candidate opens with adjustable text size after their own email test. This is owner-reported Kindle reflow evidence; it does not establish Palim email delivery. The exact original provider recipient and envelope address match a currently saved owner-scoped address under a new ID, so the removed historical ID is not a recipient mismatch.
