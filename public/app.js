@@ -55,6 +55,13 @@ async function busy(element, work) {
     area.append(feedback);
   }
   feedback.textContent = '';
+  if (form) {
+    feedback.id = `${form.id}-feedback`;
+    form.setAttribute('aria-describedby', feedback.id);
+    form.setAttribute('aria-busy', 'true');
+    for (const input of form.querySelectorAll('[aria-invalid]'))
+      input.removeAttribute('aria-invalid');
+  }
   element.disabled = true;
   const states = {
     'create-form': 'Creating…',
@@ -64,15 +71,23 @@ async function busy(element, work) {
     'login-email-form': 'Requesting code…',
     'login-code-form': 'Signing in…',
   };
-  element.textContent = states[form?.id] || (/Send/.test(original) ? 'Sending…' : 'Working…');
+  element.textContent =
+    element.id === 'resend-login'
+      ? 'Requesting code…'
+      : states[form?.id] || (/Send/.test(original) ? 'Sending…' : 'Working…');
   try {
     await work();
   } catch (e) {
     feedback.textContent = e.message;
     feedback.className = 'action-feedback error';
     feedback.setAttribute('role', 'alert');
+    if (form?.id === 'login-code-form' && e.status === 400) {
+      $('login-code').setAttribute('aria-invalid', 'true');
+      $('login-code').setAttribute('aria-describedby', `login-sent ${feedback.id}`);
+    }
     feedback.focus();
   } finally {
+    if (form) form.setAttribute('aria-busy', 'false');
     element.disabled = false;
     element.textContent = original;
   }
@@ -368,6 +383,7 @@ async function requestLogin() {
   const email = $('login-email').value.trim();
   const result = await post('/auth/email-otp/send-verification-otp', { email, type: 'sign-in' });
   $('login-sent').textContent = `Sign-in code requested for ${email}. ${result.message}`;
+  $('login-email-form').hidden = true;
   $('login-code-form').hidden = false;
   $('login-code').focus();
 }
@@ -378,6 +394,7 @@ $('login-email-form').addEventListener('submit', (event) => {
 $('resend-login').addEventListener('click', (event) => busy(event.currentTarget, requestLogin));
 $('change-login-email').addEventListener('click', () => {
   $('login-code-form').hidden = true;
+  $('login-email-form').hidden = false;
   $('login-code').value = '';
   $('login-email').focus();
 });

@@ -258,6 +258,7 @@ try:
             expect(browser_page.locator('#confirm-form label')).to_contain_text('pending@kindle.com')
             browser_page.screenshot(path=str(ARTIFACTS / 'destination-pending-mobile.png'), full_page=True)
             browser_page.locator('#setup-details').evaluate('(el) => el.open = false')
+            browser_page.locator('h1').click()
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-mobile.png'), full_page=True)
             browser_page.set_viewport_size({'width': 1440, 'height': 1000})
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-desktop.png'), full_page=True)

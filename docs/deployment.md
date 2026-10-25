@@ -1,10 +1,10 @@
 # Deploy your own Palim
 
-The repository is not yet a verified live hosted service. Deploy only to resources you control. The checked-in configuration now targets Tim's dedicated personal-account resources and the reserved `palim-timc0y.pages.dev` hostname. Resource creation is not a deployed or verified application. Other operators must replace the account, resource IDs, origin, project name and sender with their own values.
+The hosted app is deployed; end-to-end inbox and Kindle acceptance remain separate release gates. Deploy only to resources you control. The checked-in configuration now targets Tim's dedicated personal-account resources and the reserved `palim-timc0y.pages.dev` hostname. Resource creation is not a deployed or verified application. Other operators must replace the account, resource IDs, origin, project name, sender and landing-page canonical metadata with their own values.
 
 ## Pages front door
 
-The user selected a `pages.dev` address. The personal `tims` account owns the direct-upload Pages project `palim-timc0y`; Cloudflare assigned `https://palim-timc0y.pages.dev`. No first deployment has been published yet. Do not assume `palim.pages.dev` is available.
+The user selected a `pages.dev` address. The personal `tims` account owns the direct-upload Pages project `palim-timc0y`; Cloudflare assigned `https://palim-timc0y.pages.dev`. The selected production deployment is recorded in docs/verification.md. Do not assume `palim.pages.dev` is available.
 
 `pages/public/_worker.js` forwards every request unchanged through the `PALIM` service binding to the `palim` Worker. That Worker still owns static assets, email-code sign-in, MCP OAuth, D1, private R2, email, rate limiting and scheduled cleanup. There is no cross-origin browser API or duplicate authentication layer. Worker `ORIGIN` must be the canonical Pages origin; OAuth callbacks and signed downloads use that same origin. The Worker public `workers.dev` route and version URLs are disabled. Alternate Pages preview hostnames must fail the canonical origin check.
 

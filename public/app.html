@@ -4,11 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Your workspace · Palim</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#F7F7FB" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/style.css" />
     <script type="module" src="/app.js"></script>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to workspace</a>
     <header class="nav wrap">
       <a class="wordmark" href="/"
         ><svg class="brand-leaf" aria-hidden="true" viewBox="0 0 32 36">
@@ -27,7 +30,7 @@
         </form>
       </nav>
     </header>
-    <main class="wrap workspace">
+    <main id="main-content" class="wrap workspace">
       <div class="workspace-heading">
         <p class="eyebrow">YOUR READING DESK</p>
         <h1>Your reading <em>desk.</em></h1>
@@ -38,20 +41,17 @@
       </nav>
       <div id="reader-choice" hidden>
         <label for="send-reader">Send to</label
-        ><select id="send-reader">
+        ><select id="send-reader" aria-describedby="reader-choice-help">
           <option value="">Add a Kindle address to send</option>
         </select>
-        <p class="field-help">
+        <p class="field-help" id="reader-choice-help">
           Create and download without connecting a Kindle. Each send goes to one confirmed address.
         </p>
       </div>
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
       <section id="signin" class="signin-panel" hidden>
-        <h2>Bring your own curiosity.</h2>
-        <p>
-          Make an EPUB, send an existing file, or save your Kindle addresses. Sign in with a code
-          sent to your inbox.
-        </p>
+        <h2>Sign in to Palim</h2>
+        <p>Enter your inbox email. We’ll send a six-digit sign-in code.</p>
         <form id="login-email-form">
           <label for="login-email">Your inbox email</label>
           <input
@@ -68,6 +68,7 @@
           <label for="login-code">Sign-in code from your inbox</label>
           <input
             id="login-code"
+            aria-describedby="login-sent"
             inputmode="numeric"
             autocomplete="one-time-code"
             pattern="[0-9]{6}"
@@ -86,10 +87,7 @@
       <div id="desk" class="desk" hidden>
         <div class="desk-main">
           <section class="panel">
-            <div class="panel-title">
-              <span class="eyebrow">01 / PUBLISH</span><span class="tag">New reading edition</span>
-            </div>
-            <h2>Make it readable.</h2>
+            <h2>Create an EPUB</h2>
             <form id="create-form">
               <label for="title">Book title</label
               ><input
@@ -138,11 +136,7 @@
             <div id="created" class="result" hidden></div>
           </section>
           <section class="panel">
-            <div class="panel-title">
-              <span class="eyebrow">02 / FORWARD</span
-              ><span class="tag">Original bytes preserved</span>
-            </div>
-            <h2>Already have the book?</h2>
+            <h2>Send an existing file</h2>
             <p>
               Upload an EPUB or PDF. We’ll never change its words, cover, metadata or internal
               files.
@@ -165,18 +159,14 @@
             </form>
             <div id="uploaded" class="result" hidden></div>
           </section>
-          <section class="panel">
-            <div class="panel-title">
-              <span class="eyebrow">YOUR TEMPORARY SHELF</span
-              ><span class="tag">24-hour storage</span>
-            </div>
+          <section class="panel shelf-panel">
+            <h2>Temporary shelf</h2>
             <div id="shelf" class="shelf"><p class="quiet">Your recent files appear here.</p></div>
           </section>
         </div>
         <aside class="desk-aside">
           <section class="panel reader-panel">
-            <p class="eyebrow">YOUR READER</p>
-            <h2>Kindle addresses.<br /><em>Many ideas.</em></h2>
+            <h2>Kindle addresses</h2>
             <p id="destination-status">No confirmed reader yet.</p>
             <div id="reader-list"></div>
             <details id="setup-details">
@@ -218,7 +208,6 @@
             </details>
           </section>
           <section class="panel connect-panel">
-            <p class="eyebrow">YOUR AGENT</p>
             <details>
               <summary>Connect your agent</summary>
               <h3>Connect Palim.</h3>

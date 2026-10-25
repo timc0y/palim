@@ -47,9 +47,11 @@ The landing page persuades through a readable specimen and two literal tasks; th
 - Canvas `#F7F7FB`, solid surface `#FFFFFF`, secondary `#F0EEF7`.
 - Ink `#242239`, muted `#666277`, accent `#655681`, action `#343044`.
 - Decorative line `#DDD9E8`, input boundary `#8D879B`, focus `#7663B0`.
-- Instrument Serif regular/italic is self-hosted under OFL for wordmark/display; system sans for body and controls. Font display swaps; Georgia is fallback.
+- Instrument Serif regular/italic is self-hosted as WOFF2, including Latin-extended subsets, under OFL for wordmark/display; system sans for body and controls. Font display swaps; Georgia is fallback.
 - An original split-leaf outline marks the brand. One nearly upright white page and a translucent offset leaf carry the hero; faint lilac/blue mist appears behind artwork only. No autoplay animation or external font request.
 - Desktop separates copy and specimen. At 390px, both tasks precede the artwork. Workspace tasks precede address setup, with 48px primary controls, 16px input text, explicit focus and reduced-motion support.
 - Sign-in codes belong to the inbox; Kindle confirmation codes belong to the verification book. Labels distinguish those sources. Selected recipient, actual expiry and provider-versus-device receipt remain explicit.
 
 Reference composition: Cosmos atmosphere and generous editorial spacing, with implementation owned by original CSS/SVG. Current rendered review evidence is in the exact-source CI artifacts linked from docs/verification.md.
+
+The final simplicity pass applied UI Skills Root, Impeccable, better-colors, better-typography, fixing-accessibility, fixing-metadata and writing-for-interfaces from the Mac’s local skill collection. It removed redundant tags, made headings literal, separated email-entry and code-entry states, associated errors and busy state with forms, added skip navigation and private-workspace noindex, compressed fonts, and reduced secondary setup to ruled disclosures. Browser proof covers the rendered task hierarchy and keyboard focus. Full assistive-technology and social-card testing remain unverified.

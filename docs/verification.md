@@ -2,7 +2,7 @@
 
 ## Current integration — 25 October 2026
 
-The user approved Better Auth, Palim-only Cloudflare secrets, deployment to the personal `tims` account and a cooler ethereal redesign. The assigned canonical hostname is `https://palim-timc0y.pages.dev`. At this source checkpoint the application has not yet been published; resource preparation is not a working deployment. The next deployment entry must state the actual version and public checks.
+The user approved Better Auth, Palim-only Cloudflare secrets, deployment to the personal `tims` account and a cooler ethereal redesign. The assigned canonical hostname is `https://palim-timc0y.pages.dev`. The initial Worker version `c2a41974-c1f8-4009-9646-f43d7a175b8e` deployed source `833d3fc71ae6f1281f7d8af916e31fd3acfc7818`. Pages published successfully after deployment-only correction `a5da954d1cd52814c0eeb8ccd3c1833031c36b1a`; its production hostname responds over HTTPS. A later UI refinement must be identified by its own deployed version below.
 
 Better Auth 1.7.12 replaces the GitHub adapter and custom browser sessions. It owns native D1 email-code identity, encrypted five-minute OTPs, three attempts, seven-day secure host-only cookies and database rate limiting. The existing MCP OAuth consent/PKCE server remains separate. Up to five private labelled confirmed Kindle addresses can be saved, with explicit per-send selection and optional default.
 
@@ -12,7 +12,15 @@ The actual local HTTPS Pages-to-Worker service binding passed with native worker
 
 Independent read-only security review identified and verified corrections for missing-secret fail-closed behavior and cross-channel duplicate delivery. Concurrent explicit/default requests now share one original receipt even after changing the default. No remaining critical defect was found in the reviewed auth, budget, destination and retry paths. This is agent review, not an external audit.
 
-Astra supplied the revised reading-atelier direction and inspected Mobbin references for hierarchy, login and address selection. Original CSS/SVG and self-hosted OFL Instrument Serif implement the visual system in DESIGN.md. The one-time UI detector identified small inherited text and a generic hero eyebrow; those were corrected. Latest rendered screenshots and final reviewer disposition belong to the exact-source CI evidence, not the design proposal alone.
+Astra supplied the revised reading-atelier direction and inspected Mobbin references for hierarchy, login and address selection. Original CSS/SVG and self-hosted OFL Instrument Serif implement the visual system in DESIGN.md. The one-time UI detector identified small inherited text and a generic hero eyebrow; those were corrected. The additional local UI Skills Root, colour, typography, accessibility, metadata and interface-writing pass removed redundant labels/cards, added linked error/busy states and skip navigation, set private-workspace noindex, and replaced TTF with self-hosted WOFF2. Latest rendered screenshots and final reviewer disposition belong to the exact-source CI evidence, not the design proposal alone.
+
+## Live production checks
+
+The canonical `https://palim-timc0y.pages.dev` passed real HTTPS asset/font/sample requests, correct OAuth issuer, anonymous API/MCP refusal, invalid bearer refusal, wrong-origin login refusal and blocked unused auth endpoints. No live email was requested.
+
+The operator seeded two temporary ten-minute Better Auth sessions and synthetic saved-reader fixtures directly in the dedicated production D1 solely for scoped acceptance. No fixture route or bypass was deployed. Through the actual public Pages origin, account/file creation, private download SHA-256, no-store headers, refused foreign file deletion/sending, private reader listing, refused foreign reader default/deletion, owned default selection, disabled-account refusal, object deletion and logout revocation all passed. All temporary identities, sessions, readers and private objects were then removed and absence checked. This establishes live session and data boundaries, not email-code inbox delivery or real Kindle confirmation. No provider send was invoked.
+
+[Exact-source CI run 40189194527](https://github.com/timc0y/palim/actions/runs/40189194527) passed for `833d3fc71ae6f1281f7d8af916e31fd3acfc7818`; downloaded SHA, test, EPUBCheck and native/Pages logs were inspected. Screenshot artifact `12596832684` contains landing, email/code/error, empty/populated workspace, saved/pending addresses, synthetic receipt and mobile-zoom views. Newer source must pass its own CI.
 
 ## Provider preparation
 
