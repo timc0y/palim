@@ -1,6 +1,20 @@
 # Verification record
 
-## Current reader polish — 25 October 2026
+## Current single-install deployment — 25 October 2026
+
+Deployed source `e060349e0e15c4784ab6ae49f78df2cc84bf2e68` uses Worker `d9f5bbd2-a3d1-4db4-9a64-b8c7511158ec` and Pages `a4edfaa1-14a9-400e-acef-ff43031bb8e4`. Cloudflare reports this exact successful production source. The [plugin ZIP](https://palim-timc0y.pages.dev/palim-plugin.zip) and [checksum](https://palim-timc0y.pages.dev/palim-plugin.sha256) are live and byte-identical to generated output. ZIP SHA-256 is `730fece545a9243560ca744b3ba43d225a5dcbd1b5fefa92764e8c7e6c9c9ec3`. Landing/workspace copy now describes one connection or one complete bundle, with no separate skill installation.
+
+MCP initialization carries essential authoring, setup, safety, transfer, retention and receipt guidance. An official SDK client with no skill loaded receives it, creates a draft without mail and is refused unconfirmed delivery. The backend remains the existing authenticated service. Auth, recipient ownership, confirmation, mail budgets and retention enforcement were not replaced.
+
+[Exact-source CI 40205326028](https://github.com/timc0y/palim/actions/runs/40205326028) passed: formatting, strict TypeScript, 71 tests, dry-run build, zero-vulnerability production audit, independent EPUBCheck, and direct/native Pages browser proofs. Logs were inspected. [Artifact 12603662053](https://github.com/timc0y/palim/actions/runs/40205326028/artifacts/12603662053) contains the complete ZIP/checksum and source/runtime/browser evidence. Native proofs fetch the ZIP through actual response headers, inspect its complete components/checksum, and verify standalone MCP guidance. Mail remains a captured synthetic boundary.
+
+The installed Mac Codex CLI 0.164.0 was tested read-only through plugin/list with explicit repository cwd and plugin/read. Portable manifest discovery initially found skills but omitted its MCP server. The documented Codex compatibility layout corrected that real client mismatch. The source directory and a freshly extracted ZIP both resolve the palim MCP server and palim:palim / palim:setup skills. Both report installed=false; no personal catalog registration, plugin installation, OAuth client/grant or credentials were created. That client did not report the optional automatic-onboarding hook, so automatic setup execution is not claimed or required. The setup guidance is included, while MCP itself remains sufficient.
+
+Live HTTPS checks passed exact app/assets/bundle bytes, privacy URL, desktop/mobile signed-out rendering, keyboard focus, reduced motion, 200% zoom, refused anonymous API/MCP and invalid bearer access, wrong-origin login refusal, canonical OAuth issuer and blocked alternate Pages origins. Worker public/version URLs, private storage and sender preview settings remain unchanged. A read-only independent security review found no bundle/setup blocker.
+
+Actual ChatGPT custom-connection creation and Codex installation/OAuth use are pending at the owner consent step. The documented path is connect/install, browser sign-in and consent; no separate skill setup is needed. This task prohibited new grants and live email, so no fresh authenticated client acceptance is claimed. No public-directory submission occurred. Inbox, provider acceptance and physical Kindle gates remain open. Earlier sample pixels remain separately reviewed; EPUB XHTML captures in Chromium are not dedicated-reader/device evidence.
+
+## Previous reader polish — 25 October 2026
 
 Live sample: [palim-timc0y.pages.dev/sample.html](https://palim-timc0y.pages.dev/sample.html). Application source `ded93c162120407af96ff6ba22f087ffcc796455` is deployed as Worker `02456742-cc9d-47a1-9397-20c1825b8ec3` and Pages `b61e8180-6c67-4cd7-b32d-31f7afe6c957`. Cloudflare production metadata reports the exact source and success. Live HTML, CSS, EPUB, original exposure illustration, app and font bytes match local generated/committed files.
 
