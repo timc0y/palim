@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
@@ -25,7 +25,7 @@ jobs:
       - run: npm run format
       - run: npm run check
       - run: npm run build
-      - name: Dependency security gate
+      - name: Dependency security gate (patched production pins)
         run: npm audit --omit=dev --audit-level=high
       - name: EPUB conformance
         run: |
@@ -34,6 +34,8 @@ jobs:
           unzip -q epubcheck.zip -d .local
           java -jar .local/epubcheck-5.4.0/epubcheck.jar artifacts/palim-sample.epub --failonwarnings 2>&1 | tee artifacts/epubcheck.txt
           rm epubcheck.zip
+      - name: Exercise the native runtime
+        run: python3 scripts/runtime-proof.py 2>&1 | tee artifacts/runtime-proof.txt
       - name: Commit only the lock and mechanical formatting
         run: |
           git config user.name 'github-actions[bot]'
