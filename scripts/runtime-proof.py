@@ -154,7 +154,7 @@ try:
             browser_page.set_viewport_size({'width': 390, 'height': 844})
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
             browser_page.screenshot(path=str(ARTIFACTS / 'landing-mobile.png'), full_page=True)
-            context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'path': '/', 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
+            context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#desk').wait_for(state='visible')
             browser_page.locator('#title').fill('A browser-created reading edition')

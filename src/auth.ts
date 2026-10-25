@@ -1,4 +1,4 @@
-import { GitHub } from 'arctic';
+import { githubAuthorizationUrl, githubAccessToken } from './github-auth.js';
 import { z } from 'zod';
 import { PalimError, invariant } from './errors.js';
 import { cookie, checkOrigin, equalToken, hmac } from './http.js';
@@ -8,7 +8,6 @@ import type { Env } from './types.js';
 const SESSION='__Host-palim';
 const STATE='__Host-palim-login';
 const sessionCookie=(name:string,value:string,seconds:number)=>`${name}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${seconds}`;
-function github(env:Env){if(!env.GITHUB_CLIENT_ID||!env.GITHUB_CLIENT_SECRET)throw new PalimError('CONFIGURATION','The operator must configure GitHub sign-in.',503);return new GitHub(env.GITHUB_CLIENT_ID,env.GITHUB_CLIENT_SECRET,`${env.ORIGIN}/auth/callback`);}
 export function returnPath(value:string|null):string {
   if (!value || value.length > 4000 || /[\u0000-\u001f\u007f\\]/.test(value) || !value.startsWith('/') || value.startsWith('//')) return '/app';
   const parsed = new URL(value, 'https://palim.invalid');
@@ -22,17 +21,17 @@ export async function requireSession(request:Request,env:Env):Promise<string>{co
 export async function authRoute(request:Request,env:Env):Promise<Response|null>{
   const url=new URL(request.url),now=Math.floor(Date.now()/1000);
   if(url.pathname==='/auth/login'&&request.method==='GET'){
-    const state=randomToken();const client=github(env);const redirect=client.createAuthorizationURL(state,[]);
+    const state=randomToken();const redirect=githubAuthorizationUrl(env,state);
     await env.DB.prepare('INSERT INTO login_states(hash,return_to,expires_at) VALUES(?,?,?)').bind(await sha256(state),returnPath(url.searchParams.get('returnTo')),now+600).run();
-    return new Response(null,{status:302,headers:{Location:redirect.href,'Set-Cookie':sessionCookie(STATE,state,600),'Cache-Control':'no-store'}});
+    return new Response(null,{status:302,headers:{Location:redirect,'Set-Cookie':sessionCookie(STATE,state,600),'Cache-Control':'no-store'}});
   }
   if(url.pathname==='/auth/callback'&&request.method==='GET'){
     const state=url.searchParams.get('state')??'',bound=cookie(request,STATE)??'',code=url.searchParams.get('code');
     invariant(code&&/^[a-f0-9]{64}$/.test(state)&&equalToken(state,bound),'LOGIN_STATE','Sign-in expired or does not belong to this browser. Start again.');
     const pending=await env.DB.prepare('DELETE FROM login_states WHERE hash=? AND expires_at>? RETURNING return_to').bind(await sha256(state),now).first<{return_to:string}>();
     invariant(pending,'LOGIN_STATE','This sign-in attempt expired or has already been used.');
-    const tokens=await github(env).validateAuthorizationCode(code);
-    const response=await fetch('https://api.github.com/user',{headers:{Authorization:`Bearer ${tokens.accessToken()}`,Accept:'application/vnd.github+json','User-Agent':'Palim'},signal:AbortSignal.timeout(10000)});
+    const accessToken=await githubAccessToken(env,code);
+    const response=await fetch('https://api.github.com/user',{headers:{Authorization:`Bearer ${accessToken}`,Accept:'application/vnd.github+json','User-Agent':'Palim'},signal:AbortSignal.timeout(10000)});
     invariant(response.ok,'LOGIN_PROVIDER','GitHub could not confirm your identity.');
     const identity=z.object({id:z.number().int().positive(),login:z.string().min(1).max(100)}).parse(await response.json());
     const owner=String(identity.id);await new Store(env.DB).upsertUser(owner,identity.login);
