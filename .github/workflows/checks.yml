@@ -1,0 +1,60 @@
+name: Checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    shell: bash
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      CLOUDFLARE_CF_FETCH_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: mkdir -p artifacts
+      - run: npm run format:check
+      - name: Type and behavioural contracts
+        run: npm run check 2>&1 | tee artifacts/tests.txt
+      - name: Bundle the real Worker and sample book
+        run: npm run build 2>&1 | tee artifacts/build.txt
+      - name: Production dependency security gate
+        run: npm audit --omit=dev --audit-level=high 2>&1 | tee artifacts/audit.txt
+      - name: Independently validate the EPUB
+        run: |
+          curl --fail --location --retry 2 https://github.com/w3c/epubcheck/releases/download/v5.4.0/epubcheck-5.4.0.zip -o /tmp/epubcheck.zip
+          echo '33350c61038e71dfb3d45a76aed04bf5481e6d5500cb780f6e98db8bbd15a28c  /tmp/epubcheck.zip' | sha256sum --check
+          unzip -q /tmp/epubcheck.zip -d .local
+          java -jar .local/epubcheck-5.4.0/epubcheck.jar artifacts/palim-sample.epub --failonwarnings 2>&1 | tee artifacts/epubcheck.txt
+      - name: Install browser acceptance runner
+        run: |
+          python3 -m pip install playwright==1.56.0
+          python3 -m playwright install --with-deps chromium
+      - name: Native HTTPS OAuth, storage, MCP and browser journeys
+        run: python3 scripts/runtime-proof.py --browser 2>&1 | tee artifacts/runtime-proof.txt
+      - name: Record exact verified revision
+        run: git rev-parse HEAD > artifacts/source-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: palim-verification
+          path: artifacts/
+          retention-days: 14
+          if-no-files-found: error

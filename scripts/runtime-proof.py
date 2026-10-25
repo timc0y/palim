@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import secrets
 import sqlite3
+import ssl
 import subprocess
 import sys
 import time
@@ -21,7 +22,7 @@ WORK = ROOT / '.local' / ('runtime-proof-' + secrets.token_hex(5))
 WORK.mkdir(parents=True)
 ARTIFACTS = ROOT / 'artifacts'
 ARTIFACTS.mkdir(exist_ok=True)
-ORIGIN = 'http://localhost:8791'
+ORIGIN = 'https://localhost:8791'
 CONFIG = json.loads((ROOT / 'wrangler.jsonc').read_text())
 CONFIG['name'] = 'palim-native-proof'
 CONFIG['main'] = str(ROOT / 'src/index.ts')
@@ -36,13 +37,14 @@ command = ['node', str(ROOT / 'node_modules/wrangler/bin/wrangler.js')]
 environment = dict(os.environ, WRANGLER_SEND_METRICS='false', CLOUDFLARE_CF_FETCH_ENABLED='false', CI='true')
 log = (WORK / 'worker.log').open('w')
 subprocess.run(command + ['d1', 'migrations', 'apply', 'palim', '--local', '--config', str(config_path), '--persist-to', str(state)], cwd=WORK, env=environment, stdout=log, stderr=log, check=True)
-process = subprocess.Popen(command + ['dev', '--local', '--port', '8791', '--ip', '127.0.0.1', '--config', str(config_path), '--persist-to', str(state)], cwd=WORK, env=environment, stdout=log, stderr=log)
+process = subprocess.Popen(command + ['dev', '--local', '--local-protocol', 'https', '--port', '8791', '--ip', '127.0.0.1', '--config', str(config_path), '--persist-to', str(state)], cwd=WORK, env=environment, stdout=log, stderr=log)
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *args, **kwargs):
         return None
 
-opener = urllib.request.build_opener(NoRedirect)
+# Only this disposable loopback Worker uses a self-signed development certificate.
+opener = urllib.request.build_opener(NoRedirect, urllib.request.HTTPSHandler(context=ssl._create_unverified_context()))
 cookies = []
 
 def request(path, method='GET', body=None, content_type=None, headers=None):
@@ -145,7 +147,7 @@ try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as browser_runner:
             browser = browser_runner.chromium.launch()
-            context = browser.new_context(viewport={'width': 1440, 'height': 1000})
+            context = browser.new_context(viewport={'width': 1440, 'height': 1000}, ignore_https_errors=True)
             errors = []
             browser_page = context.new_page()
             browser_page.on('pageerror', lambda error: errors.append(str(error)))
