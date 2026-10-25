@@ -3,7 +3,7 @@
 **Ideas, in another light.**
 
 [![Checks](https://github.com/timc0y/palim/actions/workflows/checks.yml/badge.svg)](https://github.com/timc0y/palim/actions/workflows/checks.yml)
-[MIT](LICENSE) · [Deploy your own](docs/deployment.md) · [Verification](docs/verification.md) · [Agent skill](skills/palim/SKILL.md)
+[Open Palim](https://palim-timc0y.pages.dev) · [MIT](LICENSE) · [Deploy your own](docs/deployment.md) · [Verification](docs/verification.md) · [Agent skill](skills/palim/SKILL.md)
 
 Turn conversations, code and complex ideas into illustrated EPUBs. Or send an existing EPUB/PDF to your reader **without changing its bytes**.
 
@@ -17,7 +17,7 @@ An independent open-source project by [Tim Coy](https://timcoy.uk). Not affiliat
 - Cloudflare Email submission with attachment hashes, registered destinations, atomic sending allowances and no blind retry after an uncertain outcome.
 - Private temporary files, expiring download links, isolated accounts and scheduled cleanup.
 
-**Release boundary:** source checks and captured-mail runtime proofs do not establish live inbox delivery or Kindle import. Dedicated resources and a verified sender are configured for the selected Pages hostname. [The verification record](docs/verification.md) owns the exact deployed revision and observed results.
+**Release boundary:** source checks and captured-mail runtime proofs do not establish live inbox delivery or Kindle import. The app is deployed at the linked Pages hostname with dedicated resources and a verified sender. [The verification record](docs/verification.md) owns the exact deployed revision and observed results.
 
 ## Try the publisher locally
 

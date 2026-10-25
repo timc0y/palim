@@ -1,8 +1,18 @@
 # Verification record
 
+## Deployed build — 25 October 2026
+
+Canonical live URL: [palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). The running application is source `10f42ed4df3d15bd676c588ede8c5de4756c0374`, Worker version `05de5469-d135-4977-8a34-c57681413586`, and Pages production deployment `21e1b90a-310f-4116-8fc6-a232025842bc`. Cloudflare's production metadata reports that exact commit and successful deployment. HTTPS responses for the homepage, workspace, CSS and JavaScript were byte-compared with the committed files and matched.
+
+[Exact-source CI run 40189856925](https://github.com/timc0y/palim/actions/runs/40189856925) passed. Its downloaded source identity, 68 tests, zero-vulnerability production audit, zero-error/warning EPUBCheck and direct/Pages native runtime logs were inspected. [Screenshot artifact 12597593943](https://github.com/timc0y/palim/actions/runs/40189856925/artifacts/12597593943) contains the final desktop/mobile landing/workspace, login/code/error, saved/pending addresses, synthetic receipt and 200% zoom views for independent UI review. Astra's final rendered verdict remains with the coordinating review task; its direction and earlier observed findings must not be restated as approval of these final images.
+
+Production health/privacy tests were rerun on this final revision with temporary synthetic identities and confirmed-reader fixtures, all removed afterward. Live Chromium verified desktop/mobile rendering, both tasks before artwork/setup, keyboard skip navigation and focus, private-workspace noindex, 16px inputs, reduced motion and 200% mobile zoom without horizontal overflow. Actual rendered muted text contrast measured 5.49:1 against the canvas; white primary-action text measured 12.71:1 against its solid background. This is scoped browser evidence, not a full assistive-technology audit.
+
+A final provider inspection confirmed Worker public and version URLs disabled, R2 managed public access disabled, cleanup every 15 minutes, and enabled sender with email previews disabled. The alternate Pages preview hostname returns HTTP 400 through the canonical-origin guard. Dedicated AUTH_SECRET and SIGNING_SECRET remain in Cloudflare's secret store; the temporary mode-600 local upload file was removed. No unrelated resources or subscription were changed, and no live mail was requested.
+
 ## Current integration — 25 October 2026
 
-The user approved Better Auth, Palim-only Cloudflare secrets, deployment to the personal `tims` account and a cooler ethereal redesign. The assigned canonical hostname is `https://palim-timc0y.pages.dev`. The initial Worker version `c2a41974-c1f8-4009-9646-f43d7a175b8e` deployed source `833d3fc71ae6f1281f7d8af916e31fd3acfc7818`. Pages published successfully after deployment-only correction `a5da954d1cd52814c0eeb8ccd3c1833031c36b1a`; its production hostname responds over HTTPS. A later UI refinement must be identified by its own deployed version below.
+The user approved Better Auth, Palim-only Cloudflare secrets, deployment to the personal `tims` account and a cooler ethereal redesign. The assigned canonical hostname is `https://palim-timc0y.pages.dev`. The initial Worker version `c2a41974-c1f8-4009-9646-f43d7a175b8e` deployed source `833d3fc71ae6f1281f7d8af916e31fd3acfc7818`. Pages published successfully after deployment-only correction `a5da954d1cd52814c0eeb8ccd3c1833031c36b1a`; its production hostname responds over HTTPS. The final refined build and its new versions are identified above.
 
 Better Auth 1.7.12 replaces the GitHub adapter and custom browser sessions. It owns native D1 email-code identity, encrypted five-minute OTPs, three attempts, seven-day secure host-only cookies and database rate limiting. The existing MCP OAuth consent/PKCE server remains separate. Up to five private labelled confirmed Kindle addresses can be saved, with explicit per-send selection and optional default.
 
