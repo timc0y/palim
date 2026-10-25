@@ -50,4 +50,6 @@ The portable skill/plugin package is present but not listed in a public plugin d
 
 A live release requires the actual provider setup and complete user journey in deployment.md, including physical-device evidence. Keep each stage separate: committed source, tests, native runtime, deployment identity, email submission, recipient-server delivery, Amazon import and human-observed Kindle receipt.
 
+A subsequent 390-pixel visual review found undersized chart labels. The chart layout was changed to stack and wrap labels above the bars, preserve exact values, and mark rounded display values explicitly. The additional regression brings the suite to 62 tests; those tests and the updated sample passed locally. The native browser gate now also opens the actual private illustrated preview and captures both figures. Its current run is the authority for that later source.
+
 The ongoing Checks workflow is the current source-level gate. Consult its exact checked SHA instead of treating this historical record as proof of later changes. Documentation-only updates still run the full gate.

@@ -144,7 +144,7 @@ try:
     print('Native consent, PKCE, MCP create, download hash, unconfirmed-send refusal and deletion passed.')
 
     if '--browser' in sys.argv:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright, expect
         with sync_playwright() as browser_runner:
             browser = browser_runner.chromium.launch()
             context = browser.new_context(viewport={'width': 1440, 'height': 1000}, ignore_https_errors=True)
@@ -159,10 +159,19 @@ try:
             context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#desk').wait_for(state='visible')
-            browser_page.locator('#title').fill('A browser-created reading edition')
-            browser_page.locator('#manuscript').fill('A genuine browser workflow against local workerd.\n\nThe page uses its real JavaScript, routes, database and storage.')
+            browser_page.locator('#example-button').click()
+            expect(browser_page.locator('#title')).to_have_value('The shape of an idea')
             browser_page.locator('#create-form button[type=submit]').click()
             browser_page.locator('#created a', has_text='Download').wait_for()
+            preview_url = browser_page.locator('#created a', has_text='Preview').get_attribute('href')
+            preview_page = context.new_page()
+            preview_page.set_viewport_size({'width': 390, 'height': 844})
+            preview_page.goto(preview_url, wait_until='networkidle')
+            expect(preview_page.locator('figure')).to_have_count(2)
+            assert not preview_page.evaluate('document.documentElement.scrollWidth > innerWidth')
+            preview_page.locator('figure').nth(1).screenshot(path=str(ARTIFACTS / 'chart-mobile.png'))
+            preview_page.locator('figure').nth(0).screenshot(path=str(ARTIFACTS / 'diagram-mobile.png'))
+            preview_page.close()
             browser_page.locator('#original').set_input_files(str(ROOT / 'public/sample.epub'))
             browser_page.locator('#upload-form button[type=submit]').click()
             browser_page.locator('#uploaded a', has_text='Download').wait_for()
@@ -172,7 +181,7 @@ try:
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-desktop.png'), full_page=True)
             assert not errors, errors
             browser.close()
-        print('Real Chromium navigation, mobile layout, browser create and original-upload journeys passed.')
+        print('Real Chromium navigation, mobile layout, illustrated preview, browser create and original-upload journeys passed.')
     print('PASS: disposable local runtime proof. Synthetic local identity; no live GitHub sign-in, provider email, Amazon import or physical Kindle claim.')
 finally:
     process.terminate()

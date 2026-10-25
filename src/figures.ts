@@ -90,9 +90,41 @@ export function renderFigure(figure: Figure, assets: ReadonlyMap<string, Asset>)
         `Figure ${figure.id} is too large for comfortable reading. Split it into smaller views.`,
       );
     } else {
-      const max = Math.max(1, ...figure.data.map((p) => p.value));
-      const height = 85 + figure.data.length * 64;
-      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="${height}" viewBox="0 0 800 ${height}" font-family="sans-serif" font-size="20"><rect width="800" height="${height}" fill="white"/><text x="24" y="30" fill="#333">${e(figure.unit)}</text>${figure.data.map((d, i) => `<text x="24" y="${68 + i * 64}" fill="#222">${e(d.label)}</text><rect x="260" y="${48 + i * 64}" width="${Math.round((d.value / max) * 410)}" height="25" fill="#333"/><text x="${280 + Math.round((d.value / max) * 410)}" y="${68 + i * 64}" fill="#222">${d.value}</text>`).join('')}</svg>`;
+      // Stack labels above bars so they remain legible when a narrow reader scales the figure.
+      const wrap = (text: string): string[] => {
+        const words = text.trim().match(/\S{1,20}/gu) ?? [];
+        const lines: string[] = [];
+        let line = '';
+        for (const word of words) {
+          if (line && line.length + word.length + 1 > 20) {
+            lines.push(line);
+            line = word;
+          } else line += (line ? ' ' : '') + word;
+        }
+        if (line) lines.push(line);
+        return lines;
+      };
+      const max = Math.max(...figure.data.map((point) => point.value)) || 1;
+      const marks: string[] = [];
+      let y = 34;
+      for (const line of wrap(figure.unit)) {
+        marks.push(`<text x="24" y="${y}" fill="#333">${e(line)}</text>`);
+        y += 28;
+      }
+      y += 12;
+      for (const point of figure.data) {
+        for (const line of wrap(point.label)) {
+          marks.push(`<text x="24" y="${y}" fill="#222">${e(line)}</text>`);
+          y += 28;
+        }
+        const exact = String(point.value);
+        const displayed = exact.length <= 12 ? exact : `≈ ${point.value.toPrecision(4)}`;
+        marks.push(
+          `<rect x="24" y="${y - 12}" width="${Math.round((point.value / max) * 340)}" height="24" fill="#333"><title>${e(point.label)}: ${e(exact)} ${e(figure.unit)}</title></rect><text x="536" y="${y + 8}" text-anchor="end" fill="#222">${e(displayed)}</text>`,
+        );
+        y += 48;
+      }
+      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="${y}" viewBox="0 0 560 ${y}" font-family="sans-serif" font-size="24"><rect width="560" height="${y}" fill="white"/>${marks.join('')}</svg>`;
     }
     bytes = encode(staticSvg(svg));
     type = 'image/svg+xml';
