@@ -1,5 +1,9 @@
 # Verification record
 
+## Cinematic redesign preview — not promoted
+
+The user rejected the prior visual design and requested a substantial rebuild, plus Lumos and read-only construction research from a selected private repository. The review branch replaces the visual system and presents an actual sample excerpt, selected original folio artwork and a one-task reading desk. Its current local native Pages/browser proof passes, including task switching without losing inputs. Review renders and exact-source CI must be inspected by the coordinating Astra task before production promotion. The deployed build below remains unchanged. No live email, infrastructure or authentication-provider change is part of this preview.
+
 ## Current deployed review corrections — 25 October 2026
 
 Live URL: [https://palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). Current application source is `7fcf04a0a0d509fe789323c38eecfdb27ad63a4d`, Worker version `431c3b46-3771-4c9b-bf93-102b1bdbff92`, Pages production deployment `aa2c4d47-dcba-4031-9ff2-e80cdf96e3ee`. Cloudflare reports successful production deployment at that exact commit; live CSS and JavaScript bytes match the committed files.

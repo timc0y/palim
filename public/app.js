@@ -192,7 +192,7 @@ function showShelf(artifacts) {
   if (!artifacts.length) {
     const p = document.createElement('p');
     p.className = 'empty';
-    p.textContent = 'A little room for your next good read.';
+    p.textContent = 'Your recent files will appear here for 24 hours.';
     shelf.append(p);
     return;
   }
@@ -227,6 +227,8 @@ function showShelf(artifacts) {
 async function refresh() {
   try {
     currentAccount = await api('/api/account');
+    document.body.classList.add('signed-in');
+    document.body.classList.remove('signed-out');
     $('signin').hidden = true;
     $('desk').hidden = false;
     $('logout').hidden = false;
@@ -288,6 +290,8 @@ async function refresh() {
     updateSendTargets();
   } catch (e) {
     if (e.status === 401) {
+      document.body.classList.add('signed-out');
+      document.body.classList.remove('signed-in');
       $('signin').hidden = false;
       $('desk').hidden = true;
       $('logout').hidden = true;
@@ -295,6 +299,31 @@ async function refresh() {
     } else notice(e.message, true);
   }
 }
+function chooseTask(hash) {
+  const upload = hash === '#upload-form';
+  $('create-panel').hidden = upload;
+  $('upload-panel').hidden = !upload;
+  for (const a of document.querySelectorAll('.job-choices a')) {
+    if (a.hash === (upload ? '#upload-form' : '#create-form'))
+      a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  }
+}
+for (const a of document.querySelectorAll('.job-choices a'))
+  a.addEventListener('click', (event) => {
+    event.preventDefault();
+    history.replaceState(null, '', a.hash);
+    chooseTask(a.hash);
+  });
+addEventListener('hashchange', () => chooseTask(location.hash));
+chooseTask(location.hash);
+$('original').addEventListener('change', () => {
+  const file = $('original').files[0];
+  $('file-name').textContent = file?.name || 'Choose an EPUB or PDF';
+  $('file-info').textContent = file
+    ? `${(file.size / 1024).toFixed(1)} KiB · Original file`
+    : 'Your original stays unchanged · up to 20 MiB';
+});
 $('create-form').addEventListener('submit', (event) => {
   event.preventDefault();
   busy(event.submitter, async () => {
@@ -413,10 +442,12 @@ $('login-code-form').addEventListener('submit', (event) => {
       otp: $('login-code').value.trim(),
     });
     const target = new URL(
-      new URLSearchParams(location.search).get('returnTo') || '/app',
+      new URLSearchParams(location.search).get('returnTo') || '/app' + location.hash,
       location.origin,
     );
-    location.assign(target.origin === location.origin ? target.pathname + target.search : '/app');
+    location.assign(
+      target.origin === location.origin ? target.pathname + target.search + target.hash : '/app',
+    );
   });
 });
 await refresh();

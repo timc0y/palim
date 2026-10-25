@@ -5,26 +5,17 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Your workspace · Palim</title>
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#F7F7FB" />
+    <meta name="theme-color" content="#FAFAF7" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/style.css" />
     <script type="module" src="/app.js"></script>
   </head>
-  <body>
+  <body class="workspace-page">
     <a class="skip-link" href="#main-content">Skip to workspace</a>
     <header class="nav wrap">
-      <a class="wordmark" href="/"
-        ><svg class="brand-leaf" aria-hidden="true" viewBox="0 0 32 36">
-          <path
-            d="M15 31C6 27 2 19 4 5c7 1 11 5 11 13v13Zm4 0c9-4 13-12 11-26-7 1-11 5-11 13v13Z"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.4"
-          /></svg
-        >palim</a
-      >
+      <a class="wordmark" href="/">palim</a>
       <nav>
-        <a href="https://github.com/timc0y/palim">Source ↗</a><span id="account-name"></span>
+        <a href="https://github.com/timc0y/palim">Open source ↗</a><span id="account-name"></span>
         <form action="/auth/logout" method="post" id="logout" hidden>
           <button class="plain-button">Sign out</button>
         </form>
@@ -32,8 +23,7 @@
     </header>
     <main id="main-content" class="wrap workspace">
       <div class="workspace-heading">
-        <p class="eyebrow">YOUR READING DESK</p>
-        <h1>Your reading <em>desk.</em></h1>
+        <h1>Reading desk</h1>
       </div>
       <nav class="job-choices" aria-label="Choose a task">
         <a class="button" href="#create-form">Create an EPUB</a
@@ -86,7 +76,7 @@
       </section>
       <div id="desk" class="desk" hidden>
         <div class="desk-main">
-          <section class="panel">
+          <section class="panel task-panel" id="create-panel" aria-label="Create an EPUB">
             <h2>Create an EPUB</h2>
             <form id="create-form">
               <label for="title">Book title</label
@@ -97,22 +87,25 @@
                 required
                 placeholder="Understanding the thing I’m building"
               />
-              <div class="field-row">
-                <div>
-                  <label for="creator"
-                    >Author / creator <span class="optional">optional</span></label
-                  ><input
-                    id="creator"
-                    name="creator"
-                    maxlength="160"
-                    placeholder="Credit the actual author"
-                  />
+              <details class="book-metadata">
+                <summary>Author and language</summary>
+                <div class="field-row">
+                  <div>
+                    <label for="creator"
+                      >Author / creator <span class="optional">optional</span></label
+                    ><input
+                      id="creator"
+                      name="creator"
+                      maxlength="160"
+                      placeholder="Credit the actual author"
+                    />
+                  </div>
+                  <div>
+                    <label for="language">Language</label
+                    ><input id="language" name="language" value="en" maxlength="35" required />
+                  </div>
                 </div>
-                <div>
-                  <label for="language">Language</label
-                  ><input id="language" name="language" value="en" maxlength="35" required />
-                </div>
-              </div>
+              </details>
               <label for="manuscript">Your manuscript</label
               ><textarea
                 id="manuscript"
@@ -122,10 +115,7 @@
                 required
                 placeholder="Start with the question. Explain with an example.&#10;&#10;Markdown headings, code and tables are supported."
               ></textarea>
-              <p class="field-help">
-                Your agent can also supply diagrams, data-backed charts and uploaded images through
-                the MCP tools.
-              </p>
+              <p class="field-help">Use the example to try an illustrated reading edition.</p>
               <div class="actions">
                 <button type="submit">Create EPUB <span aria-hidden="true">↗</span></button
                 ><button class="plain-button" type="button" id="example-button">
@@ -135,17 +125,14 @@
             </form>
             <div id="created" class="result" hidden></div>
           </section>
-          <section class="panel">
+          <section class="panel task-panel" id="upload-panel" aria-label="Send an existing file">
             <h2>Send an existing file</h2>
-            <p>
-              Upload an EPUB or PDF. We’ll never change its words, cover, metadata or internal
-              files.
-            </p>
+            <p>Upload an EPUB or PDF. The original bytes stay unchanged.</p>
             <form id="upload-form">
               <label class="file-drop" for="original"
                 ><span class="upload-symbol" aria-hidden="true">↥</span
-                ><strong>Choose your original file</strong
-                ><span>EPUB or PDF · up to 20 MiB for upload</span
+                ><strong id="file-name">Choose an EPUB or PDF</strong
+                ><span id="file-info">Your original stays unchanged · up to 20 MiB</span
                 ><input
                   id="original"
                   type="file"
@@ -229,8 +216,7 @@
             <button class="secondary" id="refresh-receipt">Refresh receipt</button>
           </section>
           <p class="aside-note">
-            No permanent library here. Download your work before it expires. Amazon owns the copy
-            imported into your Kindle library.
+            Files stay here for 24 hours. Download the work you want to keep.
           </p>
         </aside>
       </div>
