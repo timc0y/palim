@@ -1,5 +1,19 @@
 # Verification record
 
+## 25 October 2026 Mac deployment preparation
+
+A clean checkout of GitHub main `00c7d5c5a199189f94e1ac14172c36899cd6459e` was independently checked on the operator's Mac. No application fixes were needed.
+
+- All 62 tests and strict TypeScript passed with both Node 26.12.0 and the installed Node 22.23.3 LTS runtime. Formatting and the Worker dry-run build passed.
+- The current production dependency audit reported zero vulnerabilities. This does not cover the development dependency tree or establish application security.
+- Checksum-pinned EPUBCheck 5.4.0, run with the existing Java 21 installation and `--failonwarnings`, reported zero fatals, errors, warnings and infos for the generated sample.
+- The disposable HTTPS native runtime and real Chromium 141 acceptance runner passed on this Mac using Node 22.23.3. It exercised discovery, consent, PKCE, authenticated MCP creation, private-download integrity, unconfirmed-send refusal, deletion, illustrated mobile previews, browser creation and original upload. Identity was synthetic and email was not submitted to a live provider.
+- [Exact-source CI run 40177778587](https://github.com/timc0y/palim/actions/runs/40177778587) succeeded. Its downloaded source identity, EPUBCheck and runtime/browser logs were inspected and agreed with the local results.
+
+Existing Wrangler authentication was valid. Read-only inspection found two available accounts and no `palim` Worker in either. The personal account had no sending subdomains; the other account had an enabled existing sending domain. No remote resources, DNS, credentials or grants were created or changed. Other applications' resources were not reused.
+
+Deployment remains pending the operator's account selection, approved sender and explicit approval to create Palim-only persistent OAuth and signing credentials. Workers Paid eligibility, actual email allowances, preview retention, private R2 lifecycle and the final canonical origin must be established for the selected account. No hosted URL, production authentication/privacy/isolation result, live GitHub login, real email submission, Amazon import or physical Kindle acceptance is claimed. A real send additionally requires an established recipient, document and purpose with applicable approval.
+
 ## 25 October 2026 release candidate
 
 [Checks run 40177170759](https://github.com/timc0y/palim/actions/runs/40177170759) verified source `2012c3a1061cfbd0ade6aebfc0d1501d554bbd01`. The downloaded artifact logs were inspected, not just the job status. The workflow uses explicit Bash failure propagation, including failures before `tee`.
