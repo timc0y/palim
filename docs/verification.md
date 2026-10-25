@@ -1,32 +1,53 @@
 # Verification record
 
-## 25 October 2026 build
+## 25 October 2026 release candidate
 
-The implementation was created through Forge on public `main`. Five bounded specialist sessions reviewed EPUB/runtime, Cloudflare Email, security, MCP/client contracts and a pinned source snapshot. Their suggestions were checked against actual code. A separate execution review is recorded when its output is available; reviewer statements alone are not test evidence.
+[Checks run 40177170759](https://github.com/timc0y/palim/actions/runs/40177170759) verified source `2012c3a1061cfbd0ade6aebfc0d1501d554bbd01`. The downloaded artifact logs were inspected, not just the job status. The workflow uses explicit Bash failure propagation, including failures before `tee`.
 
-### Executed locally
+### Executed acceptance checks
 
-- TypeScript checks and 52 Node tests passed after the file-input contract correction. Tests exercise real SQLite with the same D1 SQL; R2 and Email are explicit test doubles.
-- Tests cover stored first EPUB mimetype, XML/navigation/metadata, source escaping, diagrams, unsafe inputs, original EPUB/PDF attachment hashes, tenant isolation, concurrent send/confirmation races, quotas, malformed return paths, expiring downloads, unknown outcomes and the official MCP client/transport.
-- Wrangler produced a Worker bundle. Local workerd applied the real D1 migration and served the landing page and workspace. A redirect loop found through this runtime check was removed.
-- Native workerd/D1/R2 created an EPUB, returned a private download with the matching SHA-256, refused an unconfirmed send, deleted the artifact and refused a subsequent download.
-- Native OAuth provider/KV completed dynamic client registration, consent binding, PKCE code exchange and authenticated MCP initialise/list/create calls. Invalid bearer access was refused. The user identity was deliberately seeded in a disposable local database: this is not a real GitHub sign-in test.
-- Chromium rendered the actual landing-page HTML/CSS at desktop and 390-pixel width without horizontal overflow. The local browser environment blocked network navigation by policy, so these screenshots used document injection. They are visual checks, not browser end-to-end proof.
+- Strict TypeScript, formatting and **61 Node tests passed**. Tests exercise real SQLite with the application's D1 queries; R2 and Email are explicit test doubles at this level.
+- `npm audit --omit=dev --audit-level=high` reported **0 vulnerabilities** for the installed production dependency tree at that time. This is not a guarantee against future advisories or application defects.
+- Wrangler bundled the actual Worker and generated the public example. This was a local build, not a deployment.
+- Checksum-pinned EPUBCheck 5.4.0 validated the illustrated sample with `--failonwarnings`: **0 fatal errors, 0 errors, 0 warnings and 0 infos**. The validator reports its current EPUB 3.4 rules; the publisher uses the established EPUB 3 subset, not draft-only features.
+- Native local workerd, D1, R2 and OAuth KV completed HTTPS discovery, dynamic client registration, account-bound consent, PKCE exchange, authenticated MCP initialise/list/create, a private download with the expected SHA-256, unconfirmed-send refusal, artifact deletion and invalid-token refusal.
+- Real Chromium navigated the HTTPS local service, rendered the landing page at desktop and 390-pixel width, entered the authenticated workspace, created a book through the real page JavaScript, and uploaded the original sample EPUB. No page errors or horizontal mobile overflow were observed in those journeys.
 
-### Independent EPUB validation
+The native identity was deliberately seeded in a disposable local database. This proves the application/OAuth protocol journey after identity establishment, not a real GitHub account login. A separate automated test exercises the official Octokit exchange and identity lookup against controlled provider responses, including state replay prevention and token non-retention.
 
-[GitHub Actions run 40174912532](https://github.com/timc0y/palim/actions/runs/40174912532), source `89c8570fcfa8a7308b8c94e7340b45681c7d1828`, generated the illustrated sample and ran checksum-pinned EPUBCheck 5.4.0 with `--failonwarnings`. Result: **0 fatal errors, 0 errors, 0 warnings and 0 infos**. EPUBCheck reports its current 3.4 rules; the publisher uses the established EPUB 3 subset rather than draft-only features.
+The verification artifact includes the exact source SHA, logs, sample EPUB, native-runtime EPUB, manuscript and real browser screenshots. Its success markers are:
 
-The ongoing `Checks` workflow is the current source-level gate. Consult its exact checked SHA rather than treating this historical run as proof of later changes. Its artifact includes the example EPUB and verification logs.
+```text
+Native assets, D1 identity, discovery and authentication boundaries passed.
+Native consent, PKCE, MCP create, download hash, unconfirmed-send refusal and deletion passed.
+Real Chromium navigation, mobile layout, browser create and original-upload journeys passed.
+PASS: disposable local runtime proof. Synthetic local identity; no live GitHub sign-in, provider email, Amazon import or physical Kindle claim.
+```
 
-### Not established by these checks
+### Behaviours covered
 
-No production Cloudflare deployment was provisioned or verified. No live GitHub OAuth application was configured. No live Cloudflare email, Amazon conversion, Kindle-library item, physical-device reading experience or fresh ChatGPT/Claude/Codex installation was observed. The configured resource IDs and sender remain placeholders.
+The suite checks EPUB container structure, XML/navigation/metadata, source escaping, diagram output, bounded archives, font obfuscation versus content protection, original EPUB/PDF attachment hashes, tenant isolation, concurrent send and confirmation races, quotas, unsafe sign-in return paths, expiring links, deletion and unknown-send recovery.
+
+The official MCP client exercises all three promised tools, including sending an owned artifact, forwarding a host-provided file unchanged, reading receipts, repeated-intent deduplication, scope refusal and cross-account refusal. The host-file test checks the actual supported file-input shape and controlled fetch path; it is not a fresh ChatGPT installation test.
+
+### Review and corrections
+
+Six bounded agent sessions were used: five specialist/source reviews and one independent execution review. The latter checked `878a3af20ca827ebba8e600d62614c42983c6e86` with Node 22.23.3, reproduced its 52 passing tests and successful example/build, and identified missing MCP send/receipt coverage. That coverage is included in the later 61-test gate. Agent review is not an external security audit.
+
+Confirmed findings were fixed and tested: competing reader-confirmation requests, control-character return redirects, account switching during consent, challenge-budget exhaustion, missing MCP delivery coverage and three security-advised dependency pins. The unsupported sign-in adapter was replaced with maintained Octokit methods.
+
+An early bootstrap pipeline masked a browser-cookie failure because a shell pipe returned the logger's status. Its green badge is not browser evidence. The temporary workflow was removed, the permanent gate now propagates failures, and browser acceptance runs over HTTPS for real secure-cookie semantics. The successful run above contains the actual completed browser result.
+
+### Remaining live acceptance
+
+No production Cloudflare deployment was provisioned or verified. No real GitHub OAuth application was configured. No live Cloudflare email submission, Amazon conversion, Kindle-library item, physical-device reading experience or fresh ChatGPT/Claude/Codex connection was observed. The checked-in resource IDs and sender remain deliberate placeholders.
 
 The current book embeds SVG figures. EPUB conformance and browser appearance do not establish Kindle conversion fidelity. Existing-document inspection is bounded and defensive, not an antivirus engine or proof that every EPUB/PDF feature is supported.
 
-The repository includes the portable skill/plugin package, but it is not listed in a public plugin directory. File handoff requires an exact configured host origin; the default denies all external file fetching.
+The portable skill/plugin package is present but not listed in a public plugin directory. Remote file handoff requires an exact operator-configured host origin; the default denies all external file fetching.
 
 ## Release acceptance
 
-A live release requires the actual provider setup and complete user journey in `deployment.md`, including physical device evidence. Keep each stage separate: committed source, tests, native runtime, deployment identity, email submission, recipient-server delivery, Amazon import and human-observed Kindle receipt.
+A live release requires the actual provider setup and complete user journey in deployment.md, including physical-device evidence. Keep each stage separate: committed source, tests, native runtime, deployment identity, email submission, recipient-server delivery, Amazon import and human-observed Kindle receipt.
+
+The ongoing Checks workflow is the current source-level gate. Consult its exact checked SHA instead of treating this historical record as proof of later changes. Documentation-only updates still run the full gate.
