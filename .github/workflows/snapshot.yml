@@ -1,0 +1,20 @@
+name: Source snapshot
+on:
+  push:
+    paths:
+      - .github/workflows/snapshot.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: git archive --format=tar -o palim-source.tar HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source
+          path: palim-source.tar
+          retention-days: 1
