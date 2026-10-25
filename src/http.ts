@@ -19,12 +19,21 @@ export function equalToken(a:string,b:string):boolean{if(a.length!==b.length)ret
 export function checkOrigin(request:Request,origin:string):void{
   if(request.headers.get('origin')!==origin || request.headers.get('sec-fetch-site')==='cross-site')throw new PalimError('ORIGIN','Open this action from the Palim site.',403);
 }
-export function cookie(request:Request,name:string):string|null{const entries=request.headers.get('cookie')?.split(';')??[];for(const entry of entries){const p=entry.trim().indexOf('=');if(entry.trim().slice(0,p)===name)return entry.trim().slice(p+1);}return null;}
+export function cookie(request:Request,name:string):string|null{const entries=request.headers.get('Cookie')?.split(';')??[];for(const entry of entries){const p=entry.trim().indexOf('=');if(entry.trim().slice(0,p)===name)return entry.trim().slice(p+1);}return null;}
 export function secureHeaders(response:Response):Response{
   const headers=new Headers(response.headers);headers.set('X-Content-Type-Options','nosniff');headers.set('Referrer-Policy','no-referrer');headers.set('X-Frame-Options','DENY');
   if(!headers.has('Content-Security-Policy'))headers.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
   headers.set('Permissions-Policy','camera=(), microphone=(), geolocation=()');
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
+}
+export async function guardAuthentication(request:Request,limiter:RateLimit):Promise<Request>{
+  const path=new URL(request.url).pathname;
+  if(!path.startsWith('/auth/')&&!path.startsWith('/oauth/')&&path!=='/authorize')return request;
+  // A coarse pre-identity control, not a global sending or spending guarantee.
+  const outcome=await limiter.limit({key:request.headers.get('CF-Connecting-IP')??'unidentified'});
+  if(!outcome.success)throw new PalimError('AUTH_RATE_LIMIT','Too many authentication requests. Try again after a minute.',429);
+  if(request.method==='POST')return new Request(request,{body:new Uint8Array(await readBytes(request,32*1024)).buffer});
+  return request;
 }
 export function json(data:unknown,status=200):Response{return Response.json(data,{status,headers:{'Cache-Control':'no-store'}});}
 export const newSecret=randomToken;

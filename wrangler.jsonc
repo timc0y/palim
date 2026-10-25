@@ -9,6 +9,7 @@
   "r2_buckets": [{ "binding": "BOOKS", "bucket_name": "palim-books" }],
   "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "00000000000000000000000000000000" }],
   "send_email": [{ "name": "EMAIL" }],
+  "ratelimits": [{ "name": "AUTH_RATE_LIMIT", "namespace_id": "1432932416", "simple": { "limit": 60, "period": 60 } }],
   "triggers": { "crons": ["*/15 * * * *"] },
   "limits": { "cpu_ms": 30000 },
   "observability": { "enabled": false },

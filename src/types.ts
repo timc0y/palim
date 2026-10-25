@@ -4,6 +4,7 @@ export interface Env {
   DB: D1Database;
   BOOKS: R2Bucket;
   OAUTH_KV: KVNamespace;
+  AUTH_RATE_LIMIT: RateLimit;
   ASSETS: Fetcher;
   EMAIL: EmailBinding;
   ORIGIN: string;
