@@ -11,3 +11,6 @@ playwright-report/
 test-results/
 .local/
 artifacts/
+public/sample.epub
+public/sample.html
+public/example.json

@@ -1,0 +1,14 @@
+import {readFile,writeFile,mkdir,cp} from 'node:fs/promises';
+import {resolve} from 'node:path';
+const input=process.argv[2];
+if(!input)throw new Error('Usage: npm run plugin -- https://your-actual-palim-origin');
+const url=new URL(input);
+if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash||!['','/'].includes(url.pathname)||url.hostname.endsWith('.example'))throw new Error('Supply the real HTTPS origin, without a path, credentials or query.');
+const destination=resolve('.local/plugin');
+await mkdir(destination,{recursive:true});
+await cp('skills',`${destination}/skills`,{recursive:true});
+await cp('plugin.json',`${destination}/plugin.json`);
+const config=JSON.parse(await readFile('mcp.example.json','utf8'));
+config.mcpServers.palim.url=`${url.origin}/mcp`;
+await writeFile(`${destination}/mcp.json`,JSON.stringify(config,null,2)+'\n');
+console.log(`Packaged the canonical skill and your endpoint in ${destination}. This does not deploy or register a marketplace listing.`);

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+artifacts/
+.local/
+.wrangler/
+public/sample.html
+public/sample.epub
+public/example.json
+package-lock.json
+migrations/
