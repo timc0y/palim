@@ -84,6 +84,14 @@ def request(path, method='GET', body=None, content_type=None, headers=None):
 def post(path, value, headers=None):
     return request(path, 'POST', json.dumps(value).encode(), 'application/json', headers)
 
+def contrast(foreground, background):
+    def light(value):
+        channels = [int(x)/255 for x in re.findall(r'\d+',value)[:3]]
+        channels = [v/12.92 if v <= .04045 else ((v+.055)/1.055)**2.4 for v in channels]
+        return sum(v*w for v,w in zip(channels,[.2126,.7152,.0722]))
+    lo,hi=sorted([light(foreground),light(background)])
+    return (hi+.05)/(lo+.05)
+
 try:
     for attempt in range(80):
         if process.poll() is not None:
@@ -189,12 +197,31 @@ try:
             browser_page = context.new_page()
             browser_page.on('pageerror', lambda error: errors.append(str(error)))
             browser_page.goto(ORIGIN, wait_until='networkidle')
+            browser_page.keyboard.press('Tab')
+            browser_page.keyboard.press('Tab')
+            assert browser_page.locator('.landing-header .wordmark').evaluate('(e)=>e.matches(":focus-visible")')
+            dark_focus = browser_page.locator('.landing-header .wordmark').evaluate('(e)=>getComputedStyle(e).outlineColor')
+            dark_bg = browser_page.locator('.landing-header').evaluate('(e)=>getComputedStyle(e).backgroundColor')
+            assert contrast(dark_focus,dark_bg) >= 3
+            browser_page.locator('.landing-header').screenshot(path=str(ARTIFACTS / 'focus-dark-header.png'))
+            browser_page.locator('.excerpt-footer a').focus()
+            assert browser_page.locator('.excerpt-footer a').evaluate('(e)=>e.matches(":focus-visible")')
+            light_focus = browser_page.locator('.excerpt-footer a').evaluate('(e)=>getComputedStyle(e).outlineColor')
+            light_bg = browser_page.locator('.edition-section').evaluate('(e)=>getComputedStyle(e).backgroundColor')
+            assert contrast(light_focus,light_bg) >= 3
+            browser_page.locator('.edition-excerpt').screenshot(path=str(ARTIFACTS / 'focus-light-excerpt.png'))
+            browser_page.locator('h1').click()
+            print(f'Rendered focus contrast: dark {contrast(dark_focus,dark_bg):.2f}:1, light {contrast(light_focus,light_bg):.2f}:1.')
             browser_page.screenshot(path=str(ARTIFACTS / 'landing-desktop.png'), full_page=True)
             browser_page.set_viewport_size({'width': 390, 'height': 844})
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
             browser_page.screenshot(path=str(ARTIFACTS / 'landing-mobile.png'), full_page=True)
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#signin').wait_for(state='visible')
+            placeholder = browser_page.locator('#login-email').evaluate('(e)=>getComputedStyle(e,"::placeholder").color')
+            field_bg = browser_page.locator('#login-email').evaluate('(e)=>getComputedStyle(e).backgroundColor')
+            assert contrast(placeholder,field_bg) >= 4.5
+            print(f'Rendered placeholder contrast: {contrast(placeholder,field_bg):.2f}:1.')
             browser_page.screenshot(path=str(ARTIFACTS / 'login-mobile.png'), full_page=True)
             browser_page.locator('#login-email').fill('browser@example.invalid')
             browser_page.locator('#login-email-form button').click()
@@ -209,12 +236,22 @@ try:
             browser_page.locator('#login-code').fill(browser_code)
             browser_page.locator('#login-code-form button[type=submit]').click()
             browser_page.locator('#desk').wait_for(state='visible')
+            expect(browser_page.locator('#reader-choice')).to_be_hidden()
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-empty-mobile.png'), full_page=True)
             assert browser_page.locator('.job-choices').bounding_box()['y'] < 600
             context.clear_cookies()
             context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#desk').wait_for(state='visible')
+            browser_page.keyboard.press('Tab')
+            browser_page.locator('.workspace-page > .nav .wordmark').focus()
+            assert browser_page.locator('.workspace-page > .nav .wordmark').evaluate('(e)=>e.matches(":focus-visible")')
+            workspace_focus = browser_page.locator('.workspace-page > .nav .wordmark').evaluate('(e)=>getComputedStyle(e).outlineColor')
+            workspace_bg = browser_page.locator('.workspace-page > .nav').evaluate('(e)=>getComputedStyle(e).backgroundColor')
+            assert contrast(workspace_focus,workspace_bg) >= 3
+            browser_page.locator('.workspace-page > .nav').screenshot(path=str(ARTIFACTS / 'focus-dark-workspace.png'))
+            print(f'Rendered workspace focus contrast: {contrast(workspace_focus,workspace_bg):.2f}:1.')
+            browser_page.locator('h1').click()
             browser_page.locator('#example-button').click()
             expect(browser_page.locator('#title')).to_have_value('The shape of an idea')
             expect(browser_page.locator('#create-panel')).to_be_visible()
@@ -226,6 +263,9 @@ try:
             expect(browser_page.locator('#title')).to_have_value('The shape of an idea')
             browser_page.locator('#create-form button[type=submit]').click()
             browser_page.locator('#created a', has_text='Download').wait_for()
+            expect(browser_page.locator('#created a.button').first).to_have_text('Download EPUB')
+            expect(browser_page.locator('#created .technical-details')).not_to_have_attribute('open', '')
+            expect(browser_page.locator('#created .hash')).to_be_hidden()
             browser_page.locator('#created').screenshot(path=str(ARTIFACTS / 'create-result-mobile.png'))
             preview_url = browser_page.locator('#created a', has_text='Preview').get_attribute('href')
             preview_page = context.new_page()
@@ -255,8 +295,17 @@ try:
                 database.execute('INSERT INTO reader_destinations(id,owner,label,email,confirmed_at) VALUES(?,?,?,?,?)', (rid,owner,label,address,now))
             database.execute('UPDATE users SET default_destination_id=? WHERE id=?', (reader_ids[0],owner))
             database.commit()
-            browser_page.reload(wait_until='networkidle')
+            # A fresh upload refreshes account settings while preserving the earlier created result.
+            browser_page.locator('#upload-form button[type=submit]').click()
             expect(browser_page.locator('#send-reader option')).to_have_count(3)
+            expect(browser_page.locator('#shelf .shelf-item')).to_have_count(3)
+            browser_page.locator('#uploaded-reader').select_option(reader_ids[1])
+            expect(browser_page.locator('#send-reader')).to_have_value(reader_ids[1])
+            expect(browser_page.locator('#created-reader')).to_have_value(reader_ids[1])
+            expect(browser_page.locator('#uploaded .send-target')).to_contain_text('travel@kindle.com')
+            browser_page.locator('#uploaded-reader').select_option(reader_ids[0])
+            expect(browser_page.locator('#uploaded .send-target')).to_contain_text('bedside@kindle.com')
+            browser_page.locator('#uploaded').screenshot(path=str(ARTIFACTS / 'upload-result-confirmed-mobile.png'))
             for action in browser_page.locator('#shelf a, #shelf button').all():
                 bounds = action.bounding_box()
                 assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Confirmed shelf action too small'
@@ -268,6 +317,7 @@ try:
             browser_page.locator('#receipt-panel').wait_for(state='visible')
             expect(browser_page.locator('#receipt')).to_contain_text('bedside@kindle.com')
             expect(browser_page.locator('#receipt')).to_contain_text('not confirmed')
+            assert json.loads(database.execute('SELECT payload FROM proof_mail ORDER BY rowid DESC LIMIT 1').fetchone()[0])['to'] == 'bedside@kindle.com'
             browser_page.screenshot(path=str(ARTIFACTS / 'send-receipt-mobile.png'), full_page=True)
             browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
             browser_page.locator('#reader-label').fill('New Kindle')

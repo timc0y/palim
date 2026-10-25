@@ -253,7 +253,9 @@ button:hover {
 .landing .nav nav > a:not(.small-button) {
   color: #d0d4db;
 }
-.landing :focus-visible {
+.landing-header :focus-visible,
+.hero-stage :focus-visible,
+.workspace-page > .nav :focus-visible {
   outline-color: var(--accent);
 }
 .hero-stage {
@@ -475,7 +477,7 @@ button:hover {
   margin-bottom: var(--space-3);
 }
 .workspace-heading h1 {
-  font-size: 2rem;
+  font-size: var(--text-app-title);
   font-weight: 500;
   letter-spacing: -0.045em;
   line-height: 1.2;
@@ -512,11 +514,11 @@ button:hover {
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-2);
   align-items: center;
-  margin: 0 0 var(--space-3);
+  margin: var(--space-3) 0;
 }
 #reader-choice label {
   margin: 0;
-  font-size: var(--text-meta);
+  font-size: var(--text-label);
 }
 #reader-choice select {
   padding: var(--space-1) 2rem var(--space-1) 0.75rem;
@@ -524,7 +526,7 @@ button:hover {
   max-width: 100%;
   min-height: var(--control-height);
   background-color: var(--white);
-  font-size: var(--text-label);
+  font-size: var(--text-body);
 }
 #reader-choice .field-help {
   flex-basis: 100%;
@@ -591,7 +593,7 @@ select {
 }
 input::placeholder,
 textarea::placeholder {
-  color: #737b86;
+  color: var(--muted);
   opacity: 1;
 }
 input:focus,
@@ -713,13 +715,7 @@ textarea {
   color: var(--muted);
   margin-top: var(--space-3);
 }
-.result .actions a {
-  min-height: var(--target-min);
-  display: inline-flex;
-  align-items: center;
-  padding-block: var(--space-1);
-  font-size: var(--text-label);
-}
+
 .send-target {
   color: var(--muted);
   overflow-wrap: anywhere;
@@ -1237,4 +1233,35 @@ summary {
 
 .wordmark > span {
   display: none;
+}
+
+/* Download leads the result; recipient selection belongs to the send context. */
+
+.result-send {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+.result-send .send-heading {
+  color: var(--ink);
+  font-weight: 500;
+  margin-bottom: var(--space-2);
+}
+.result-send .reader-picker {
+  max-width: 34rem;
+  margin-bottom: var(--space-2);
+}
+
+.technical-details {
+  margin-top: var(--space-3);
+  color: var(--muted);
+}
+.technical-details summary {
+  font-size: var(--text-meta);
+}
+.technical-details > a {
+  display: inline-flex;
+  min-height: var(--target-min);
+  align-items: center;
+  font-size: var(--text-label);
 }

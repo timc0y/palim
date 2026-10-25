@@ -1,7 +1,8 @@
 const $ = (id) => document.getElementById(id);
 let currentAccount = null,
   receiptId = null,
-  example = null;
+  example = null,
+  selectedReaderId = '';
 function notice(message, error = false) {
   $('notice').textContent = message;
   $('notice').className = `notice${error ? ' error' : ''}`;
@@ -100,13 +101,24 @@ async function busy(element, work) {
   }
 }
 function chosenReader() {
-  return currentAccount?.destinations.find((d) => d.id === $('send-reader').value);
+  return currentAccount?.destinations.find((d) => d.id === selectedReaderId);
+}
+function sendActionText() {
+  return chosenReader()
+    ? 'Send to this Kindle'
+    : currentAccount?.destinations.length
+      ? 'Choose a Kindle address'
+      : 'Add a Kindle address';
 }
 function sendButton(artifactId) {
-  const b = button(chosenReader() ? 'Send to this Kindle' : 'Add a Kindle address', async () => {
+  const b = button(sendActionText(), async () => {
     if (!chosenReader()) {
-      $('setup-details').open = true;
-      $('kindle-email').focus();
+      if (currentAccount?.destinations.length) {
+        (b.closest('.result-send')?.querySelector('select') || $('send-reader')).focus();
+      } else {
+        $('setup-details').open = true;
+        $('kindle-email').focus();
+      }
       return;
     }
     await send(artifactId);
@@ -114,14 +126,49 @@ function sendButton(artifactId) {
   b.classList.add('send-action');
   return b;
 }
+function syncReaderChoices() {
+  const destinations = currentAccount?.destinations || [];
+  for (const select of document.querySelectorAll('select[data-reader-choice]')) {
+    select.replaceChildren(new Option('Choose a confirmed Kindle address', ''));
+    for (const d of destinations)
+      select.append(new Option(`${d.label} · ${d.email}${d.isDefault ? ' (default)' : ''}`, d.id));
+    select.value = selectedReaderId;
+    const picker = select.closest('.reader-picker');
+    if (picker)
+      picker.hidden =
+        !destinations.length ||
+        (picker.id === 'reader-choice' && !currentAccount?.artifacts.some((a) => a.emailEligible));
+  }
+}
 function updateSendTargets() {
   const d = chosenReader();
   for (const target of document.querySelectorAll('.send-target'))
     target.textContent = d
       ? `${d.label} · ${d.email}`
-      : 'Choose a confirmed Kindle address above before sending.';
-  for (const b of document.querySelectorAll('.send-action'))
-    b.textContent = d ? 'Send to this Kindle' : 'Add a Kindle address';
+      : currentAccount?.destinations.length
+        ? 'Choose one of your confirmed Kindle addresses to send a copy.'
+        : 'Add a confirmed Kindle address if you want to send a copy.';
+  for (const b of document.querySelectorAll('.send-action')) b.textContent = sendActionText();
+}
+function resultSendControls(target, artifactId) {
+  const group = document.createElement('div');
+  group.className = 'result-send';
+  const heading = document.createElement('p');
+  heading.className = 'send-heading';
+  heading.textContent = 'Send a copy to Kindle';
+  const picker = document.createElement('div');
+  picker.className = 'reader-picker';
+  const select = document.createElement('select');
+  select.id = `${target}-reader`;
+  select.dataset.readerChoice = '';
+  const label = document.createElement('label');
+  label.htmlFor = select.id;
+  label.textContent = 'Confirmed Kindle address';
+  picker.append(label, select);
+  const recipient = document.createElement('p');
+  recipient.className = 'send-target';
+  group.append(heading, picker, recipient, sendButton(artifactId));
+  return group;
 }
 function showReceipt(receipt) {
   receiptId = receipt.deliveryId;
@@ -161,16 +208,30 @@ function showArtifact(target, artifact) {
   meta.textContent = `${(artifact.bytes / 1024).toFixed(1)} KiB · ${artifact.generated ? 'Generated reading edition' : 'Original file preserved'} · expires ${new Date(artifact.expiresAt).toLocaleString()}`;
   const actions = document.createElement('div');
   actions.className = 'actions';
-  actions.append(link('Download', artifact.downloadUrl));
-  if (artifact.previewUrl) actions.append(link('Preview', artifact.previewUrl));
-  if (artifact.sourceUrl) actions.append(link('Source manuscript', artifact.sourceUrl));
-  if (artifact.emailEligible) actions.append(sendButton(artifact.artifactId));
+  const download = link(
+    artifact.generated ? 'Download EPUB' : 'Download original',
+    artifact.downloadUrl,
+  );
+  download.className = 'button';
+  actions.append(download);
+  if (artifact.previewUrl) {
+    const preview = link('Preview', artifact.previewUrl);
+    preview.className = 'button secondary';
+    actions.append(preview);
+  }
+  const technical = document.createElement('details');
+  technical.className = 'technical-details';
+  const summary = document.createElement('summary');
+  summary.textContent = 'Technical details';
   const hash = document.createElement('p');
   hash.className = 'hash';
   hash.textContent = `SHA-256 ${artifact.sha256}`;
-  const recipient = document.createElement('p');
-  recipient.className = 'send-target';
-  box.append(title, meta, recipient, actions, hash);
+  technical.append(summary, hash);
+  if (artifact.sourceUrl) technical.append(link('Source manuscript', artifact.sourceUrl));
+  box.append(title, meta, actions);
+  if (artifact.emailEligible) box.append(resultSendControls(target, artifact.artifactId));
+  box.append(technical);
+  syncReaderChoices();
   updateSendTargets();
   box.tabIndex = -1;
   box.focus();
@@ -234,16 +295,8 @@ async function refresh() {
     $('logout').hidden = false;
     $('account-name').textContent = currentAccount.name;
     $('sender-address').textContent = currentAccount.sender;
-    $('reader-choice').hidden = false;
-    const previous = $('send-reader').value;
-    $('send-reader').replaceChildren(new Option('Choose a confirmed Kindle address', ''));
-    for (const d of currentAccount.destinations)
-      $('send-reader').append(
-        new Option(`${d.label} · ${d.email}${d.isDefault ? ' (default)' : ''}`, d.id),
-      );
-    $('send-reader').value = currentAccount.destinations.some((d) => d.id === previous)
-      ? previous
-      : currentAccount.defaultDestinationId || '';
+    if (!currentAccount.destinations.some((d) => d.id === selectedReaderId))
+      selectedReaderId = currentAccount.defaultDestinationId || '';
     $('destination-status').textContent = currentAccount.destinations.length
       ? `${currentAccount.destinations.length} confirmed ${currentAccount.destinations.length === 1 ? 'address' : 'addresses'}`
       : 'No confirmed Kindle addresses yet.';
@@ -287,6 +340,7 @@ async function refresh() {
       list.append(row);
     }
     showShelf(currentAccount.artifacts);
+    syncReaderChoices();
     updateSendTargets();
   } catch (e) {
     if (e.status === 401) {
@@ -414,7 +468,13 @@ $('copy-mcp').addEventListener('click', (event) =>
     notice('MCP address copied.');
   }),
 );
-$('send-reader').addEventListener('change', updateSendTargets);
+document.addEventListener('change', (event) => {
+  if (event.target.matches('select[data-reader-choice]')) {
+    selectedReaderId = event.target.value;
+    syncReaderChoices();
+    updateSendTargets();
+  }
+});
 async function requestLogin() {
   const email = $('login-email').value.trim();
   const result = await post('/auth/email-otp/send-verification-otp', { email, type: 'sign-in' });

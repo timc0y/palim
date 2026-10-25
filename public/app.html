@@ -31,15 +31,6 @@
           >Send an existing file</a
         >
       </nav>
-      <div id="reader-choice" hidden>
-        <label for="send-reader">Send to</label
-        ><select id="send-reader" aria-describedby="reader-choice-help">
-          <option value="">Add a Kindle address to send</option>
-        </select>
-        <p class="field-help" id="reader-choice-help">
-          Create and download without connecting a Kindle. Each send goes to one confirmed address.
-        </p>
-      </div>
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
       <section id="signin" class="signin-panel" hidden>
         <h2>Sign in to Palim</h2>
@@ -150,6 +141,16 @@
           </section>
           <section class="panel shelf-panel">
             <h2>Temporary shelf</h2>
+            <div id="reader-choice" class="reader-picker" hidden>
+              <label for="send-reader">Send to</label
+              ><select id="send-reader" data-reader-choice aria-describedby="reader-choice-help">
+                <option value="">Add a Kindle address to send</option>
+              </select>
+              <p class="field-help" id="reader-choice-help">
+                Create and download without connecting a Kindle. Each send goes to one confirmed
+                address.
+              </p>
+            </div>
             <div id="shelf" class="shelf"><p class="quiet">Your recent files appear here.</p></div>
           </section>
         </div>
