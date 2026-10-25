@@ -5,6 +5,7 @@ import { BookSchema, LIMITS, ReceiptSchema } from './schema.js';
 import { Palim } from './service.js';
 import { publicError, PalimError } from './errors.js';
 import { readBytes } from './http.js';
+import { agentGuide } from './guide.js';
 import type { Env } from './types.js';
 
 export const ToolSendSchema = z
@@ -31,7 +32,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
   const server = new McpServer(
     { name: 'palim', version: '0.1.0' },
     {
-      instructions: `Palim works through this connection alone; no separate skill installation is required. The agent researches and writes; Palim publishes supplied manuscripts or forwards existing EPUB/PDF files unchanged. For a new edition, use create_book with title, language and chapters [{title, markdown}]. Include source-backed explanations and HTTPS sources. Figures need a defined id, alt and caption, referenced on its own line as ![description](figure:id). Use mermaid for small relationships, bars only for supported numeric data with units/source, or an already owned image asset. Never invent data or fetch a private repository into Palim. A draft never authorizes email. Return its private download/preview and material warnings; artifacts expire after 24 hours and signed links after 15 minutes. Only a clear delivery request authorizes send_document. Forward originals without editing, conversion, repackaging, invented download URLs or Base64 reconstruction. Use the client's actual host file object, or an owned artifactId. If host transfer is unsupported, direct the user to ${env.ORIGIN}/app for authenticated upload. Saved confirmed destinations belong to the signed-in account; never supply an arbitrary recipient or guess a destinationId. The same workspace manages optional Kindle setup and multiple saved addresses. Creation/download needs no Kindle setup. Let the user sign in through the client's OAuth browser flow; never request inbox codes, tokens or Amazon passwords in chat. Verification books are real email and require a requested recipient/purpose, not automatic setup testing. Repeated ordinary sends use the original artifact and omit resendOf. Only an explicit additional-copy request permits resendOf. For uncertainty use get_delivery; never blindly retry. submitted means provider acceptance, not Amazon import or device delivery; unknown remains uncertain. Keep private download links private.`,
+      instructions: agentGuide(env.ORIGIN),
     },
   );
   const palim = new Palim(env);
@@ -44,7 +45,14 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
           403,
         );
       const value = await work();
-      return { content: [{ type: 'text' as const, text: JSON.stringify(value) }] };
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: typeof value === 'string' ? value : JSON.stringify(value),
+          },
+        ],
+      };
     } catch (e) {
       const p = publicError(e);
       return {
@@ -56,11 +64,27 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     }
   };
   server.registerTool(
+    'get_guide',
+    {
+      title: 'Read the Palim agent guide',
+      description:
+        'Read before creating a reading edition or forwarding an original EPUB/PDF. Explains authoring, figures, sources, setup and safe delivery. Read-only; never creates a book, installs a skill or sends mail.',
+      inputSchema: z.object({}).strict(),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async () => run('books:read', async () => agentGuide(env.ORIGIN)),
+  );
+  server.registerTool(
     'create_book',
     {
       title: 'Create an illustrated EPUB',
       description:
-        'Build a new EPUB from a supplied manuscript. This writes a private temporary artifact, never sends mail. Works without a separate skill: supply title, language and chapters [{title, markdown}]. Use sources and ![description](figure:id) for defined figures. Return download/preview and warnings. No Kindle setup is needed. Does not fetch repositories or call an authoring model.',
+        'Build a new EPUB from a supplied manuscript. This writes a private temporary artifact, never sends mail. Read get_guide first. No skill installation is needed: supply title, language and chapters [{title, markdown}]. Use sources and ![description](figure:id) for defined figures. Return download/preview and warnings. No Kindle setup is needed. Does not fetch repositories or call an authoring model.',
       inputSchema: BookSchema,
       annotations: {
         readOnlyHint: false,
@@ -76,7 +100,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     {
       title: 'Send a book unchanged',
       description:
-        'Send an owned EPUB/PDF artifact or supported host-provided file to your confirmed Kindle destination. Preserves the attachment bytes, title and cover; never edits or repacks. Only use when the user requests delivery. Repeats return the original receipt. resendOf is only for an explicitly requested new copy. If setup or host transfer is unavailable, open the Palim workspace; never request a separate skill install. Provider acceptance is not Kindle import.',
+        'Read get_guide for the unchanged-original workflow. Send an owned EPUB/PDF artifact or supported host-provided file to your confirmed Kindle destination. Preserves the attachment bytes, title and cover; never edits or repacks. Only use when the user requests delivery. Repeats return the original receipt. resendOf is only for an explicitly requested new copy. If setup or host transfer is unavailable, open the Palim workspace; never request a separate skill install. Provider acceptance is not Kindle import.',
       inputSchema: ToolSendSchema,
       _meta: {
         'openai/fileParams': ['file'],

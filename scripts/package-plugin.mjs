@@ -24,7 +24,7 @@ export async function packagePlugin(origin) {
   await collect(source);
   for (const path of files.keys()) {
     if (
-      !/^(?:\.codex-plugin\/plugin\.json|\.mcp\.json|README\.md|LICENSE|skills\/[a-z0-9-]+\/SKILL\.md|assets\/[a-z0-9-]+\.svg)$/.test(
+      !/^(?:\.codex-plugin\/plugin\.json|\.mcp\.json|README\.md|LICENSE|assets\/[a-z0-9-]+\.svg)$/.test(
         path,
       )
     )
@@ -53,23 +53,17 @@ export async function packagePlugin(origin) {
     throw new Error('Supply a real HTTPS origin without a path, credentials or query.');
   config.mcpServers.palim.url = `${url.origin}/mcp`;
   files.set('.mcp.json', Buffer.from(JSON.stringify(config, null, 2) + '\n'));
-  const extension = { ...manifest.extensions['com.openai'], interface: manifest.interface };
-  for (const path of [
-    extension.onboardingSkill,
-    extension.interface.logo,
-    extension.interface.composerIcon,
-  ]) {
+  const extension = { interface: manifest.interface };
+  for (const path of [extension.interface.logo, extension.interface.composerIcon]) {
     if (!path?.startsWith('./') || !files.has(path.slice(2)))
       throw new Error(`Missing packaged resource: ${path}`);
   }
   if (
-    !files.has('skills/palim/SKILL.md') ||
     manifest.mcpServers !== './.mcp.json' ||
-    manifest.skills !== './skills/'
+    manifest.skills ||
+    manifest.extensions?.['com.openai']?.onboardingSkill
   )
-    throw new Error(
-      'The complete workflow and authenticated MCP connection must be bundled together.',
-    );
+    throw new Error('Bundle one MCP connection, without obsolete skill or setup hooks.');
   const zip = new JSZip();
   for (const [path, data] of files)
     zip.file(path, data, { date: new Date('2000-01-01T00:00:00Z'), createFolders: false });

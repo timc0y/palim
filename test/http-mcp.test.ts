@@ -5,9 +5,9 @@ import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { makeMcp, mcpFetch } from '../src/mcp.js';
 import { appFetch } from '../src/routes.js';
-import { readBytes, checkOrigin } from '../src/http.js';
+import { readBytes, checkOrigin, secureHeaders } from '../src/http.js';
 import { fixture, simpleBook } from './helpers.js';
-test('official MCP client lists exactly the three promised tools and creates a draft', async () => {
+test('official MCP client lists the guide and three publishing tools and creates a draft', async () => {
   const f = await fixture();
   const server = makeMcp(f.env, 'alice', ['books:read', 'books:write', 'books:send']),
     client = new Client({ name: 'test-client', version: '1' });
@@ -15,18 +15,30 @@ test('official MCP client lists exactly the three promised tools and creates a d
   await server.connect(a);
   await client.connect(b);
   try {
-    assert.match(client.getInstructions() ?? '', /no separate skill installation/i);
+    assert.match(client.getInstructions() ?? '', /no skill installation/i);
     assert.match(client.getInstructions() ?? '', /24 hours.*15 minutes/);
     assert.match(client.getInstructions() ?? '', /workspace|\/app/);
     const tools = await client.listTools();
     assert.deepEqual(tools.tools.map((t) => t.name).sort(), [
       'create_book',
       'get_delivery',
+      'get_guide',
       'send_document',
     ]);
     const result = await client.callTool({ name: 'create_book', arguments: simpleBook });
     assert.notEqual(result.isError, true);
     assert.equal(f.sent.length, 0);
+    const guideResult = CallToolResultSchema.parse(
+      await client.callTool({ name: 'get_guide', arguments: {} }),
+    );
+    const guide = guideResult.content.find((item) => item.type === 'text');
+    assert.ok(guide && guide.type === 'text');
+    assert.equal(guide.text, client.getInstructions());
+    assert.match(guide.text, /Never call create_book to forward an original/);
+    const guideTool = tools.tools.find((tool) => tool.name === 'get_guide');
+    assert.equal(guideTool?.annotations?.readOnlyHint, true);
+    assert.equal(guideTool?.annotations?.idempotentHint, true);
+
     const content = CallToolResultSchema.parse(result).content.find((item) => item.type === 'text');
     assert.ok(content && content.type === 'text');
     const artifact = JSON.parse(content.text);
@@ -184,4 +196,39 @@ test('ChatGPT file-input metadata declares exactly the required host fields', as
     await client.close();
     await server.close();
   }
+});
+
+test('HTML control forms retain same-origin Origin while private preview policy stays no-referrer', () => {
+  const html = secureHeaders(
+    new Response('<form method="post"></form>', {
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    }),
+  );
+  assert.equal(html.headers.get('Referrer-Policy'), 'same-origin');
+  const privatePreview = secureHeaders(
+    new Response('private', {
+      headers: { 'Content-Type': 'text/html', 'Referrer-Policy': 'no-referrer' },
+    }),
+  );
+  assert.equal(privatePreview.headers.get('Referrer-Policy'), 'no-referrer');
+  assert.equal(secureHeaders(Response.json({})).headers.get('Referrer-Policy'), 'no-referrer');
+  for (const origin of ['null', 'https://foreign.invalid'])
+    assert.throws(() =>
+      checkOrigin(
+        new Request('https://palim.example/authorize', {
+          method: 'POST',
+          headers: { Origin: origin, 'Sec-Fetch-Site': 'same-origin' },
+        }),
+        'https://palim.example',
+      ),
+    );
+  assert.throws(() =>
+    checkOrigin(
+      new Request('https://palim.example/authorize', {
+        method: 'POST',
+        headers: { Origin: 'https://palim.example', 'Sec-Fetch-Site': 'cross-site' },
+      }),
+      'https://palim.example',
+    ),
+  );
 });

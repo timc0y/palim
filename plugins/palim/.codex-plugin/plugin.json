@@ -1,7 +1,7 @@
 {
   "name": "palim",
-  "version": "0.2.0",
-  "description": "Create illustrated reading editions or send existing EPUB/PDF files unchanged. One connection and sign-in.",
+  "version": "0.3.0",
+  "description": "One Palim connection. Read the agent guide, create a reading edition, or forward an original unchanged.",
   "author": {
     "name": "Tim Coy",
     "url": "https://timcoy.uk"
@@ -13,7 +13,7 @@
   "interface": {
     "displayName": "Palim",
     "shortDescription": "Make room for reading.",
-    "longDescription": "Turn explanations into illustrated reading editions, or send an existing EPUB/PDF without changing its bytes.",
+    "longDescription": "Connect once and sign in. The read-only get_guide tool explains creating illustrated EPUBs and forwarding originals safely. No installed skill is needed.",
     "developerName": "Tim Coy",
     "category": "Productivity",
     "brandColor": "#11151B",
@@ -26,11 +26,5 @@
     "websiteURL": "https://palim-timc0y.pages.dev",
     "privacyPolicyURL": "https://palim-timc0y.pages.dev/privacy"
   },
-  "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
-  "extensions": {
-    "com.openai": {
-      "onboardingSkill": "./skills/setup/SKILL.md"
-    }
-  }
+  "mcpServers": "./.mcp.json"
 }

@@ -3,29 +3,24 @@ import assert from 'node:assert/strict';
 import JSZip from 'jszip';
 import { packagePlugin } from '../scripts/package-plugin.mjs';
 
-test('one Codex plugin contains its OAuth connection, workflows and every referenced resource', async () => {
+test('one Codex plugin contains one connection and branding, without obsolete skills', async () => {
   const built = await packagePlugin();
   const zip = await JSZip.loadAsync(built.bytes);
   const manifest = JSON.parse(await zip.file('.codex-plugin/plugin.json').async('text'));
   const config = JSON.parse(await zip.file('.mcp.json').async('text'));
   assert.equal(config.mcpServers.palim.url, 'https://palim-timc0y.pages.dev/mcp');
   assert.equal(manifest.mcpServers, './.mcp.json');
-  assert.equal(manifest.skills, './skills/');
-  const extension = { ...manifest.extensions['com.openai'], interface: manifest.interface };
-  for (const path of [
-    extension.onboardingSkill,
-    extension.interface.logo,
-    extension.interface.composerIcon,
-  ])
+  assert.equal(manifest.skills, undefined);
+  assert.equal(manifest.extensions?.['com.openai']?.onboardingSkill, undefined);
+  const extension = { interface: manifest.interface };
+  for (const path of [extension.interface.logo, extension.interface.composerIcon])
     assert.ok(zip.file(path.slice(2)), `Packaged resource is missing: ${path}`);
-  assert.match(
-    await zip.file('skills/palim/SKILL.md').async('text'),
-    /Forward an existing EPUB\/PDF/,
+  assert.ok(
+    Object.keys(zip.files).every(
+      (path) => !path.startsWith('skills/') && !path.startsWith('hooks/'),
+    ),
   );
-  assert.match(
-    await zip.file('skills/setup/SKILL.md').async('text'),
-    /Do not install another skill/,
-  );
+  assert.equal(Object.keys(zip.files).length, 5);
   assert.ok(
     Object.keys(zip.files).every(
       (path) =>

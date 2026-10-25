@@ -112,6 +112,28 @@ try:
             database = candidate
             break
         candidate.close()
+    if '--origin-only' in sys.argv:
+        # This safe regression branch exits before any login, registration or OAuth consent.
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as runner:
+            browser = runner.chromium.launch()
+            page = browser.new_page(ignore_https_errors=True, viewport={'width':390,'height':844})
+            response = page.goto(ORIGIN + '/app', wait_until='networkidle')
+            assert response.headers['referrer-policy'] == 'same-origin'
+            with page.expect_response(lambda r: r.request.method == 'POST' and r.url == ORIGIN + '/auth/sign-in/email-otp') as posted:
+                page.evaluate("() => { const form=document.createElement('form'); form.method='post'; form.action='/auth/sign-in/email-otp'; document.body.append(form); form.submit(); }")
+            result = posted.value
+            assert result.request.all_headers()['origin'] == ORIGIN
+            assert result.request.all_headers()['sec-fetch-site'] == 'same-origin'
+            assert result.status == 400 and result.json()['code'] == 'INVALID_JSON'
+            browser.close()
+        for bad_origin in ['null', 'https://foreign.invalid', '']:
+            assert post('/auth/sign-in/email-otp', {}, {'Origin':bad_origin})[0] == 403
+        assert post('/auth/sign-in/email-otp', {}, {'Sec-Fetch-Site':'cross-site'})[0] == 403
+        assert database.execute('SELECT count(*) FROM auth_users').fetchone()[0] == 0
+        assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 0
+        print('PASS: real browser form Origin and hostile-origin refusal; no accounts, email, client registration or OAuth grants created.')
+        sys.exit(0)
     import io, zipfile
     status, bundle_headers, bundle = request('/palim-plugin.zip')
     assert status == 200
@@ -121,9 +143,10 @@ try:
         manifest = json.loads(plugin.read('.codex-plugin/plugin.json'))
         connection = json.loads(plugin.read('.mcp.json'))
         assert manifest['mcpServers'] == './.mcp.json'
-        assert manifest['skills'] == './skills/'
+        assert 'skills' not in manifest
+        assert 'extensions' not in manifest
         assert connection['mcpServers']['palim']['url'] == json.loads((ROOT / 'wrangler.jsonc').read_text())['vars']['ORIGIN'] + '/mcp'
-        assert 'skills/palim/SKILL.md' in plugin.namelist() and 'skills/setup/SKILL.md' in plugin.namelist()
+        assert not any(name.startswith(('skills/', 'hooks/')) for name in plugin.namelist())
     print('Complete single-install plugin ZIP and checksum served through real response headers.')
     assert database is not None, 'Local D1 schema missing'
     now = int(time.time())
@@ -181,11 +204,15 @@ try:
     auth = {'Authorization': 'Bearer ' + bearer, 'Accept': 'application/json, text/event-stream'}
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {'protocolVersion': '2025-06-18', 'capabilities': {}, 'clientInfo': {'name': 'native-proof', 'version': '1'}}}, auth)
     assert status == 200 and json.loads(payload)['result']['serverInfo']['name'] == 'palim'
-    assert 'no separate skill installation' in json.loads(payload)['result']['instructions']
+    assert 'no skill installation' in json.loads(payload)['result']['instructions']
     assert ORIGIN + '/app' in json.loads(payload)['result']['instructions']
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}, auth)
     tools = json.loads(payload)['result']['tools']
-    assert sorted(t['name'] for t in tools) == ['create_book', 'get_delivery', 'send_document']
+    assert sorted(t['name'] for t in tools) == ['create_book', 'get_delivery', 'get_guide', 'send_document']
+    status, _, guide_payload = post('/mcp', {'jsonrpc': '2.0', 'id': 20, 'method': 'tools/call', 'params': {'name': 'get_guide', 'arguments': {}}}, auth)
+    guide_result = json.loads(guide_payload)['result']
+    assert status == 200 and not guide_result.get('isError')
+    assert 'Never call create_book to forward an original' in guide_result['content'][0]['text']
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 3, 'method': 'tools/call', 'params': {'name': 'create_book', 'arguments': {'title': 'Native runtime proof', 'chapters': [{'title': 'A real local journey', 'markdown': 'Created through actual workerd, OAuth PKCE, D1, R2 and the MCP transport. No live email was sent.'}]}}}, auth)
     result = json.loads(payload)['result']
     assert status == 200 and not result.get('isError'), result
@@ -291,7 +318,7 @@ try:
             browser_page.locator('#login-code').fill(browser_code)
             browser_page.locator('#login-code-form button[type=submit]').click()
             browser_page.locator('#desk').wait_for(state='visible')
-            expect(browser_page.locator('.connect-panel')).to_contain_text('No separate skill installation')
+            expect(browser_page.locator('.connect-panel')).to_contain_text('get_guide')
             expect(browser_page.locator('.connect-panel a[href="/palim-plugin.zip"]')).to_have_count(1)
             expect(browser_page.locator('#reader-choice')).to_be_hidden()
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-empty-mobile.png'), full_page=True)
@@ -300,7 +327,7 @@ try:
             context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#desk').wait_for(state='visible')
-            expect(browser_page.locator('.connect-panel')).to_contain_text('No separate skill installation')
+            expect(browser_page.locator('.connect-panel')).to_contain_text('get_guide')
             expect(browser_page.locator('.connect-panel a[href="/palim-plugin.zip"]')).to_have_count(1)
             browser_page.keyboard.press('Tab')
             browser_page.locator('.workspace-page > .nav .wordmark').focus()
@@ -329,7 +356,9 @@ try:
             preview_url = browser_page.locator('#created a', has_text='Preview').get_attribute('href')
             preview_page = context.new_page()
             preview_page.set_viewport_size({'width': 390, 'height': 844})
-            preview_page.goto(preview_url, wait_until='networkidle')
+            private_response = preview_page.goto(preview_url, wait_until='networkidle')
+            assert private_response.headers['referrer-policy'] == 'no-referrer'
+            assert private_response.headers['content-security-policy'].startswith("sandbox; default-src 'none'")
             expect(preview_page.locator('figure')).to_have_count(2)
             expect(preview_page.locator('h1')).to_have_count(1)
             assert preview_page.evaluate("[...document.fonts].some(f=>f.family==='Manrope' && f.status==='loaded')")

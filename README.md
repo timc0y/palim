@@ -13,7 +13,7 @@ An independent open-source project by [Tim Coy](https://timcoy.uk). Not affiliat
 
 - A bounded EPUB publisher: chapters, title/creator/language metadata, automatic cover, Mermaid diagrams, labelled bar charts, uploaded PNG/JPEG figures, source notes and table of contents.
 - A responsive reading workspace: create a draft, preview/download it, export the manuscript, upload an original, sign in by email code, save up to five labelled confirmed Kindle addresses, choose a default and inspect an honest delivery receipt.
-- Three OAuth-protected MCP tools: `create_book`, `send_document`, `get_delivery`.
+- One read-only guide and three publishing tools: `get_guide`, `create_book`, `send_document`, `get_delivery`.
 - Cloudflare Email submission with attachment hashes, registered destinations, atomic sending allowances and no blind retry after an uncertain outcome.
 - Private temporary files, expiring download links, isolated accounts and scheduled cleanup.
 
@@ -40,7 +40,7 @@ The local website is at `http://localhost:8787`. A usable authenticated hosted i
 
 ## Connect Palim
 
-Connect once, sign in and use Palim. No separate skill installation is required. Creating and downloading a reading edition needs no Kindle setup; sending is a separate requested action.
+Connect once and sign in. Your agent reads `get_guide`, then creates a reading edition or forwards an original unchanged when asked. There is no skill to install. Creating and downloading a reading edition needs no Kindle setup; sending is a separate requested action.
 
 ### ChatGPT
 
@@ -48,18 +48,18 @@ Connect once, sign in and use Palim. No separate skill installation is required.
 2. Enter `https://palim-timc0y.pages.dev/mcp`, choose OAuth, review the connection warning and select **Create as a plugin**.
 3. Complete Palim sign-in in the browser and approve consent. Start a new conversation with Palim enabled.
 
-Availability and workspace policies depend on your account. This is a custom connection, not a public-directory listing. The server carries essential guidance and schemas, so this path does not require an additional skill. Do not paste inbox codes or tokens into chat.
+Availability and workspace policies depend on your account. This is a custom connection, not a public-directory listing. The server guide explains both workflows; mutation tools independently enforce authorization, ownership and sending safety. Do not paste inbox codes or tokens into chat.
 
 ### Codex
 
-Install **one complete plugin**, which includes the connection, editorial workflow and setup guidance automatically. With a current Codex client:
+Install the optional **single connection package**. Guidance comes from `get_guide` through MCP; there are no installed skills or setup hooks. With a current Codex client:
 
 ```sh
 codex plugin marketplace add timc0y/palim --ref main
 codex plugin add palim@palim
 ```
 
-The first command registers this repository's catalog; the second installs the single plugin. Complete the client's OAuth connection/sign-in when requested. Do not also add a separate Palim MCP or skill. In supported desktop clients, open this repository's marketplace in the plugin browser and install Palim once. Client discovery and actual authenticated use are separate checks; see [verification](docs/verification.md).
+The first command registers this repository's catalog; the second installs the single plugin. Complete the client's OAuth connection/sign-in when requested. Do not add a duplicate Palim connection. In supported desktop clients, open this repository's marketplace in the plugin browser and install Palim once. Client discovery and actual authenticated use are separate checks; see [verification](docs/verification.md).
 
 [Download the complete plugin ZIP](https://palim-timc0y.pages.dev/palim-plugin.zip) · [SHA-256](https://palim-timc0y.pages.dev/palim-plugin.sha256)
 
@@ -69,10 +69,11 @@ The archive is an inspectable Codex compatibility package, not an invented one-c
 npm run plugin -- https://your-real-palim-host
 ```
 
-The source is `plugins/palim/`; `.agents/plugins/marketplace.json` exposes it as one repository plugin. The command writes the complete ZIP and checksum to `public/` and `artifacts/`, without installing, authorizing or publishing anything. [Official packaging](https://developers.openai.com/plugins/build/plugins/) and [connection/testing guidance](https://developers.openai.com/plugins/deploy/connect-chatgpt/) describe the supported flows. Other clients need their own compatibility verification.
+The canonical agent guide is `src/guide.ts`. The optional client package is `plugins/palim/`; `.agents/plugins/marketplace.json` exposes it as one repository plugin. The command writes the complete ZIP and checksum to `public/` and `artifacts/`, without installing, authorizing or publishing anything. [Official packaging](https://developers.openai.com/plugins/build/plugins/) and [connection/testing guidance](https://developers.openai.com/plugins/deploy/connect-chatgpt/) describe the supported flows. Other clients need their own compatibility verification.
 
 | Tool            | Responsibility                                                      |
 | --------------- | ------------------------------------------------------------------- |
+| `get_guide`     | Read the canonical authoring/import guide; no data changes or mail. |
 | `create_book`   | Publish the agent's supplied manuscript. A draft never sends email. |
 | `send_document` | Deliver an owned artifact or supported host file, unchanged.        |
 | `get_delivery`  | Read submission evidence without resending.                         |
@@ -110,3 +111,7 @@ npm run build
 Tests use real SQLite for the application's D1 queries and explicit doubles for external R2/email operations. Separate runtime checks exercise local workerd, D1, R2, OAuth PKCE and MCP. CI validates the generated sample with a checksum-pinned EPUBCheck distribution.
 
 Implementation owners and limits are in [SIMPLE.md](SIMPLE.md) and [architecture](docs/architecture.md). Report vulnerabilities as described in [SECURITY.md](SECURITY.md).
+
+## Connection troubleshooting
+
+Use the canonical Pages address. If an old consent tab shows ORIGIN, reopen the connection flow instead of replaying that form. Control-page HTML keeps a same-origin referrer policy so ordinary browser forms retain their Origin. Foreign, null and missing origins remain refused; private previews/downloads retain no-referrer. Never paste codes, cookies or tokens into an issue. Authenticated ChatGPT acceptance is verified separately.

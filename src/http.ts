@@ -76,7 +76,13 @@ export function cookie(request: Request, name: string): string | null {
 export function secureHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set('X-Content-Type-Options', 'nosniff');
-  headers.set('Referrer-Policy', 'no-referrer');
+  // Native HTML form POSTs inherit this policy; no-referrer turns their Origin into null.
+  // Keep private responses' explicit no-referrer policy and never send referrers cross-origin.
+  if (!headers.has('Referrer-Policy'))
+    headers.set(
+      'Referrer-Policy',
+      headers.get('Content-Type')?.startsWith('text/html') ? 'same-origin' : 'no-referrer',
+    );
   headers.set('X-Frame-Options', 'DENY');
   if (!headers.has('Content-Security-Policy'))
     headers.set(
