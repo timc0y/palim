@@ -79,7 +79,7 @@ Record actual deployment version, client/device versions and each observed resul
 
 ## Operation and recovery
 
-Migration 0005 adds an operator-managed `users.daily_send_limit`, defaulting to three and bounded between one and ten. Approved account-specific changes do not reset attempts or alter the shared mail budgets. The authenticated account response reports its actual limit. No browser or MCP input can change this allowance.
+Migrations 0005–0006 add an operator-managed `users.daily_send_limit`, defaulting to three and bounded between one and twenty. Migration 0006 preserves existing account values. Approved account-specific changes do not reset attempts or alter the shared mail budgets. The authenticated account response reports its actual limit. No browser or MCP input can change this allowance.
 
 Default sending allowance: three document submissions per account per UTC day, 80 shared emails per day and 2,400 per month. Sign-in codes and documents all consume this same atomic ledger. Login has a lower ceiling of 20 per day and 600 per month. Login requests also have a per-address one-minute cooldown and five-per-day cap. These ceilings deliberately count uncertain attempts. The edge limiter and Better Auth D1 rate counters add anonymous abuse controls. Review the actual Cloudflare account allowances, which may be shared with other projects. Rate limiting is not a monetary guarantee.
 

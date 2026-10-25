@@ -11,19 +11,19 @@ test('an operator allowance affects only its account and preserves attempts and 
   const f = await fixture();
   const a = await f.palim.upload('alice', pdf(), 'Manual.pdf');
   let receipt = await f.palim.send('alice', a.artifactId);
-  f.sql.prepare('UPDATE users SET daily_send_limit=10 WHERE id=?').run('alice');
-  assert.equal((await f.palim.account('alice')).limits.sends, 10);
+  f.sql.prepare('UPDATE users SET daily_send_limit=20 WHERE id=?').run('alice');
+  assert.equal((await f.palim.account('alice')).limits.sends, 20);
   assert.equal((await f.palim.account('bob')).limits.sends, 3);
-  for (let i = 1; i < 10; i++)
+  for (let i = 1; i < 20; i++)
     receipt = await f.palim.send('alice', a.artifactId, receipt.deliveryId);
   await assert.rejects(f.palim.send('alice', a.artifactId, receipt.deliveryId), /allowance/);
   assert.equal(
     f.sql.prepare('SELECT COUNT(*) AS n FROM deliveries WHERE owner=?').get('alice')!.n,
-    10,
+    20,
   );
   assert.equal(
     f.sql.prepare('SELECT COUNT(*) AS n FROM mail_attempts WHERE owner=?').get('alice')!.n,
-    10,
+    20,
   );
   const b = await f.palim.upload('bob', pdf(), 'Other.pdf');
   let other = await f.palim.send('bob', b.artifactId);

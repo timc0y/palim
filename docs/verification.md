@@ -1,5 +1,11 @@
 # Verification record
 
+## Account send allowance — 25 October 2026
+
+The owner approved raising only their account from ten to twenty document sends per UTC day. Migration 0006 widens the database constraint while preserving existing values and dependent records; the operator update targets the owner of the original delivery receipt. Live D1 checks before and after show five used attempts unchanged, five delivery records and six shared mail-ledger entries unchanged. Other accounts retain the default of three; no other accounts existed at this check. Shared daily/monthly budgets remain 80/2400. No counters, recipients, provider plan or email were changed.
+
+SQLite migration and service regressions cover retained values/records, the twenty-send boundary and other-account isolation. All 84 local tests, build, formatting, production dependency audit and EPUBCheck pass. Full direct-Worker and Pages OAuth/browser proofs also pass with disposable local identities/grants and captured mail only. Exact-source release results are reported separately.
+
 ## Address-draft refresh regression — 25 October 2026
 
 The documentation-only follow-up [CI 40230874986](https://github.com/timc0y/palim/actions/runs/40230874986) exposed an intermittent browser failure: an account refresh after submission closed an address form the user had just opened. Refresh now opens setup automatically only when no addresses exist; otherwise it preserves the disclosure and typed draft. Explicit save/capacity handling remains unchanged. A deterministic regression changes the default address with the add-address form open and verifies both its open state and typed email/label survive. Full direct-Worker and Pages OAuth/browser proofs, all 83 unit/contract tests, build and formatting pass locally with disposable identities/grants and captured mail only. No production grant or real email was created. The earlier green CI below remains evidence for its exact source; it did not establish absence of this race.
