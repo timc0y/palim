@@ -1,8 +1,18 @@
 # Verification record
 
-## Deployed build — 25 October 2026
+## Current deployed review corrections — 25 October 2026
 
-Canonical live URL: [palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). The running application is source `10f42ed4df3d15bd676c588ede8c5de4756c0374`, Worker version `05de5469-d135-4977-8a34-c57681413586`, and Pages production deployment `21e1b90a-310f-4116-8fc6-a232025842bc`. Cloudflare's production metadata reports that exact commit and successful deployment. HTTPS responses for the homepage, workspace, CSS and JavaScript were byte-compared with the committed files and matched.
+Live URL: [https://palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). Current application source is `7fcf04a0a0d509fe789323c38eecfdb27ad63a4d`, Worker version `431c3b46-3771-4c9b-bf93-102b1bdbff92`, Pages production deployment `aa2c4d47-dcba-4031-9ff2-e80cdf96e3ee`. Cloudflare reports successful production deployment at that exact commit; live CSS and JavaScript bytes match the committed files.
+
+Astra accepted the earlier rendered direction with no blocking brand issue and requested two polish corrections. Shelf anchors/buttons now have at least 44px height/width, 14px text, 8px/12px padding and mobile wrapping. Invalid sign-in feedback now says “That code is invalid or expired. Try again or request a new code.” The native browser proof measures actual shelf controls with and without confirmed readers and checks the exact error text. No authentication, privacy or mail-budget source changed.
+
+[Exact-source CI run 40190769139](https://github.com/timc0y/palim/actions/runs/40190769139) passed. Downloaded SHA, 68 tests, zero-vulnerability production audit, zero-error/warning EPUBCheck and direct/Pages browser logs were inspected. [Updated screenshot artifact 12598126143](https://github.com/timc0y/palim/actions/runs/40190769139/artifacts/12598126143) adds `shelf-mobile.png`, `shelf-unconfigured-mobile.png`, `login-error-mobile.png`, `create-result-mobile.png` and `upload-result-mobile.png`. The coordinating reviewer can score the two fixes from these renders; no subsequent Astra verdict is claimed here.
+
+Live Chromium desktop/mobile, focus/skip navigation, reduced motion, 200% zoom and measured contrast checks passed again. Anonymous API/MCP, wrong-origin login and alternate preview origins remain refused. The earlier comprehensive live session/privacy proof remains separately identified below. No live email or Kindle send was requested; real inbox/provider/device and intended-client acceptance gates remain open.
+
+## Earlier deployed build — 25 October 2026
+
+Canonical live URL: [palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). That earlier deployed application used source `10f42ed4df3d15bd676c588ede8c5de4756c0374`, Worker version `05de5469-d135-4977-8a34-c57681413586`, and Pages production deployment `21e1b90a-310f-4116-8fc6-a232025842bc`. Cloudflare's production metadata reports that exact commit and successful deployment. HTTPS responses for the homepage, workspace, CSS and JavaScript were byte-compared with the committed files and matched.
 
 [Exact-source CI run 40189856925](https://github.com/timc0y/palim/actions/runs/40189856925) passed. Its downloaded source identity, 68 tests, zero-vulnerability production audit, zero-error/warning EPUBCheck and direct/Pages native runtime logs were inspected. [Screenshot artifact 12597593943](https://github.com/timc0y/palim/actions/runs/40189856925/artifacts/12597593943) contains the final desktop/mobile landing/workspace, login/code/error, saved/pending addresses, synthetic receipt and 200% zoom views for independent UI review. Astra reviewed the actual `10f42ed` renders and accepted the overall ethereal, simple and professional direction with no blocking brand issue. It identified undersized shelf touch targets and technical invalid-code wording; the follow-up removes the height/padding override, enforces at least 44px targets and supplies plain-language code recovery. Browser acceptance checks both corrections and captures standalone create/upload results. The correction's new source and deployment must be identified separately.
 
