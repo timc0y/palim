@@ -50,13 +50,12 @@ export class Store {
     return this.user(id);
   }
   async admit(owner: string, kind: 'render' | 'upload'): Promise<void> {
-    const daily = kind === 'render' ? LIMITS.renders : LIMITS.uploads;
     const floor = Math.floor(this.now() / 86400) * 86400;
     const row = await this.db
       .prepare(
         `INSERT INTO operations(id,owner,kind,created_at)
       SELECT ?,id,?,? FROM users WHERE id=? AND disabled=0
-      AND (SELECT COUNT(*) FROM operations WHERE owner=? AND kind=? AND created_at>=?) < ?
+      AND (SELECT COUNT(*) FROM operations WHERE owner=? AND kind=? AND created_at>=?) < CASE WHEN ?='render' THEN daily_render_limit ELSE ? END
       AND (SELECT COUNT(*) FROM operations WHERE kind=? AND created_at>=?) < ? RETURNING id`,
       )
       .bind(
@@ -67,7 +66,8 @@ export class Store {
         owner,
         kind,
         floor,
-        daily,
+        kind,
+        LIMITS.uploads,
         kind,
         floor,
         kind === 'render' ? 160 : 500,

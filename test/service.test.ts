@@ -161,6 +161,35 @@ test('render quota is atomic under concurrent requests', async () => {
     2,
   );
 });
+test('account creation allowance preserves attempts and other account and shared limits', async () => {
+  const f = await fixture();
+  await f.palim.store.admit('alice', 'render');
+  await f.palim.store.admit('alice', 'render');
+  await assert.rejects(f.palim.create('alice', simpleBook), /render allowance/);
+  f.sql.prepare('UPDATE users SET daily_render_limit=20 WHERE id=?').run('alice');
+  assert.equal((await f.palim.account('alice')).limits.renders, 20);
+  assert.equal((await f.palim.account('bob')).limits.renders, 2);
+  const created = await f.palim.create('alice', simpleBook);
+  assert.equal(created.generated, true);
+  assert.equal(f.sent.length, 0);
+  const results = await Promise.allSettled(
+    Array.from({ length: 20 }, () => f.palim.store.admit('alice', 'render')),
+  );
+  assert.equal(results.filter((r) => r.status === 'fulfilled').length, 17);
+  await assert.rejects(f.palim.create('alice', simpleBook), /render allowance/);
+  await f.palim.store.admit('bob', 'render');
+  await f.palim.store.admit('bob', 'render');
+  await assert.rejects(f.palim.store.admit('bob', 'render'), /render allowance/);
+  await f.palim.store.upsertUser('third', 'Third');
+  // Shared render admission is still capped at 160, regardless of an account's allowance.
+  const insert = f.sql.prepare('INSERT INTO operations(id,owner,kind,created_at) VALUES(?,?,?,?)');
+  for (let i = 22; i < 160; i++) insert.run(`shared-${i}`, 'bob', 'render', NOW);
+  await assert.rejects(f.palim.store.admit('third', 'render'), /render allowance/);
+  assert.equal(
+    f.sql.prepare("SELECT COUNT(*) n FROM operations WHERE kind='render'").get()!.n,
+    160,
+  );
+});
 test('send quota stops a fourth distinct send even in a race', async () => {
   const f = await fixture();
   const files = [];

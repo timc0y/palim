@@ -1,5 +1,11 @@
 # Verification record
 
+## Creation allowance correction — 25 October 2026
+
+The earlier twenty-per-day change covered sending only. Live inspection confirmed the owner was still at two of two render admissions, despite sending being five of twenty. Uploads were four of six, retained artifacts totalled 443,282 bytes, shared render/upload usage was two/four of 160/500, and shared mail usage was six of 80 daily and six of 2,400 monthly. There is no aggregate storage-admission quota in this implementation. No operations were admitted during the reported 20:49–21:07 interval. Denials are not persisted and Worker observability is disabled, so an individual historical tool error cannot be recovered from those sources; the full render counter and unchanged hard-coded cap establish the available evidence.
+
+Migration 0007 moves the render allowance into the existing account policy owner, default two and bounded at twenty. The scoped owner update preserves both prior render admissions, delivery attempts, uploads and mail history. Other accounts retain two renders/three sends; shared budgets are unchanged. SQLite/service regression covers a real book creation after the increase, the twenty-render boundary under concurrent admission, other-account isolation and the shared 160-render boundary. All 86 local tests pass, including an actual MCP SDK create_book call that fails at two admissions, succeeds after the account increase, and leaves three admissions rather than resetting them. Full direct-Worker and Pages OAuth/browser proofs pass using disposable local identities/grants and captured mail. No mail is sent by this correction. Exact-source deployment and CI results are reported separately.
+
 ## Account send allowance — 25 October 2026
 
 The owner approved raising only their account from ten to twenty document sends per UTC day. Migration 0006 widens the database constraint while preserving existing values and dependent records; the operator update targets the owner of the original delivery receipt. Live D1 checks before and after show five used attempts unchanged, five delivery records and six shared mail-ledger entries unchanged. Other accounts retain the default of three; no other accounts existed at this check. Shared daily/monthly budgets remain 80/2400. No counters, recipients, provider plan or email were changed.

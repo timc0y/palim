@@ -130,7 +130,7 @@ export class Palim {
       })),
       sender: this.documentSender(user),
       limits: {
-        renders: LIMITS.renders,
+        renders: user.daily_render_limit,
         sends: user.daily_send_limit,
         uploads: LIMITS.uploads,
         retentionHours: 24,

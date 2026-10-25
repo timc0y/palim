@@ -11,7 +11,6 @@ export const LIMITS = Object.freeze({
   assetPixels: 4_000_000,
   retention: 86400,
   receiptRetention: 35 * 86400,
-  renders: 2,
   uploads: 6,
   globalDaily: 80,
   globalMonthly: 2400,

@@ -32,6 +32,35 @@ async function connect(
   };
 }
 
+test('MCP creation resumes after an account render increase without resetting attempts', async () => {
+  const f = await fixture();
+  // MCP uses the live clock, so seed today's admissions rather than a fixed fixture date.
+  const now = Math.floor(Date.now() / 1000);
+  for (const id of ['used-1', 'used-2'])
+    f.sql
+      .prepare('INSERT INTO operations(id,owner,kind,created_at) VALUES(?,?,?,?)')
+      .run(id, 'alice', 'render', now);
+  const c = await connect(f);
+  try {
+    const blocked = await c.client.callTool({ name: 'create_book', arguments: simpleBook });
+    assert.equal(blocked.isError, true);
+    assert.equal(output(blocked).code, 'DAILY_LIMIT');
+    f.sql.prepare('UPDATE users SET daily_render_limit=20 WHERE id=?').run('alice');
+    const created = await c.client.callTool({ name: 'create_book', arguments: simpleBook });
+    assert.notEqual(created.isError, true);
+    assert.equal(output(created).generated, true);
+    assert.equal(
+      f.sql
+        .prepare("SELECT COUNT(*) n FROM operations WHERE owner='alice' AND kind='render'")
+        .get()!.n,
+      3,
+    );
+    assert.equal(f.sent.length, 0);
+  } finally {
+    await c.close();
+  }
+});
+
 test('MCP send_document and get_delivery preserve bytes and never double-send a repeated intent', async () => {
   const f = await fixture(),
     original = (await buildBook(simpleBook)).bytes;
