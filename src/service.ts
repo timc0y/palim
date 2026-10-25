@@ -1,4 +1,5 @@
 import { buildBook } from './book.js';
+import { publicFileUrl } from './file-url.js';
 import { inspectDocument } from './archive.js';
 import { BookSchema, DestinationSchema, LIMITS, type Book } from './schema.js';
 import { invariant, PalimError } from './errors.js';
@@ -324,19 +325,15 @@ export class Palim {
     };
   }
   async importHostFile(owner: string, file: { download_url: string; filename: string }) {
-    const url = new URL(file.download_url),
-      origins = (this.env.FILE_ORIGINS ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    invariant(
-      url.protocol === 'https:' && !url.username && !url.password && origins.includes(url.origin),
-      'FILE_HOST_UNSUPPORTED',
-      `Secure file transfer is not configured for origin ${url.origin}. No file was fetched or sent.`,
-    );
     await this.store.user(owner);
+    const url = publicFileUrl(file.download_url);
     await this.store.admit(owner, 'upload');
-    const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(20000) });
+    const response = await fetch(url, {
+      redirect: 'manual',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      signal: AbortSignal.timeout(20000),
+    });
     invariant(
       response.ok,
       'FILE_UNAVAILABLE',

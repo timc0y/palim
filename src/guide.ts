@@ -18,7 +18,7 @@ A draft never sends email and needs no Kindle setup. Return its private download
 
 Use send_document with either an owned artifactId or the client's actual host file object: download_url and file_id, optionally mime_type and file_name. Never call create_book to forward an original. Do not rewrite, repair, convert, repackage, change metadata/cover, invent a URL, turn a local path into a remote file, or reconstruct bytes as Base64.
 
-If host file transfer is unsupported, open ${origin}/app for authenticated upload. Oversized originals remain unchanged and downloadable; never shrink them silently or claim an emailed link imports a book.
+Host files must have a public HTTPS download URL on port 443, without credentials or redirects. If the client cannot supply a downloadable file object, open ${origin}/app for authenticated upload. Oversized originals remain unchanged and downloadable; never shrink them silently or claim an emailed link imports a book.
 
 ## Send only when requested
 

@@ -203,17 +203,17 @@ test('mail filenames cannot inject headers', async () => {
   assert.doesNotMatch(payload.attachments[0]!.filename, /[\r\n]/);
   assert.equal(payload.to, 'alice@kindle.com');
 });
-test('host file import refuses arbitrary URLs without fetching', async () => {
+test('host file import refuses unsafe URLs without fetching', async () => {
   const f = await fixture();
   for (const url of [
     'http://files.example/a',
-    'https://evil.example/a',
+    'https://files.example:8443/a',
     'https://user:pass@files.example/a',
     'http://127.0.0.1/a',
   ])
     await assert.rejects(
       f.palim.importHostFile('alice', { download_url: url, filename: 'a.epub' }),
-      /not configured/,
+      /public HTTPS/,
     );
 });
 test('stale in-flight records are reported unknown, never assumed failed', async () => {
@@ -235,5 +235,53 @@ test('host-file download is denied before network work when upload allowance is 
       filename: 'approved.epub',
     }),
     /allowance/,
+  );
+});
+
+test('host imports refuse redirects, oversized bodies and non-documents without saving or sending', async (t) => {
+  for (const response of [
+    () => new Response(null, { status: 302, headers: { Location: 'http://127.0.0.1/private' } }),
+    () => new Response('small', { headers: { 'Content-Length': String(LIMITS.upload + 1) } }),
+    () =>
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(new Uint8Array(LIMITS.upload + 1));
+            controller.close();
+          },
+        }),
+      ),
+    () => new Response('<html>Not a book</html>'),
+  ]) {
+    const f = await fixture();
+    t.mock.method(globalThis, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
+      assert.equal(init?.redirect, 'manual');
+      assert.equal(init?.credentials, 'omit');
+      assert.equal(init?.referrerPolicy, 'no-referrer');
+      assert.ok(init?.signal);
+      return response();
+    });
+    await assert.rejects(
+      f.palim.importHostFile('alice', {
+        download_url: 'https://any-provider.example/book',
+        filename: 'book.epub',
+      }),
+    );
+    assert.equal(f.sql.prepare('SELECT count(*) AS n FROM artifacts').get()!.n, 0);
+    assert.equal(f.sent.length, 0);
+  }
+});
+
+test('disabled accounts cannot fetch public host files', async (t) => {
+  const f = await fixture();
+  f.sql.prepare('UPDATE users SET disabled=1 WHERE id=?').run('alice');
+  t.mock.method(globalThis, 'fetch', async () => {
+    assert.fail('disabled account fetched');
+  });
+  await assert.rejects(
+    f.palim.importHostFile('alice', {
+      download_url: 'https://any-provider.example/book',
+      filename: 'book.epub',
+    }),
   );
 });

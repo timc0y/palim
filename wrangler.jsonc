@@ -31,7 +31,6 @@
   "observability": { "enabled": false },
   "vars": {
     "ORIGIN": "https://palim-timc0y.pages.dev",
-    "SENDER": "reading@palim.timc0y.com",
-    "FILE_ORIGINS": ""
+    "SENDER": "reading@palim.timc0y.com"
   }
 }

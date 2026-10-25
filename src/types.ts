@@ -11,7 +11,6 @@ export interface Env {
   SENDER: string;
   AUTH_SECRET: string;
   SIGNING_SECRET: string;
-  FILE_ORIGINS?: string;
   OAUTH_PROVIDER: OAuthHelpers;
 }
 export interface User {

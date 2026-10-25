@@ -104,7 +104,6 @@ export async function fixture() {
     SENDER: 'reading@palim.example',
     SIGNING_SECRET: 'synthetic-test-signing-key-not-a-real-credential-2026',
     AUTH_SECRET: 'synthetic-test-auth-key-not-a-real-credential-2026',
-    FILE_ORIGINS: 'https://files.example',
     EMAIL: {
       async send(payload: EmailPayload) {
         sent.push(payload);

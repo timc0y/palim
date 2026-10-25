@@ -24,6 +24,7 @@
 
 ## Ordinary paths
 
+- Host-file imports use authenticated, quota-checked public HTTPS/443 downloads. Workerd's public network filters resolved addresses at connection time; `global_fetch_strictly_public` is mandatory. Never route file URLs through private/service/VPC bindings. URL validation rejects IP literals, local names and credentials; manual redirects are refused. No provider-specific host list or separate DNS-then-fetch check is used.
 - `src/schema.ts` owns manuscript shapes and quotas. `src/book.ts` owns EPUB packaging, `src/figures.ts` figures, and `src/archive.ts` bounded original inspection.
 - `src/service.ts` owns artifact/delivery operations; `src/store.ts` owns atomic D1 admission and recovery, including the shared mail ledger across login and documents. `src/mail.ts` owns the provider payload and integrity/size boundary.
 - `src/login.ts` configures Better Auth on native D1; `src/auth.ts` exposes only sign-in code request/redemption and logout. `src/index.ts` and the maintained Cloudflare OAuth package own downstream MCP authorization. `src/mcp.ts` and `src/routes.ts` expose the same service rather than reimplement policy.

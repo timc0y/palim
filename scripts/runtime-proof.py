@@ -31,7 +31,7 @@ wrapper.write_text("import app from " + json.dumps(str(ROOT / 'src/index.ts')) +
 CONFIG['main'] = str(wrapper)
 CONFIG['assets']['directory'] = str(ROOT / 'public')
 CONFIG['d1_databases'][0]['migrations_dir'] = str(ROOT / 'migrations')
-CONFIG['vars'] = {'ORIGIN': ORIGIN, 'SENDER': 'fixture@example.invalid', 'SIGNING_SECRET': secrets.token_hex(32), 'AUTH_SECRET': secrets.token_hex(32), 'FILE_ORIGINS': ''}
+CONFIG['vars'] = {'ORIGIN': ORIGIN, 'SENDER': 'fixture@example.invalid', 'SIGNING_SECRET': secrets.token_hex(32), 'AUTH_SECRET': secrets.token_hex(32)}
 CONFIG.pop('triggers', None)
 CONFIG['dev'] = {'local_protocol': 'https', 'upstream_protocol': 'https'}
 config_path = WORK / 'wrangler.json'

@@ -73,7 +73,7 @@ test('MCP accepts a real host-file shape and forwards the fetched bytes unchange
   let fetched = 0;
   t.mock.method(globalThis, 'fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     assert.equal(String(input), 'https://files.example/synthetic-book.epub');
-    assert.equal(init?.redirect, 'error');
+    assert.equal(init?.redirect, 'manual');
     assert.ok(init?.signal);
     fetched++;
     return new Response(new Uint8Array(original).buffer, {
@@ -109,9 +109,8 @@ test('MCP accepts a real host-file shape and forwards the fetched bytes unchange
   }
 });
 
-test('blocked host-file diagnostics expose only the origin without network or side effects', async (t) => {
+test('unsafe host-file URLs disclose no URL secrets and cause no network or side effects', async (t) => {
   const f = await fixture();
-  f.env.FILE_ORIGINS = '';
   t.mock.method(globalThis, 'fetch', async () => {
     assert.fail('A denied origin must never be fetched');
   });
@@ -129,10 +128,10 @@ test('blocked host-file diagnostics expose only the origin without network or si
     });
     assert.equal(result.isError, true);
     const error = output(result);
-    assert.equal(error.code, 'FILE_HOST_UNSUPPORTED');
+    assert.equal(error.code, 'FILE_URL_UNSAFE');
     assert.equal(
       error.message,
-      'Secure file transfer is not configured for origin https://untrusted.example. No file was fetched or sent.',
+      'Use a public HTTPS file URL on port 443 without credentials, IP literals, local names or fragments.',
     );
     assert.equal(f.sent.length, 0);
     for (const table of ['artifacts', 'deliveries', 'operations', 'mail_attempts'])

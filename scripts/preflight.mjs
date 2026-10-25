@@ -20,16 +20,13 @@ for (const db of config.d1_databases ?? [])
     failures.push('Configure the real Palim D1 database ID.');
 for (const kv of config.kv_namespaces ?? [])
   if (!kv.id || /^0+$/.test(kv.id)) failures.push('Configure the real OAuth KV namespace ID.');
-for (const candidate of (config.vars?.FILE_ORIGINS || '').split(',').filter(Boolean)) {
-  const host = new URL(candidate.trim());
-  if (
-    host.protocol !== 'https:' ||
-    host.origin !== candidate.trim() ||
-    host.username ||
-    host.password
-  )
-    failures.push('Each FILE_ORIGINS value must be an exact HTTPS origin without a path.');
-}
+if (
+  !config.compatibility_flags?.includes('global_fetch_strictly_public') ||
+  config.compatibility_flags?.includes('global_fetch_private_origin')
+)
+  failures.push(
+    'Host-file imports require global_fetch_strictly_public without private-origin routing.',
+  );
 if (failures.length)
   throw new Error(
     `Deployment configuration is incomplete:\n${failures.map((f) => ' - ' + f).join('\n')}`,

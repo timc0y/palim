@@ -50,11 +50,11 @@ npx wrangler secret put SIGNING_SECRET
 
 Wrangler also supports an additive `deploy --secrets-file` containing both secrets. Keep that file private, ignored and mode 600; remove the temporary local copy after upload. Never reuse another project's secrets. Authentication-secret rotation invalidates sessions and outstanding encrypted login codes. Signing-secret rotation invalidates private links. Personal sender aliases are stored independently and remain stable. Plan rotation deliberately.
 
-`FILE_ORIGINS` is empty by default. To support a client's file attachments, verify that client's actual download origin and explicitly add its exact HTTPS origin. Never use a wildcard or allow an arbitrary user-controlled host. The fetch path refuses credentials and redirects, uses a deadline and bounds downloaded bytes. A host whose redirects cannot meet that contract is unsupported; use the authenticated file-upload workspace instead.
+Authenticated MCP file imports accept public HTTPS hostnames on port 443 without a provider-specific allowlist. Keep `global_fetch_strictly_public` enabled and never add private-origin routing or use service/VPC bindings for file URLs. Workerd's public network filters DNS-resolved addresses at connection time. The application also refuses IP literals, local names, credentials, fragments and unsafe ports. It forwards no caller credentials, uses a 20-second deadline, bounds streamed bytes and inspects EPUB/PDF content before private storage.
+
+Workers does not implement `redirect: 'error'`. Imports use `redirect: 'manual'` and reject non-success responses before reading their bodies, so redirects are never followed. Signed URL paths/queries, file identifiers and private content are not logged. Clients still need to supply a downloadable file object; MCP itself is not a universal binary-upload transport.
 
 ## Initialise and deploy
-
-An authenticated host-file rejection identifies only the URL origin, never its credentials, path, signed query, fragment or file identifier. Rejection happens before fetching, upload admission or mail. Use that origin to investigate the actual client's download host; it is diagnostic evidence, not automatic permission to trust or allowlist it.
 
 ```sh
 npx wrangler d1 migrations apply palim --remote
