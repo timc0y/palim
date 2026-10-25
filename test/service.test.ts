@@ -78,7 +78,7 @@ test('explicit resend gets a separate receipt, repeated same resend stays idempo
 });
 test('no reader means no send', async () => {
   const f = await fixture();
-  f.sql.prepare('UPDATE users SET destination=NULL WHERE id=?').run('alice');
+  f.sql.prepare('UPDATE users SET default_destination_id=NULL WHERE id=?').run('alice');
   const a = await f.palim.upload('alice', pdf(), 'a.pdf');
   await assert.rejects(f.palim.send('alice', a.artifactId), /confirm your Kindle/);
   assert.equal(f.sent.length, 0);
@@ -161,7 +161,11 @@ test('challenge code is only in the emailed book, confirmation is single use', a
   assert.notEqual(row.code_hash, code);
   const result = await f.palim.confirm('alice', code);
   assert.equal(result.confirmed, true);
-  assert.equal((await f.palim.store.user('alice')).destination, 'new-reader@kindle.com');
+  assert.equal(
+    (await f.palim.store.readers('alice')).some((d) => d.email === 'new-reader@kindle.com'),
+    true,
+  );
+  assert.equal((await f.palim.store.user('alice')).destination, 'alice@kindle.com');
   await assert.rejects(f.palim.confirm('alice', code), /already used/);
 });
 test('wrong codes exhaust attempts without changing the reader', async () => {
@@ -250,12 +254,18 @@ test('a rejected challenge is removable immediately, but an uncertain one stays 
 });
 test('global challenge budget cannot consume the entire document-sending allowance', async () => {
   const f = await fixture();
-  for (let i = 0; i < 20; i++)
+  for (let i = 0; i < 20; i++) {
     f.sql
       .prepare(
         "INSERT INTO deliveries(id,owner,send_key,purpose,sha256,destination_hash,destination_mask,state,created_at,updated_at) VALUES(?,?,?,'challenge','hash','destination','hidden','submitted',?,?)",
       )
       .run(`challenge-${i}`, 'bob', `challenge-${i}`, NOW, NOW);
+    f.sql
+      .prepare(
+        "INSERT INTO mail_attempts(id,purpose,owner,recipient_hash,created_at) VALUES(?,'challenge','bob','destination',?)",
+      )
+      .run(`challenge-${i}`, NOW);
+  }
   await assert.rejects(f.palim.challenge('alice', 'reader@kindle.com'), /allowance/);
   const book = await f.palim.create('alice', simpleBook);
   const receipt = await f.palim.send('alice', book.artifactId);

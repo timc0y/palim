@@ -3,21 +3,29 @@ import { readFileSync } from 'node:fs';
 import type { Env } from '../src/types.js';
 import type { EmailPayload } from '../src/mail.js';
 import { Palim } from '../src/service.js';
-import { sha256 } from '../src/xml.js';
+import { authRoute } from '../src/auth.js';
 
 export const NOW = Date.parse('2026-10-25T12:00:00Z') / 1000;
 /** Real SQLite exercises the same SQL; only the asynchronous D1 transport is adapted. */
 export function database() {
   const sql = new DatabaseSync(':memory:');
   sql.exec(readFileSync(new URL('../migrations/0001.sql', import.meta.url), 'utf8'));
+  sql.exec(
+    readFileSync(new URL('../migrations/0002-email-auth-readers.sql', import.meta.url), 'utf8'),
+  );
   const prepare = (query: string) => {
     let values: (string | number | null | Uint8Array)[] = [];
     const run = () => {
-      const r = sql.prepare(query).run(...values);
+      const stmt = sql.prepare(query);
+      const before = Number(sql.prepare('SELECT total_changes() n').get()!.n);
+      const results = stmt.columns().length ? stmt.all(...values) : (stmt.run(...values), []);
       return {
         success: true,
-        results: [],
-        meta: { changes: Number(r.changes), last_row_id: Number(r.lastInsertRowid) },
+        results,
+        meta: {
+          changes: Number(sql.prepare('SELECT total_changes() n').get()!.n) - before,
+          last_row_id: 0,
+        },
       };
     };
     const statement = {
@@ -44,6 +52,10 @@ export function database() {
   };
   const adapter = {
     prepare,
+    async exec(query: string) {
+      sql.exec(query);
+      return { count: 0, duration: 0 };
+    },
     async batch(statements: ReturnType<typeof prepare>[]) {
       sql.exec('BEGIN');
       try {
@@ -91,6 +103,7 @@ export async function fixture() {
     ORIGIN: 'https://palim.example',
     SENDER: 'reading@palim.example',
     SIGNING_SECRET: 'synthetic-test-signing-key-not-a-real-credential-2026',
+    AUTH_SECRET: 'synthetic-test-auth-key-not-a-real-credential-2026',
     FILE_ORIGINS: 'https://files.example',
     EMAIL: {
       async send(payload: EmailPayload) {
@@ -102,12 +115,17 @@ export async function fixture() {
   const palim = new Palim(env, () => time);
   await palim.store.upsertUser('alice', 'Alice');
   await palim.store.upsertUser('bob', 'Bob');
-  sql
-    .prepare('UPDATE users SET destination=?,destination_version=? WHERE id=?')
-    .run('alice@kindle.com', 'version-a', 'alice');
-  sql
-    .prepare('UPDATE users SET destination=?,destination_version=? WHERE id=?')
-    .run('bob@kindle.com', 'version-b', 'bob');
+  for (const [owner, email, id] of [
+    ['alice', 'alice@kindle.com', '00000000-0000-4000-8000-000000000001'],
+    ['bob', 'bob@kindle.com', '00000000-0000-4000-8000-000000000002'],
+  ] as const) {
+    sql
+      .prepare(
+        'INSERT INTO reader_destinations(id,owner,label,email,confirmed_at) VALUES(?,?,?,?,?)',
+      )
+      .run(id, owner, 'My reader', email, NOW);
+    sql.prepare('UPDATE users SET default_destination_id=? WHERE id=?').run(id, owner);
+  }
   return {
     sql,
     env,
@@ -118,11 +136,47 @@ export async function fixture() {
       time = n;
     },
     async session(owner = 'alice') {
-      const token = 'a'.repeat(64);
+      const email = `${owner}@example.invalid`,
+        now = Date.now();
       sql
-        .prepare('INSERT OR REPLACE INTO sessions(hash,owner,expires_at) VALUES(?,?,?)')
-        .run(await sha256(token), owner, Math.floor(Date.now() / 1000) + 3600);
-      return `__Host-palim=${token}`;
+        .prepare(
+          'INSERT OR IGNORE INTO auth_users(id,name,email,emailVerified,createdAt,updatedAt) VALUES(?,?,?,1,?,?)',
+        )
+        .run(owner, owner, email, now, now);
+      const captured: EmailPayload[] = [];
+      const authEnv = {
+        ...env,
+        EMAIL: {
+          async send(payload: EmailPayload) {
+            captured.push(payload);
+            return { messageId: 'synthetic-login' };
+          },
+        },
+      };
+      const req = (path: string, value: unknown) =>
+        new Request(env.ORIGIN + path, {
+          method: 'POST',
+          headers: {
+            Origin: env.ORIGIN,
+            'Content-Type': 'application/json',
+            'CF-Connecting-IP': '192.0.2.10',
+          },
+          body: JSON.stringify(value),
+        });
+      await authRoute(
+        req('/auth/email-otp/send-verification-otp', { email, type: 'sign-in' }),
+        authEnv,
+      );
+      const code = /code is ([0-9]+)/.exec(captured[0]!.text)![1];
+      const response = await authRoute(
+        req('/auth/sign-in/email-otp', { email, otp: code }),
+        authEnv,
+      );
+      if (!response?.ok) throw new Error('Fixture login failed: ' + (await response?.text()));
+      return response.headers
+        .getSetCookie()
+        .find((c) => c.startsWith('__Host-palim='))!
+        .split(';')[0]!;
     },
   };
 }

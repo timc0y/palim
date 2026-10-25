@@ -103,7 +103,11 @@ export const BookSchema = z
 export type Book = z.infer<typeof BookSchema>;
 export type Figure = z.infer<typeof FigureSchema>;
 export const SendSchema = z
-  .object({ artifactId: z.uuid(), resendOf: z.uuid().optional() })
+  .object({
+    artifactId: z.uuid(),
+    resendOf: z.uuid().optional(),
+    destinationId: z.uuid().optional(),
+  })
   .strict();
 export const ReceiptSchema = z.object({ deliveryId: z.uuid() }).strict();
 export const DestinationSchema = z

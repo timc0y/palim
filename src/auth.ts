@@ -1,14 +1,10 @@
-import { githubAuthorizationUrl, githubAccessToken } from './github-auth.js';
+import { authentication } from './login.js';
 import { z } from 'zod';
 import { PalimError, invariant } from './errors.js';
-import { cookie, checkOrigin, equalToken, hmac } from './http.js';
-import { escapeXml as e, randomToken, sha256 } from './xml.js';
+import { checkOrigin, equalToken, hmac, readJson, json } from './http.js';
+import { escapeXml as e } from './xml.js';
 import { Store } from './store.js';
 import type { Env } from './types.js';
-const SESSION = '__Host-palim';
-const STATE = '__Host-palim-login';
-const sessionCookie = (name: string, value: string, seconds: number) =>
-  `${name}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${seconds}`;
 export function returnPath(value: string | null): string {
   if (
     !value ||
@@ -22,14 +18,10 @@ export function returnPath(value: string | null): string {
   return parsed.origin === 'https://palim.invalid' ? parsed.pathname + parsed.search : '/app';
 }
 export async function session(request: Request, env: Env): Promise<string | null> {
-  const value = cookie(request, SESSION);
-  if (!value || !/^[a-f0-9]{64}$/.test(value)) return null;
-  const row = await env.DB.prepare(
-    'SELECT s.owner FROM sessions s JOIN users u ON u.id=s.owner WHERE s.hash=? AND s.expires_at>? AND u.disabled=0',
-  )
-    .bind(await sha256(value), Math.floor(Date.now() / 1000))
-    .first<{ owner: string }>();
-  return row?.owner ?? null;
+  const current = await authentication(env).api.getSession({ headers: request.headers });
+  if (!current) return null;
+  await new Store(env.DB).upsertUser(current.user.id, current.user.name);
+  return current.user.id;
 }
 export async function requireSession(request: Request, env: Env): Promise<string> {
   const owner = await session(request, env);
@@ -37,80 +29,75 @@ export async function requireSession(request: Request, env: Env): Promise<string
   return owner;
 }
 export async function authRoute(request: Request, env: Env): Promise<Response | null> {
-  const url = new URL(request.url),
-    now = Math.floor(Date.now() / 1000);
+  const url = new URL(request.url);
   if (url.pathname === '/auth/login' && request.method === 'GET') {
-    const state = randomToken();
-    const redirect = githubAuthorizationUrl(env, state);
-    await env.DB.prepare('INSERT INTO login_states(hash,return_to,expires_at) VALUES(?,?,?)')
-      .bind(await sha256(state), returnPath(url.searchParams.get('returnTo')), now + 600)
-      .run();
     return new Response(null, {
       status: 302,
       headers: {
-        Location: redirect,
-        'Set-Cookie': sessionCookie(STATE, state, 600),
+        Location: `/app?returnTo=${encodeURIComponent(returnPath(url.searchParams.get('returnTo')))}`,
         'Cache-Control': 'no-store',
       },
     });
-  }
-  if (url.pathname === '/auth/callback' && request.method === 'GET') {
-    const state = url.searchParams.get('state') ?? '',
-      bound = cookie(request, STATE) ?? '',
-      code = url.searchParams.get('code');
-    invariant(
-      code && /^[a-f0-9]{64}$/.test(state) && equalToken(state, bound),
-      'LOGIN_STATE',
-      'Sign-in expired or does not belong to this browser. Start again.',
-    );
-    const pending = await env.DB.prepare(
-      'DELETE FROM login_states WHERE hash=? AND expires_at>? RETURNING return_to',
-    )
-      .bind(await sha256(state), now)
-      .first<{ return_to: string }>();
-    invariant(pending, 'LOGIN_STATE', 'This sign-in attempt expired or has already been used.');
-    const accessToken = await githubAccessToken(env, code);
-    const response = await fetch('https://api.github.com/user', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json',
-        'User-Agent': 'Palim',
-      },
-      signal: AbortSignal.timeout(10000),
-    });
-    invariant(response.ok, 'LOGIN_PROVIDER', 'GitHub could not confirm your identity.');
-    const identity = z
-      .object({ id: z.number().int().positive(), login: z.string().min(1).max(100) })
-      .parse(await response.json());
-    const owner = String(identity.id);
-    await new Store(env.DB).upsertUser(owner, identity.login);
-    const secret = randomToken();
-    await env.DB.prepare('INSERT INTO sessions(hash,owner,expires_at) VALUES(?,?,?)')
-      .bind(await sha256(secret), owner, now + 7 * 86400)
-      .run();
-    const headers = new Headers({
-      Location: returnPath(pending.return_to),
-      'Cache-Control': 'no-store',
-    });
-    headers.append('Set-Cookie', sessionCookie(SESSION, secret, 7 * 86400));
-    headers.append('Set-Cookie', sessionCookie(STATE, '', 0));
-    return new Response(null, { status: 302, headers });
   }
   if (url.pathname === '/auth/logout' && request.method === 'POST') {
     checkOrigin(request, env.ORIGIN);
-    const token = cookie(request, SESSION);
-    if (token)
-      await env.DB.prepare('DELETE FROM sessions WHERE hash=?')
-        .bind(await sha256(token))
-        .run();
-    return new Response(null, {
-      status: 303,
-      headers: {
-        Location: '/',
-        'Set-Cookie': sessionCookie(SESSION, '', 0),
-        'Cache-Control': 'no-store',
-      },
-    });
+    const response = await authentication(env).handler(
+      new Request(`${env.ORIGIN}/auth/sign-out`, request),
+    );
+    if (!response.ok) return response;
+    const headers = new Headers(response.headers);
+    headers.set('Location', '/app');
+    return new Response(null, { status: 303, headers });
+  }
+  if (url.pathname.startsWith('/auth/')) {
+    if (
+      request.method !== 'POST' ||
+      !['/auth/email-otp/send-verification-otp', '/auth/sign-in/email-otp'].includes(url.pathname)
+    )
+      throw new PalimError('NOT_FOUND', 'No such sign-in operation.', 404);
+    checkOrigin(request, env.ORIGIN);
+    if (url.pathname === '/auth/email-otp/send-verification-otp') {
+      const parsed = z
+        .object({
+          email: z
+            .email()
+            .max(254)
+            .transform((s) => s.trim().toLowerCase()),
+          type: z.literal('sign-in'),
+        })
+        .strict()
+        .safeParse(await readJson(request, 2048));
+      if (!parsed.success) throw new PalimError('LOGIN_EMAIL', 'Enter a valid inbox email.', 400);
+      const claim = await new Store(env.DB).claimLogin(
+        await hmac(env.SIGNING_SECRET, `login\n${parsed.data.email}`),
+      );
+      if (claim) {
+        await authentication(env, claim).handler(
+          new Request(request, { body: JSON.stringify(parsed.data) }),
+        );
+      }
+      return json({
+        message: 'If a code can be sent, it will arrive shortly. Check your inbox and spam folder.',
+      });
+    }
+    const parsed = z
+      .object({
+        email: z
+          .email()
+          .max(254)
+          .transform((s) => s.toLowerCase()),
+        otp: z.string().regex(/^\d{6}$/),
+      })
+      .strict()
+      .safeParse(await readJson(request, 2048));
+    if (!parsed.success)
+      throw new PalimError('LOGIN_CODE', 'Enter the six-digit sign-in code from your inbox.', 400);
+    const response = await authentication(env).handler(
+      new Request(request, { body: JSON.stringify(parsed.data) }),
+    );
+    const headers = new Headers(response.headers);
+    headers.set('Cache-Control', 'no-store');
+    return new Response(response.body, { status: response.status, headers });
   }
   if (url.pathname === '/authorize') {
     const owner = await session(request, env);

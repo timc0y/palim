@@ -20,6 +20,7 @@ export const ToolSendSchema = z
       .strict()
       .optional(),
     resendOf: z.uuid().optional(),
+    destinationId: z.uuid().optional(),
   })
   .strict()
   .refine(
@@ -99,7 +100,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
               filename: input.file!.file_name || 'reading',
             })
           ).artifactId;
-        return palim.send(owner, artifactId, input.resendOf);
+        return palim.send(owner, artifactId, input.resendOf, input.destinationId);
       }),
   );
   server.registerTool(

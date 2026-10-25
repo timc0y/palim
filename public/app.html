@@ -10,7 +10,16 @@
   </head>
   <body>
     <header class="nav wrap">
-      <a class="wordmark" href="/">palim<span>.</span></a>
+      <a class="wordmark" href="/"
+        ><svg class="brand-leaf" aria-hidden="true" viewBox="0 0 32 36">
+          <path
+            d="M15 31C6 27 2 19 4 5c7 1 11 5 11 13v13Zm4 0c9-4 13-12 11-26-7 1-11 5-11 13v13Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.4"
+          /></svg
+        >palim</a
+      >
       <nav>
         <a href="https://github.com/timc0y/palim">Source ↗</a><span id="account-name"></span>
         <form action="/auth/logout" method="post" id="logout" hidden>
@@ -21,18 +30,57 @@
     <main class="wrap workspace">
       <div class="workspace-heading">
         <p class="eyebrow">YOUR READING DESK</p>
-        <h1>A little less screen.<br /><em>A little more understanding.</em></h1>
+        <h1>Your reading <em>desk.</em></h1>
+      </div>
+      <nav class="job-choices" aria-label="Choose a task">
+        <a class="button" href="#create-form">Create an EPUB</a
+        ><a class="button secondary" href="#upload-form">Send an existing file</a>
+      </nav>
+      <div id="reader-choice" hidden>
+        <label for="send-reader">Send to</label
+        ><select id="send-reader">
+          <option value="">Add a Kindle address to send</option>
+        </select>
+        <p class="field-help">
+          Create and download without connecting a Kindle. Each send goes to one confirmed address.
+        </p>
       </div>
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
       <section id="signin" class="signin-panel" hidden>
         <h2>Bring your own curiosity.</h2>
         <p>
-          Sign in to create books, forward originals and confirm your reader. Palim uses your GitHub
-          identity—not access to your repositories.
+          Make an EPUB, send an existing file, or save your Kindle addresses. Sign in with a code
+          sent to your inbox.
         </p>
-        <a class="button" href="/auth/login">Continue with GitHub ↗</a>
+        <form id="login-email-form">
+          <label for="login-email">Your inbox email</label>
+          <input
+            id="login-email"
+            type="email"
+            autocomplete="email"
+            required
+            placeholder="you@example.com"
+          />
+          <button type="submit">Email me a sign-in code</button>
+        </form>
+        <form id="login-code-form" hidden>
+          <p id="login-sent" class="field-help"></p>
+          <label for="login-code">Sign-in code from your inbox</label>
+          <input
+            id="login-code"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            minlength="6"
+            required
+          />
+          <button type="submit">Sign in</button>
+          <button id="change-login-email" type="button" class="plain-button">Change email</button>
+          <button id="resend-login" type="button" class="plain-button">Request another code</button>
+        </form>
         <p class="quiet">
-          The operator must configure this deployment before sign-in is available.
+          No password. Codes expire after five minutes. Sign-in never sends a book.
         </p>
       </section>
       <div id="desk" class="desk" hidden>
@@ -128,16 +176,19 @@
         <aside class="desk-aside">
           <section class="panel reader-panel">
             <p class="eyebrow">YOUR READER</p>
-            <h2>One address.<br /><em>Many ideas.</em></h2>
+            <h2>Kindle addresses.<br /><em>Many ideas.</em></h2>
             <p id="destination-status">No confirmed reader yet.</p>
-            <details id="setup-details" open>
-              <summary>Connect or change your reader</summary>
+            <div id="reader-list"></div>
+            <details id="setup-details">
+              <summary>Add a Kindle address</summary>
               <p class="field-help">
                 First add <strong id="sender-address"></strong> to Amazon’s approved
                 personal-document senders. Check that personal-document archiving is enabled to keep
                 books in your library.
               </p>
               <form id="destination-form">
+                <label for="reader-label">Reader name</label
+                ><input id="reader-label" maxlength="40" required placeholder="My Kindle" />
                 <label for="kindle-email">Kindle email address</label
                 ><input
                   id="kindle-email"
@@ -147,14 +198,17 @@
                   placeholder="your-reader@kindle.com"
                 /><button type="submit" class="secondary">Send verification book</button>
               </form>
-              <form id="confirm-form">
+              <form id="confirm-form" hidden>
                 <label for="verification-code">Code from the verification book</label
                 ><input
                   id="verification-code"
                   maxlength="10"
                   minlength="10"
                   required
-                  autocomplete="one-time-code"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                  spellcheck="false"
+                  pattern="[A-Fa-f0-9]{10}"
                   placeholder="10 characters"
                 /><button type="submit" class="secondary">Confirm reader</button>
               </form>
@@ -162,21 +216,23 @@
                 The code is inside the book, not in this workspace. It expires after one hour.
               </p>
             </details>
-            <button id="disconnect" class="plain-button danger" hidden>Disconnect reader</button>
           </section>
           <section class="panel connect-panel">
             <p class="eyebrow">YOUR AGENT</p>
-            <h3>Connect Palim.</h3>
-            <p>
-              Add this remote MCP address in a supported client, then sign in and approve access.
-            </p>
-            <code id="mcp-url"></code
-            ><button id="copy-mcp" class="secondary">Copy MCP address</button>
-            <p class="field-help">
-              Install the editorial skill from
-              <a href="https://github.com/timc0y/palim/tree/main/skills/palim">the repository</a>.
-              Creation and delivery are separate tools.
-            </p>
+            <details>
+              <summary>Connect your agent</summary>
+              <h3>Connect Palim.</h3>
+              <p>
+                Add this remote MCP address in a supported client, then sign in and approve access.
+              </p>
+              <code id="mcp-url"></code
+              ><button id="copy-mcp" class="secondary">Copy MCP address</button>
+              <p class="field-help">
+                Install the editorial skill from
+                <a href="https://github.com/timc0y/palim/tree/main/skills/palim">the repository</a>.
+                Creation and delivery are separate tools.
+              </p>
+            </details>
           </section>
           <section class="panel receipt-panel" id="receipt-panel" hidden>
             <p class="eyebrow">DELIVERY RECEIPT</p>

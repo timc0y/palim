@@ -9,8 +9,7 @@ export interface Env {
   EMAIL: EmailBinding;
   ORIGIN: string;
   SENDER: string;
-  GITHUB_CLIENT_ID: string;
-  GITHUB_CLIENT_SECRET: string;
+  AUTH_SECRET: string;
   SIGNING_SECRET: string;
   FILE_ORIGINS?: string;
   OAUTH_PROVIDER: OAuthHelpers;
@@ -22,6 +21,14 @@ export interface User {
   destination_version: string;
   disabled: number;
   created_at: number;
+  default_destination_id: string | null;
+}
+export interface ReaderDestination {
+  id: string;
+  owner: string;
+  label: string;
+  email: string;
+  confirmed_at: number;
 }
 export interface Artifact {
   id: string;
@@ -45,6 +52,8 @@ export interface Delivery {
   sha256: string;
   destination_hash: string;
   destination_mask: string;
+  destination_id?: string | null;
+  default_intent_key?: string | null;
   state: 'submitting' | 'submitted' | 'rejected' | 'unknown';
   provider_id: string | null;
   error_code: string | null;
@@ -59,4 +68,5 @@ export interface Challenge {
   code_hash: string;
   attempts: number;
   expires_at: number;
+  label: string;
 }

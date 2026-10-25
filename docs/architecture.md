@@ -18,15 +18,17 @@ Delivery reads the stored bytes and verifies the hash before encoding the attach
 
 ## Identity and authority
 
-GitHub OAuth identifies a user by public numeric ID and username, with no repository scope. Upstream identity tokens are discarded after the identity lookup. Browser sessions and pending login state are random, hashed and expiring. Same-origin checks protect browser writes. Return paths are parsed against a fixed origin; control characters and cross-origin redirects are refused.
+Better Auth is the sole browser identity/session owner, with native D1 tables, five-minute encrypted email OTPs and three verification attempts. The browser cookie is host-only, Secure, HttpOnly and SameSite=Lax, with seven-day sessions and database revocation. Only sign-in code request/redemption and logout are exposed: unused password reset, email-change and verification-inspection endpoints are refused. Exact-origin checks protect browser mutations. Return paths reject control characters and foreign origins. Missing dedicated authentication or signing secrets fail closed.
 
-The maintained Cloudflare OAuth provider owns the MCP authorisation protocol. Consent is bound both to the provider's transaction and the signed-in Palim account. Each tool checks its required scope and current account access. A client cannot choose a destination through a tool argument.
+A request-local internal mail claim must be admitted before Better Auth can mutate its OTP. Shared daily/monthly D1 counters include login, verification books and documents, with smaller login/challenge allowances. Login recipients have a keyed-hash cooldown and daily cap before identity establishment. A throttled resend never replaces the previously mailed code. Unknown or failed submissions conservatively retain their slot. Database rate limits supplement the edge rate limiter and persist across Worker instances.
+
+The maintained Cloudflare OAuth provider owns the MCP authorisation protocol. Consent is bound both to the provider's transaction and the signed-in Palim account. Each tool checks its required scope and current account access. A client may select only an owned, already confirmed destination ID; arbitrary recipient emails are never accepted by a send operation. Private labelled addresses and default selection belong to application data, not the authentication package.
 
 Reader confirmation sends a short-lived code inside a verification EPUB. The code/file is never returned to the initiating client, stored on the artifact shelf or written to logs. Atomic challenge ownership prevents competing requests from invalidating the mailed code. Codes are keyed hashes with a five-attempt budget. Challenge sending has its own smaller shared allowance.
 
 ## Side effects and recovery
 
-A send key combines owner, content hash, destination generation and optional explicit resend parent. D1 atomically claims this logical submission while checking per-user and shared allowances. It returns the first receipt on repetition. A deliberate resend names a previous owned receipt and creates a new logical action.
+A send key combines owner, content hash, confirmed destination ID and optional explicit resend parent. Browser and agent requests share that key. A unique default-intent alias freezes the first implicit recipient, so changing or removing the default never silently redirects an ordinary retry. D1 atomically claims this logical submission while checking per-user and shared allowances. It returns the first receipt on repetition. A deliberate resend names a previous owned receipt and creates a new logical action.
 
 States are `submitting`, `submitted`, `rejected` and `unknown`. The submission call is not part of a transaction with the email provider; exactly-once external delivery is not promised. If acceptance may have happened, the record remains unknown and no automatic second call is made. The current version records provider submission only; it does not consume delivery-event queues or infer Kindle receipt.
 

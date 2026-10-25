@@ -44,14 +44,62 @@ function button(label, callback, style = 'secondary') {
   return b;
 }
 async function busy(element, work) {
+  const original = element.textContent;
+  const form = element.closest('form'),
+    area = form || element.closest('.shelf-item,.reader-item') || element.parentElement;
+  let feedback = area.querySelector(':scope > .action-feedback');
+  if (!feedback) {
+    feedback = document.createElement('p');
+    feedback.className = 'action-feedback';
+    feedback.tabIndex = -1;
+    area.append(feedback);
+  }
+  feedback.textContent = '';
   element.disabled = true;
+  const states = {
+    'create-form': 'Creating…',
+    'upload-form': 'Uploading…',
+    'destination-form': 'Sending verification book…',
+    'confirm-form': 'Confirming…',
+    'login-email-form': 'Requesting code…',
+    'login-code-form': 'Signing in…',
+  };
+  element.textContent = states[form?.id] || (/Send/.test(original) ? 'Sending…' : 'Working…');
   try {
     await work();
   } catch (e) {
-    notice(e.message, true);
+    feedback.textContent = e.message;
+    feedback.className = 'action-feedback error';
+    feedback.setAttribute('role', 'alert');
+    feedback.focus();
   } finally {
     element.disabled = false;
+    element.textContent = original;
   }
+}
+function chosenReader() {
+  return currentAccount?.destinations.find((d) => d.id === $('send-reader').value);
+}
+function sendButton(artifactId) {
+  const b = button(chosenReader() ? 'Send to this Kindle' : 'Add a Kindle address', async () => {
+    if (!chosenReader()) {
+      $('setup-details').open = true;
+      $('kindle-email').focus();
+      return;
+    }
+    await send(artifactId);
+  });
+  b.classList.add('send-action');
+  return b;
+}
+function updateSendTargets() {
+  const d = chosenReader();
+  for (const target of document.querySelectorAll('.send-target'))
+    target.textContent = d
+      ? `${d.label} · ${d.email}`
+      : 'Choose a confirmed Kindle address above before sending.';
+  for (const b of document.querySelectorAll('.send-action'))
+    b.textContent = d ? 'Send to this Kindle' : 'Add a Kindle address';
 }
 function showReceipt(receipt) {
   receiptId = receipt.deliveryId;
@@ -65,11 +113,19 @@ function showReceipt(receipt) {
   message.textContent = receipt.message;
   const id = document.createElement('code');
   id.textContent = receipt.deliveryId;
-  box.append(state, message, id);
+  const recipient = document.createElement('p');
+  const target = currentAccount?.destinations.find((d) => d.id === receipt.destinationId);
+  const file = currentAccount?.artifacts.find((a) => a.artifactId === receipt.artifactId);
+  recipient.textContent = `${file?.filename || (receipt.artifactId ? 'Document' : 'Verification book')} · To: ${target?.email || receipt.destination || 'Your requested verification address'}`;
+  box.append(state, recipient, message, id);
+  box.tabIndex = -1;
+  box.focus();
   notice(receipt.message);
 }
 async function send(artifactId) {
-  const receipt = await post('/api/send', { artifactId });
+  const destinationId = chosenReader()?.id;
+  if (!destinationId) throw new Error('Choose a confirmed Kindle address first.');
+  const receipt = await post('/api/send', { artifactId, destinationId });
   showReceipt(receipt);
   await refresh();
 }
@@ -86,12 +142,16 @@ function showArtifact(target, artifact) {
   actions.append(link('Download', artifact.downloadUrl));
   if (artifact.previewUrl) actions.append(link('Preview', artifact.previewUrl));
   if (artifact.sourceUrl) actions.append(link('Source manuscript', artifact.sourceUrl));
-  if (artifact.emailEligible)
-    actions.append(button('Send to my reader ↗', () => send(artifact.artifactId)));
+  if (artifact.emailEligible) actions.append(sendButton(artifact.artifactId));
   const hash = document.createElement('p');
   hash.className = 'hash';
   hash.textContent = `SHA-256 ${artifact.sha256}`;
-  box.append(title, meta, actions, hash);
+  const recipient = document.createElement('p');
+  recipient.className = 'send-target';
+  box.append(title, meta, recipient, actions, hash);
+  updateSendTargets();
+  box.tabIndex = -1;
+  box.focus();
   if (!artifact.emailEligible) {
     const warning = document.createElement('p');
     warning.textContent =
@@ -120,12 +180,12 @@ function showShelf(artifacts) {
     const title = document.createElement('strong');
     title.textContent = a.filename;
     const info = document.createElement('small');
-    info.textContent = `${(a.bytes / 1024).toFixed(1)} KiB · ${a.generated ? 'Reading edition' : 'Original'} · 24-hour storage`;
+    info.textContent = `${(a.bytes / 1024).toFixed(1)} KiB · ${a.generated ? 'Reading edition' : 'Original'} · expires ${new Date(a.expiresAt).toLocaleString()}`;
     const links = document.createElement('div');
     links.className = 'shelf-links';
     links.append(link('Download', a.downloadUrl));
     if (a.previewUrl) links.append(link('Preview', a.previewUrl));
-    if (a.emailEligible) links.append(button('Send', () => send(a.artifactId), 'plain-button'));
+    if (a.emailEligible) links.append(sendButton(a.artifactId));
     links.append(
       button(
         'Delete',
@@ -136,7 +196,9 @@ function showShelf(artifacts) {
         'plain-button',
       ),
     );
-    item.append(title, info, links);
+    const recipient = document.createElement('p');
+    recipient.className = 'send-target';
+    item.append(title, info, recipient, links);
     shelf.append(item);
   }
 }
@@ -148,17 +210,66 @@ async function refresh() {
     $('logout').hidden = false;
     $('account-name').textContent = currentAccount.name;
     $('sender-address').textContent = currentAccount.sender;
-    $('destination-status').textContent = currentAccount.destination
-      ? `Confirmed: ${currentAccount.destination}`
-      : 'No confirmed reader yet.';
-    $('setup-details').open = !currentAccount.destination;
-    $('disconnect').hidden = !currentAccount.destination;
+    $('reader-choice').hidden = false;
+    const previous = $('send-reader').value;
+    $('send-reader').replaceChildren(new Option('Choose a confirmed Kindle address', ''));
+    for (const d of currentAccount.destinations)
+      $('send-reader').append(
+        new Option(`${d.label} · ${d.email}${d.isDefault ? ' (default)' : ''}`, d.id),
+      );
+    $('send-reader').value = currentAccount.destinations.some((d) => d.id === previous)
+      ? previous
+      : currentAccount.defaultDestinationId || '';
+    $('destination-status').textContent = currentAccount.destinations.length
+      ? `${currentAccount.destinations.length} confirmed ${currentAccount.destinations.length === 1 ? 'address' : 'addresses'}`
+      : 'No confirmed Kindle addresses yet.';
+    $('setup-details').open =
+      !!currentAccount.pendingDestination || !currentAccount.destinations.length;
+    $('confirm-form').hidden = !currentAccount.pendingDestination;
+    $('confirm-form').querySelector('label').textContent = currentAccount.pendingDestination
+      ? `Code inside the Kindle verification book for ${currentAccount.pendingDestination}`
+      : 'Code inside the Kindle verification book';
+    const list = $('reader-list');
+    list.replaceChildren();
+    for (const d of currentAccount.destinations) {
+      const row = document.createElement('div');
+      row.className = 'reader-item';
+      const name = document.createElement('strong');
+      name.textContent = d.label;
+      const address = document.createElement('p');
+      address.textContent = d.email + (d.isDefault ? ' · Default' : '');
+      row.append(name, address);
+      if (!d.isDefault)
+        row.append(
+          button(
+            'Make default',
+            async () => {
+              await post(`/api/destinations/${d.id}/default`, {});
+              await refresh();
+            },
+            'plain-button',
+          ),
+        );
+      row.append(
+        button(
+          'Remove',
+          async () => {
+            await api(`/api/destinations/${d.id}`, { method: 'DELETE' });
+            await refresh();
+          },
+          'plain-button',
+        ),
+      );
+      list.append(row);
+    }
     showShelf(currentAccount.artifacts);
+    updateSendTargets();
   } catch (e) {
     if (e.status === 401) {
       $('signin').hidden = false;
       $('desk').hidden = true;
       $('logout').hidden = true;
+      $('reader-choice').hidden = true;
     } else notice(e.message, true);
   }
 }
@@ -220,7 +331,15 @@ $('upload-form').addEventListener('submit', (event) => {
 $('destination-form').addEventListener('submit', (event) => {
   event.preventDefault();
   busy(event.submitter, async () => {
-    showReceipt(await post('/api/destination', { email: $('kindle-email').value }));
+    showReceipt(
+      await post('/api/destination', {
+        email: $('kindle-email').value,
+        label: $('reader-label').value,
+      }),
+    );
+    $('confirm-form').querySelector('label').textContent =
+      `Code inside the Kindle verification book for ${$('kindle-email').value}`;
+    await refresh();
   });
 });
 $('confirm-form').addEventListener('submit', (event) => {
@@ -232,13 +351,6 @@ $('confirm-form').addEventListener('submit', (event) => {
     await refresh();
   });
 });
-$('disconnect').addEventListener('click', (event) =>
-  busy(event.currentTarget, async () => {
-    await api('/api/destination', { method: 'DELETE' });
-    notice('Reader disconnected. No future document can be sent until a destination is confirmed.');
-    await refresh();
-  }),
-);
 $('refresh-receipt').addEventListener('click', (event) =>
   busy(event.currentTarget, async () => {
     if (receiptId) showReceipt(await api(`/api/deliveries/${receiptId}`));
@@ -251,4 +363,36 @@ $('copy-mcp').addEventListener('click', (event) =>
     notice('MCP address copied.');
   }),
 );
+$('send-reader').addEventListener('change', updateSendTargets);
+async function requestLogin() {
+  const email = $('login-email').value.trim();
+  const result = await post('/auth/email-otp/send-verification-otp', { email, type: 'sign-in' });
+  $('login-sent').textContent = `Sign-in code requested for ${email}. ${result.message}`;
+  $('login-code-form').hidden = false;
+  $('login-code').focus();
+}
+$('login-email-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  busy(event.submitter, requestLogin);
+});
+$('resend-login').addEventListener('click', (event) => busy(event.currentTarget, requestLogin));
+$('change-login-email').addEventListener('click', () => {
+  $('login-code-form').hidden = true;
+  $('login-code').value = '';
+  $('login-email').focus();
+});
+$('login-code-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  busy(event.submitter, async () => {
+    await post('/auth/sign-in/email-otp', {
+      email: $('login-email').value.trim().toLowerCase(),
+      otp: $('login-code').value.trim(),
+    });
+    const target = new URL(
+      new URLSearchParams(location.search).get('returnTo') || '/app',
+      location.origin,
+    );
+    location.assign(target.origin === location.origin ? target.pathname + target.search : '/app');
+  });
+});
 await refresh();

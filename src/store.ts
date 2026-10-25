@@ -1,6 +1,6 @@
 import { PalimError } from './errors.js';
 import { LIMITS } from './schema.js';
-import type { Artifact, Challenge, Delivery, User } from './types.js';
+import type { Artifact, Challenge, Delivery, User, ReaderDestination } from './types.js';
 
 export class Store {
   constructor(
@@ -9,7 +9,9 @@ export class Store {
   ) {}
   async user(id: string): Promise<User> {
     const user = await this.db
-      .prepare('SELECT * FROM users WHERE id = ? AND disabled = 0')
+      .prepare(
+        "SELECT u.*, d.email AS destination, COALESCE(d.id,'') AS destination_version FROM users u LEFT JOIN reader_destinations d ON d.id=u.default_destination_id AND d.owner=u.id WHERE u.id=? AND u.disabled=0",
+      )
       .bind(id)
       .first<User>();
     if (!user) throw new PalimError('SIGN_IN_REQUIRED', 'Sign in to Palim to continue.', 401);
@@ -122,51 +124,156 @@ export class Store {
       .bind(owner, key)
       .first<Delivery>();
   }
+  async defaultIntent(owner: string, key: string): Promise<Delivery | null> {
+    return this.db
+      .prepare('SELECT * FROM deliveries WHERE owner=? AND default_intent_key=?')
+      .bind(owner, key)
+      .first<Delivery>();
+  }
+  async bindDefaultIntent(owner: string, id: string, key: string): Promise<Delivery> {
+    await this.db
+      .prepare(
+        'UPDATE OR IGNORE deliveries SET default_intent_key=? WHERE owner=? AND id=? AND default_intent_key IS NULL',
+      )
+      .bind(key, owner, id)
+      .run();
+    const row = await this.defaultIntent(owner, key);
+    if (!row)
+      throw new PalimError(
+        'DELIVERY_IN_PROGRESS',
+        'Retry the original request to obtain its receipt.',
+        409,
+      );
+    return row;
+  }
   async reserveDelivery(r: Delivery, destinationVersion: string): Promise<boolean> {
     const floor = Math.floor(this.now() / 86400) * 86400;
     const d = new Date(this.now() * 1000);
     const month = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) / 1000;
-    const result = await this.db
+    const result = await this.db.batch([
+      this.db
+        .prepare(
+          `INSERT INTO deliveries(id,owner,send_key,purpose,artifact_id,sha256,destination_hash,destination_mask,destination_id,default_intent_key,state,resend_of,created_at,updated_at)
+        SELECT ?,id,?,?,?,?,?,?,?,?,'submitting',?,?,? FROM users WHERE id=? AND disabled=0
+        AND (?='challenge' OR EXISTS(SELECT 1 FROM reader_destinations WHERE owner=? AND id=?))
+        AND (SELECT COUNT(*) FROM deliveries WHERE owner=? AND created_at>=?) < ?
+        AND (SELECT COUNT(*) FROM mail_attempts WHERE created_at>=?) < ?
+        AND (SELECT COUNT(*) FROM mail_attempts WHERE created_at>=?) < ?
+        AND (?<>'challenge' OR ((SELECT COUNT(*) FROM mail_attempts WHERE recipient_hash=? AND purpose='challenge' AND created_at>=?)<2 AND (SELECT COUNT(*) FROM mail_attempts WHERE purpose='challenge' AND created_at>=?)<20 AND (SELECT COUNT(*) FROM mail_attempts WHERE purpose='challenge' AND created_at>=?)<600))
+        ON CONFLICT DO NOTHING`,
+        )
+        .bind(
+          r.id,
+          r.send_key,
+          r.purpose,
+          r.artifact_id,
+          r.sha256,
+          r.destination_hash,
+          r.destination_mask,
+          r.destination_id ?? null,
+          r.default_intent_key ?? null,
+          r.resend_of,
+          r.created_at,
+          r.updated_at,
+          r.owner,
+          r.purpose,
+          r.owner,
+          destinationVersion,
+          r.owner,
+          floor,
+          LIMITS.sends,
+          floor,
+          LIMITS.globalDaily,
+          month,
+          LIMITS.globalMonthly,
+          r.purpose,
+          r.destination_hash,
+          floor,
+          floor,
+          month,
+        ),
+      this.db
+        .prepare(
+          `INSERT INTO mail_attempts(id,purpose,owner,recipient_hash,created_at)
+        SELECT id,purpose,owner,destination_hash,created_at FROM deliveries WHERE id=? ON CONFLICT(id) DO NOTHING`,
+        )
+        .bind(r.id),
+    ]);
+    return (result[0]?.meta.changes ?? 0) > 0;
+  }
+  async claimLogin(recipientHash: string): Promise<string | null> {
+    const now = this.now(),
+      floor = Math.floor(now / 86400) * 86400;
+    const date = new Date(now * 1000),
+      month = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000;
+    const id = crypto.randomUUID();
+    const row = await this.db
       .prepare(
-        `INSERT INTO deliveries(id,owner,send_key,purpose,artifact_id,sha256,destination_hash,destination_mask,state,resend_of,created_at,updated_at)
-      SELECT ?,id,?,?,?,?,?,?,'submitting',?,?,? FROM users WHERE id=? AND disabled=0
-      AND (? = 'challenge' OR (destination IS NOT NULL AND destination_version=?))
-      AND (SELECT COUNT(*) FROM deliveries WHERE owner=? AND created_at>=?) < ?
-      AND (SELECT COUNT(*) FROM deliveries WHERE created_at>=?) < ?
-      AND (SELECT COUNT(*) FROM deliveries WHERE created_at>=?) < ?
-      AND (? <> 'challenge' OR ((SELECT COUNT(*) FROM deliveries WHERE destination_hash=? AND purpose='challenge' AND created_at>=?) < 2 AND (SELECT COUNT(*) FROM deliveries WHERE purpose='challenge' AND created_at>=?) < 20 AND (SELECT COUNT(*) FROM deliveries WHERE purpose='challenge' AND created_at>=?) < 600))
-      ON CONFLICT(owner,send_key) DO NOTHING RETURNING id`,
+        `INSERT INTO mail_attempts(id,purpose,recipient_hash,created_at)
+      SELECT ?,'login',?,? WHERE
+      (SELECT COUNT(*) FROM mail_attempts WHERE created_at>=?)<? AND
+      (SELECT COUNT(*) FROM mail_attempts WHERE created_at>=?)<? AND
+      (SELECT COUNT(*) FROM mail_attempts WHERE purpose='login' AND created_at>=?)<20 AND
+      (SELECT COUNT(*) FROM mail_attempts WHERE purpose='login' AND created_at>=?)<600 AND
+      (SELECT COUNT(*) FROM mail_attempts WHERE purpose='login' AND recipient_hash=? AND created_at>=?)<5 AND
+      NOT EXISTS(SELECT 1 FROM mail_attempts WHERE purpose='login' AND recipient_hash=? AND created_at>?) RETURNING id`,
       )
       .bind(
-        r.id,
-        r.send_key,
-        r.purpose,
-        r.artifact_id,
-        r.sha256,
-        r.destination_hash,
-        r.destination_mask,
-        r.resend_of,
-        r.created_at,
-        r.updated_at,
-        r.owner,
-        r.purpose,
-        destinationVersion,
-        r.owner,
-        floor,
-        LIMITS.sends,
+        id,
+        recipientHash,
+        now,
         floor,
         LIMITS.globalDaily,
         month,
         LIMITS.globalMonthly,
-        r.purpose,
-        r.destination_hash,
-        floor,
         floor,
         month,
+        recipientHash,
+        floor,
+        recipientHash,
+        now - 60,
       )
       .first();
-    return !!result;
+    return row ? id : null;
   }
+  async readers(owner: string): Promise<ReaderDestination[]> {
+    await this.user(owner);
+    return (
+      await this.db
+        .prepare('SELECT * FROM reader_destinations WHERE owner=? ORDER BY confirmed_at,id')
+        .bind(owner)
+        .all<ReaderDestination>()
+    ).results;
+  }
+  async reader(owner: string, id: string): Promise<ReaderDestination> {
+    await this.user(owner);
+    const row = await this.db
+      .prepare('SELECT * FROM reader_destinations WHERE owner=? AND id=?')
+      .bind(owner, id)
+      .first<ReaderDestination>();
+    if (!row)
+      throw new PalimError('READER_NOT_FOUND', 'Choose one of your confirmed readers.', 404);
+    return row;
+  }
+  async defaultReader(owner: string, id: string): Promise<void> {
+    await this.reader(owner, id);
+    const row = await this.db
+      .prepare(
+        'UPDATE users SET default_destination_id=? WHERE id=? AND disabled=0 AND EXISTS(SELECT 1 FROM reader_destinations WHERE id=? AND owner=?) RETURNING id',
+      )
+      .bind(id, owner, id, owner)
+      .first();
+    if (!row)
+      throw new PalimError('READER_NOT_FOUND', 'Choose one of your confirmed readers.', 404);
+  }
+  async removeReader(owner: string, id: string): Promise<void> {
+    await this.reader(owner, id);
+    await this.db
+      .prepare('DELETE FROM reader_destinations WHERE owner=? AND id=?')
+      .bind(owner, id)
+      .run();
+  }
+
   async outcome(
     id: string,
     state: Delivery['state'],
@@ -186,9 +293,9 @@ export class Store {
   async setChallenge(c: Challenge): Promise<void> {
     const claim = await this.db
       .prepare(
-        'INSERT INTO challenges(owner,destination,generation,code_hash,attempts,expires_at) VALUES(?,?,?,?,0,?) ON CONFLICT(owner) DO UPDATE SET destination=excluded.destination,generation=excluded.generation,code_hash=excluded.code_hash,attempts=0,expires_at=excluded.expires_at WHERE challenges.expires_at<=? RETURNING owner',
+        'INSERT INTO challenges(owner,destination,generation,code_hash,attempts,expires_at,label) VALUES(?,?,?,?,0,?,?) ON CONFLICT(owner) DO UPDATE SET destination=excluded.destination,generation=excluded.generation,code_hash=excluded.code_hash,attempts=0,expires_at=excluded.expires_at,label=excluded.label WHERE challenges.expires_at<=? RETURNING owner',
       )
-      .bind(c.owner, c.destination, c.generation, c.code_hash, c.expires_at, this.now())
+      .bind(c.owner, c.destination, c.generation, c.code_hash, c.expires_at, c.label, this.now())
       .first();
     if (!claim)
       throw new PalimError(
@@ -208,17 +315,32 @@ export class Store {
     const rows = await this.db.batch([
       this.db
         .prepare(
-          'UPDATE users SET destination=?,destination_version=? WHERE id=? AND disabled=0 AND EXISTS(SELECT 1 FROM challenges WHERE owner=? AND generation=? AND code_hash=? AND expires_at>?)',
+          `INSERT INTO reader_destinations(id,owner,label,email,confirmed_at)
+        SELECT ?,id,?,?,? FROM users WHERE id=? AND disabled=0
+        AND ((SELECT COUNT(*) FROM reader_destinations WHERE owner=?)<5 OR EXISTS(SELECT 1 FROM reader_destinations WHERE owner=? AND email=?))
+        AND EXISTS(SELECT 1 FROM challenges WHERE owner=? AND generation=? AND code_hash=? AND expires_at>?)
+        ON CONFLICT(owner,email) DO UPDATE SET label=excluded.label,confirmed_at=excluded.confirmed_at`,
         )
         .bind(
-          challenge.destination,
           challenge.generation,
+          challenge.label,
+          challenge.destination,
+          this.now(),
           owner,
+          owner,
+          owner,
+          challenge.destination,
           owner,
           challenge.generation,
           codeHash,
           this.now(),
         ),
+      this.db
+        .prepare(
+          `UPDATE users SET default_destination_id=(SELECT id FROM reader_destinations WHERE owner=? AND email=?)
+        WHERE id=? AND disabled=0 AND default_destination_id IS NULL AND EXISTS(SELECT 1 FROM challenges WHERE owner=? AND generation=?)`,
+        )
+        .bind(owner, challenge.destination, owner, owner, challenge.generation),
       this.db
         .prepare('DELETE FROM challenges WHERE owner=? AND generation=?')
         .bind(owner, challenge.generation),

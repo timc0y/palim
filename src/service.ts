@@ -48,6 +48,8 @@ export function publicReceipt(row: Delivery) {
     providerMessageId: row.provider_id,
     attachmentSha256: row.sha256,
     destination: row.destination_mask,
+    destinationId: row.destination_id ?? null,
+    artifactId: row.artifact_id,
     createdAt: new Date(row.created_at * 1000).toISOString(),
     errorCode: row.error_code,
     kindleReceipt: 'unverified',
@@ -108,10 +110,16 @@ export class Palim {
     return {
       name: user.name,
       destination: user.destination ? maskAddress(user.destination) : null,
+      defaultDestinationId: user.default_destination_id,
+      destinations: (await this.store.readers(owner)).map((d) => ({
+        id: d.id,
+        label: d.label,
+        email: d.email,
+        confirmed: true,
+        isDefault: d.id === user.default_destination_id,
+      })),
       pendingDestination:
-        challenge && challenge.expires_at > this.clock()
-          ? maskAddress(challenge.destination)
-          : null,
+        challenge && challenge.expires_at > this.clock() ? challenge.destination : null,
       sender: this.env.SENDER,
       limits: {
         renders: LIMITS.renders,
@@ -329,15 +337,10 @@ export class Palim {
     );
     return this.saveUpload(owner, await readBytes(response, LIMITS.upload), file.filename);
   }
-  async send(owner: string, artifactId: string, resendOf?: string) {
+  async send(owner: string, artifactId: string, resendOf?: string, destinationId?: string) {
     const user = await this.store.user(owner),
       a = await this.store.artifact(owner, artifactId);
     invariant(a.kind === 'document', 'DOCUMENT_REQUIRED', 'Choose an EPUB or PDF document.');
-    invariant(
-      user.destination,
-      'DESTINATION_REQUIRED',
-      'Open the Palim workspace and confirm your Kindle address first.',
-    );
     invariant(
       canEmail(a.bytes),
       'EMAIL_TOO_LARGE',
@@ -356,11 +359,26 @@ export class Palim {
         'This send is still in progress.',
       );
     }
-    const key = await sha256(
-      `${owner}\n${a.sha256}\n${user.destination_version}\n${resendOf ?? 'original'}`,
+    const defaultKey = destinationId
+      ? null
+      : await sha256(`${owner}\n${a.sha256}\ndefault-intent\n${resendOf ?? 'original'}`);
+    const priorDefault = defaultKey ? await this.store.defaultIntent(owner, defaultKey) : null;
+    if (priorDefault) return publicReceipt(await this.store.delivery(owner, priorDefault.id));
+    const selectedId = destinationId ?? user.default_destination_id;
+    invariant(
+      selectedId,
+      'DESTINATION_REQUIRED',
+      'Open the Palim workspace and confirm your Kindle address first.',
     );
+    const selected = await this.store.reader(owner, selectedId);
+    const key = await sha256(`${owner}\n${a.sha256}\n${selected.id}\n${resendOf ?? 'original'}`);
     const previous = await this.store.deliveryByKey(owner, key);
-    if (previous) return publicReceipt(await this.store.delivery(owner, previous.id));
+    if (previous) {
+      const frozen = defaultKey
+        ? await this.store.bindDefaultIntent(owner, previous.id, defaultKey)
+        : previous;
+      return publicReceipt(await this.store.delivery(owner, frozen.id));
+    }
     const object = await this.env.BOOKS.get(a.object_key);
     invariant(object, 'ARTIFACT_NOT_FOUND', 'This document has expired.');
     const bytes = new Uint8Array(await object.arrayBuffer());
@@ -369,7 +387,7 @@ export class Palim {
       key,
       'document',
       a.sha256,
-      user.destination,
+      selected.email,
       a.id,
       resendOf,
     );
@@ -379,12 +397,21 @@ export class Palim {
       type: a.type,
       filename: a.filename,
       from: this.env.SENDER,
-      to: user.destination,
+      to: selected.email,
       receiptId: r.id,
     });
-    if (!(await this.store.reserveDelivery(r, user.destination_version))) {
-      const existing = await this.store.deliveryByKey(owner, key);
-      if (existing) return publicReceipt(await this.store.delivery(owner, existing.id));
+    r.destination_id = selected.id;
+    r.default_intent_key = defaultKey;
+    if (!(await this.store.reserveDelivery(r, selected.id))) {
+      const existing =
+        (defaultKey && (await this.store.defaultIntent(owner, defaultKey))) ||
+        (await this.store.deliveryByKey(owner, key));
+      if (existing) {
+        const frozen = defaultKey
+          ? await this.store.bindDefaultIntent(owner, existing.id, defaultKey)
+          : existing;
+        return publicReceipt(await this.store.delivery(owner, frozen.id));
+      }
       throw new PalimError(
         'SEND_LIMIT',
         'The sending allowance is full or the destination changed. Nothing new was submitted.',
@@ -434,11 +461,22 @@ export class Palim {
       await this.store.outcome(id, code && REJECTED.has(code) ? 'rejected' : 'unknown', null, code);
     }
   }
-  async challenge(owner: string, email: unknown) {
+  async challenge(owner: string, email: unknown, label = 'My reader') {
     const user = await this.store.user(owner);
     const parsed = DestinationSchema.safeParse({ email });
     if (!parsed.success)
       throw new PalimError('KINDLE_ADDRESS', 'Enter your Amazon @kindle.com document address.');
+    const readers = await this.store.readers(owner);
+    invariant(
+      readers.length < 5 || readers.some((d) => d.email === parsed.data.email),
+      'READER_LIMIT',
+      'You can save up to five Kindle addresses. Remove one before adding another.',
+    );
+    invariant(
+      label.trim().length > 0 && label.trim().length <= 40,
+      'READER_LABEL',
+      'Give this reader a name of up to 40 characters.',
+    );
     const destination = parsed.data.email,
       existing = await this.store.challenge(owner);
     if (existing && existing.expires_at > this.clock())
@@ -485,6 +523,7 @@ export class Palim {
     await this.store.setChallenge({
       owner,
       destination,
+      label: label.trim(),
       generation,
       code_hash: codeHash,
       attempts: 0,
@@ -557,8 +596,16 @@ export class Palim {
         .run();
     }
     await this.env.DB.batch([
-      this.env.DB.prepare('DELETE FROM sessions WHERE expires_at<=?').bind(this.clock()),
-      this.env.DB.prepare('DELETE FROM login_states WHERE expires_at<=?').bind(this.clock()),
+      this.env.DB.prepare('DELETE FROM auth_sessions WHERE expiresAt<=?').bind(this.clock() * 1000),
+      this.env.DB.prepare('DELETE FROM auth_rate_limits WHERE lastRequest<?').bind(
+        (this.clock() - 3600) * 1000,
+      ),
+      this.env.DB.prepare('DELETE FROM auth_verifications WHERE expiresAt<=?').bind(
+        this.clock() * 1000,
+      ),
+      this.env.DB.prepare('DELETE FROM mail_attempts WHERE created_at<?').bind(
+        this.clock() - LIMITS.receiptRetention,
+      ),
       this.env.DB.prepare('DELETE FROM challenges WHERE expires_at<=?').bind(this.clock()),
       this.env.DB.prepare('DELETE FROM operations WHERE created_at<?').bind(
         this.clock() - 2 * 86400,

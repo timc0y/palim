@@ -25,10 +25,13 @@ ARTIFACTS.mkdir(exist_ok=True)
 ORIGIN = 'https://localhost:8791'
 CONFIG = json.loads((ROOT / 'wrangler.jsonc').read_text())
 CONFIG['name'] = 'palim-native-proof'
-CONFIG['main'] = str(ROOT / 'src/index.ts')
+# A disposable wrapper replaces only the external mail boundary. Product code has no fixture flag.
+wrapper = WORK / 'capture-worker.ts'
+wrapper.write_text("import app from " + json.dumps(str(ROOT / 'src/index.ts')) + ";\nexport default { fetch(request, env, ctx) { const local = {...env, EMAIL: { async send(payload) { await env.DB.prepare('INSERT INTO proof_mail(payload) VALUES(?)').bind(JSON.stringify(payload)).run(); return {messageId: crypto.randomUUID()}; } }}; return app.fetch(request, local, ctx); }, scheduled: app.scheduled };\n")
+CONFIG['main'] = str(wrapper)
 CONFIG['assets']['directory'] = str(ROOT / 'public')
 CONFIG['d1_databases'][0]['migrations_dir'] = str(ROOT / 'migrations')
-CONFIG['vars'] = {'ORIGIN': ORIGIN, 'SENDER': 'fixture@example.invalid', 'SIGNING_SECRET': secrets.token_hex(32), 'FILE_ORIGINS': ''}
+CONFIG['vars'] = {'ORIGIN': ORIGIN, 'SENDER': 'fixture@example.invalid', 'SIGNING_SECRET': secrets.token_hex(32), 'AUTH_SECRET': secrets.token_hex(32), 'FILE_ORIGINS': ''}
 CONFIG.pop('triggers', None)
 CONFIG['dev'] = {'local_protocol': 'https', 'upstream_protocol': 'https'}
 config_path = WORK / 'wrangler.json'
@@ -102,13 +105,28 @@ try:
             break
         candidate.close()
     assert database is not None, 'Local D1 schema missing'
-    token = secrets.token_hex(32)
     now = int(time.time())
-    database.execute("INSERT INTO users(id,name,created_at) VALUES('runtime-proof','Runtime proof',?)", (now,))
-    database.execute('INSERT INTO sessions(hash,owner,expires_at) VALUES(?,?,?)', (hashlib.sha256(token.encode()).hexdigest(), 'runtime-proof', now + 3600))
+    database.execute('CREATE TABLE proof_mail(payload TEXT NOT NULL)')
     database.commit()
-    cookies.append('__Host-palim=' + token)
-
+    def login(email, ip='192.0.2.10'):
+        assert post('/auth/email-otp/send-verification-otp', {'email': email, 'type': 'sign-in'}, {'CF-Connecting-IP': ip})[0] == 200
+        mail = json.loads(database.execute('SELECT payload FROM proof_mail ORDER BY rowid DESC LIMIT 1').fetchone()[0])
+        assert mail['to'] == email
+        code = re.search(r'code is (\d{6})', mail['text']).group(1)
+        stored = database.execute('SELECT value FROM auth_verifications ORDER BY rowid DESC LIMIT 1').fetchone()[0]
+        assert code not in stored, 'OTP must be encrypted in D1'
+        status, headers, body = post('/auth/sign-in/email-otp', {'email': email, 'otp': code}, {'CF-Connecting-IP': ip})
+        assert status == 200, (status, body)
+        cookie = next(c for c in headers.get_all('Set-Cookie', []) if c.startswith('__Host-palim='))
+        for attr in ['Secure', 'HttpOnly', 'SameSite=Lax', 'Path=/']:
+            assert attr in cookie
+        assert 'Domain=' not in cookie
+        assert post('/auth/sign-in/email-otp', {'email': email, 'otp': code}, {'CF-Connecting-IP': ip})[0] >= 400
+        assert request('/api/account')[0] == 200
+        return json.loads(body)['user']['id']
+    owner = login('reader@example.invalid')
+    alice_cookie = cookies.copy()
+    token = next(c.split('=', 1)[1] for c in cookies if c.startswith('__Host-palim='))
     assert request('/app')[0] == 200, 'Workspace asset redirect loop'
     assert request('/mcp')[0] == 401, 'Unauthenticated MCP must be refused'
     status, _, metadata = request('/.well-known/oauth-authorization-server')
@@ -175,6 +193,25 @@ try:
             browser_page.set_viewport_size({'width': 390, 'height': 844})
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
             browser_page.screenshot(path=str(ARTIFACTS / 'landing-mobile.png'), full_page=True)
+            browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
+            browser_page.locator('#signin').wait_for(state='visible')
+            browser_page.screenshot(path=str(ARTIFACTS / 'login-mobile.png'), full_page=True)
+            browser_page.locator('#login-email').fill('browser@example.invalid')
+            browser_page.locator('#login-email-form button').click()
+            browser_page.locator('#login-code-form').wait_for(state='visible')
+            browser_page.screenshot(path=str(ARTIFACTS / 'login-code-mobile.png'), full_page=True)
+            browser_mail = json.loads(database.execute('SELECT payload FROM proof_mail ORDER BY rowid DESC LIMIT 1').fetchone()[0])
+            browser_code = re.search(r'code is (\d{6})', browser_mail['text']).group(1)
+            browser_page.locator('#login-code').fill('111111' if browser_code == '000000' else '000000')
+            browser_page.locator('#login-code-form button[type=submit]').click()
+            expect(browser_page.locator('#login-code-form .action-feedback.error')).not_to_have_text('')
+            browser_page.screenshot(path=str(ARTIFACTS / 'login-error-mobile.png'), full_page=True)
+            browser_page.locator('#login-code').fill(browser_code)
+            browser_page.locator('#login-code-form button[type=submit]').click()
+            browser_page.locator('#desk').wait_for(state='visible')
+            browser_page.screenshot(path=str(ARTIFACTS / 'workspace-empty-mobile.png'), full_page=True)
+            assert browser_page.locator('.job-choices').bounding_box()['y'] < 600
+            context.clear_cookies()
             context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#desk').wait_for(state='visible')
@@ -195,15 +232,65 @@ try:
             browser_page.locator('#upload-form button[type=submit]').click()
             browser_page.locator('#uploaded a', has_text='Download').wait_for()
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
+            # Synthetic confirmed readers exercise layout and isolation, not Kindle acceptance.
+            reader_ids = [secrets.token_hex(16), secrets.token_hex(16)]
+            import uuid
+            reader_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
+            for rid, label, address in zip(reader_ids, ['Bedside Kindle', 'Travel Kindle'], ['bedside@kindle.com','travel@kindle.com']):
+                database.execute('INSERT INTO reader_destinations(id,owner,label,email,confirmed_at) VALUES(?,?,?,?,?)', (rid,owner,label,address,now))
+            database.execute('UPDATE users SET default_destination_id=? WHERE id=?', (reader_ids[0],owner))
+            database.commit()
+            browser_page.reload(wait_until='networkidle')
+            expect(browser_page.locator('#send-reader option')).to_have_count(3)
+            browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
+            browser_page.screenshot(path=str(ARTIFACTS / 'destinations-mobile.png'), full_page=True)
+            browser_page.locator('#setup-details').evaluate('(el) => el.open = false')
+            browser_page.locator('#shelf .send-action').first.click()
+            browser_page.locator('#receipt-panel').wait_for(state='visible')
+            expect(browser_page.locator('#receipt')).to_contain_text('bedside@kindle.com')
+            expect(browser_page.locator('#receipt')).to_contain_text('not confirmed')
+            browser_page.screenshot(path=str(ARTIFACTS / 'send-receipt-mobile.png'), full_page=True)
+            browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
+            browser_page.locator('#reader-label').fill('New Kindle')
+            browser_page.locator('#kindle-email').fill('pending@kindle.com')
+            browser_page.locator('#destination-form button').click()
+            browser_page.locator('#confirm-form').wait_for(state='visible')
+            expect(browser_page.locator('#confirm-form label')).to_contain_text('pending@kindle.com')
+            browser_page.screenshot(path=str(ARTIFACTS / 'destination-pending-mobile.png'), full_page=True)
+            browser_page.locator('#setup-details').evaluate('(el) => el.open = false')
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-mobile.png'), full_page=True)
             browser_page.set_viewport_size({'width': 1440, 'height': 1000})
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-desktop.png'), full_page=True)
+            browser_page.emulate_media(reduced_motion='reduce')
+            assert browser_page.evaluate('getComputedStyle(document.documentElement).scrollBehavior') == 'auto'
+            browser_page.set_viewport_size({'width':390,'height':844})
+            browser_page.evaluate('document.body.style.zoom = "200%"')
+            assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth'), '200% zoom overflow'
+            browser_page.screenshot(path=str(ARTIFACTS / 'workspace-zoom-mobile.png'), full_page=True)
             assert not errors, errors
             browser.close()
         print('Real Chromium navigation, mobile layout, illustrated preview, browser create and original-upload journeys passed.')
     if '--pages' in sys.argv:
         print('Pages front door and real Worker service binding preserved public OAuth origin, cookies, bearer tokens, request bodies, private downloads and wrong-origin refusal.')
-    print('PASS: disposable local runtime proof. Synthetic local identity; no live GitHub sign-in, provider email, Amazon import or physical Kindle claim.')
+    # Real independent login may not access another user's document or saved readers.
+    cookies[:] = alice_cookie
+    status, _, payload = request('/api/files', 'POST', (ROOT / 'public/sample.epub').read_bytes(), 'application/epub+zip', {'X-Filename':'private-proof.epub'})
+    assert status == 201
+    private = json.loads(payload)
+    second_owner = login('second@example.invalid', '192.0.2.11')
+    assert post('/api/send', {'artifactId':private['artifactId']})[0] == 404
+    assert request('/api/files/' + private['artifactId'], 'DELETE')[0] == 404
+    assert json.loads(request('/api/account')[2])['destinations'] == []
+    if '--browser' in sys.argv:
+        assert post('/api/destinations/' + reader_ids[0] + '/default', {})[0] == 404
+        assert request('/api/destinations/' + reader_ids[0], 'DELETE')[0] == 404
+        assert post('/api/send', {'artifactId':private['artifactId'], 'destinationId':reader_ids[0]})[0] == 404
+
+    cookies[:] = alice_cookie
+    assert post('/auth/logout', {})[0] == 303
+    assert request('/api/account', headers={'Cookie': '; '.join(alice_cookie)})[0] == 401
+    print('Real independent email-code accounts isolate private files; logout revokes the old browser session.')
+    print('PASS: disposable local runtime proof. Real Better Auth with captured synthetic mail; no provider email, Amazon import or physical Kindle claim.')
 finally:
     process.terminate()
     try:

@@ -33,15 +33,22 @@ export async function appFetch(request: Request, env: Env): Promise<Response> {
     if (path === '/api/send' && request.method === 'POST') {
       const value = SendSchema.safeParse(await readJson(request, 2048));
       if (!value.success) throw new PalimError('INVALID_REQUEST', 'Choose a document to send.');
-      return json(await palim.send(owner, value.data.artifactId, value.data.resendOf));
+      return json(
+        await palim.send(
+          owner,
+          value.data.artifactId,
+          value.data.resendOf,
+          value.data.destinationId,
+        ),
+      );
     }
     if (path === '/api/destination' && request.method === 'POST') {
       const value = z
-        .object({ email: z.string() })
+        .object({ email: z.string(), label: z.string().trim().min(1).max(40).default('My reader') })
         .strict()
         .safeParse(await readJson(request, 1024));
       if (!value.success) throw new PalimError('INVALID_REQUEST', 'Enter your Kindle address.');
-      return json(await palim.challenge(owner, value.data.email));
+      return json(await palim.challenge(owner, value.data.email, value.data.label));
     }
     if (path === '/api/confirm' && request.method === 'POST') {
       const value = z
@@ -56,14 +63,14 @@ export async function appFetch(request: Request, env: Env): Promise<Response> {
       return json(publicReceipt(await palim.store.delivery(owner, receipt[1]!)));
     const file = /^\/api\/files\/([a-f0-9-]{36})$/.exec(path);
     if (file && request.method === 'DELETE') return json(await palim.remove(owner, file[1]!));
-    if (path === '/api/destination' && request.method === 'DELETE') {
-      await env.DB.batch([
-        env.DB.prepare("UPDATE users SET destination=NULL,destination_version='' WHERE id=?").bind(
-          owner,
-        ),
-        env.DB.prepare('DELETE FROM challenges WHERE owner=?').bind(owner),
-      ]);
-      return json({ disconnected: true });
+    const reader = /^\/api\/destinations\/([a-f0-9-]{36})(\/default)?$/.exec(path);
+    if (reader && reader[2] && request.method === 'POST') {
+      await palim.store.defaultReader(owner, reader[1]!);
+      return json({ updated: true });
+    }
+    if (reader && !reader[2] && request.method === 'DELETE') {
+      await palim.store.removeReader(owner, reader[1]!);
+      return json({ deleted: true });
     }
     throw new PalimError('NOT_FOUND', 'No such operation.', 404);
   }

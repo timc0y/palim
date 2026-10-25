@@ -1,83 +1,36 @@
 # Verification record
 
-## 25 October 2026 Pages and sender preparation
+## Current integration — 25 October 2026
 
-The user selected a Pages public address and the existing paid personal `tims` account. Cloudflare created the dedicated direct-upload project `palim-timc0y` and assigned `https://palim-timc0y.pages.dev`; this is an assigned hostname, not a published application. The first attempt at the project name `palim` failed with provider error 8000000; a subsequent inventory confirmed no project was created before the distinct name was used.
+The user approved Better Auth, Palim-only Cloudflare secrets, deployment to the personal `tims` account and a cooler ethereal redesign. The assigned canonical hostname is `https://palim-timc0y.pages.dev`. At this source checkpoint the application has not yet been published; resource preparation is not a working deployment. The next deployment entry must state the actual version and public checks.
 
-The Pages entrypoint forwards every request unchanged through a native service binding to the existing Worker. The Worker owns the only OAuth issuer, app session, data operations, static assets, rate limiter and cleanup schedule. Its configuration disables public Worker and version URLs and uses the canonical Pages origin. The additional CI acceptance step exercises the actual local Pages-to-Worker binding rather than a forwarding test double.
+Better Auth 1.7.12 replaces the GitHub adapter and custom browser sessions. It owns native D1 email-code identity, encrypted five-minute OTPs, three attempts, seven-day secure host-only cookies and database rate limiting. The existing MCP OAuth consent/PKCE server remains separate. Up to five private labelled confirmed Kindle addresses can be saved, with explicit per-send selection and optional default.
 
-The Mac passed all 62 tests, TypeScript, formatting, Worker dry-run build and EPUBCheck with zero errors or warnings after this change. Both direct Worker and Pages-fronted disposable HTTPS journeys passed with Chromium, including OAuth discovery and consent, PKCE, MCP creation, private-download hashes, session isolation, wrong-origin refusal, invalid bearer refusal, deletion, mobile illustrated previews and original upload. Local Pages development required HTTPS upstream configuration for both Workers; the production origin check was preserved.
+All 68 behavioral tests and strict TypeScript passed on the Mac with Node 22.23.3. Eight focused authentication/security regressions cover encrypted codes, replay/expiry/exhaustion/concurrent redemption, cookie attributes, logout, disabled accounts, origin and unused-endpoint refusal, pre-rotation resend admission, private addresses, frozen default intent and concurrent cross-channel deduplication. SQLite exercises the actual queries; storage/email are explicit test doubles at this level.
 
-Dedicated Palim D1, OAuth KV and Standard R2 resources were created in the personal account, and the empty D1 received migration `0001.sql`. R2 public access is disabled, there are no custom bucket domains, and the verified `palim-expiry` lifecycle removes objects after two days. No other project's resources were changed or reused.
+The actual local HTTPS Pages-to-Worker service binding passed with native workerd, D1, private R2 and OAuth KV. Real Better Auth email-code signup/redemption established independent accounts. Only the external mail binding was replaced by a capture wrapper generated into a disposable local directory; no fixture route, flag or mail capture exists in product code. The proof covers secure cookies, encrypted OTP storage, replay refusal, consent, PKCE, MCP creation, download hashes, refused unconfirmed sending, account isolation, session revocation, wrong-origin and invalid-bearer refusal, browser creation, unchanged upload and mobile layouts. Browser proof also captures login errors, saved/pending addresses, synthetic submission receipts, reduced-motion and 200% mobile zoom. These are captured-mail checks, not Cloudflare or Kindle acceptance.
 
-The user separately approved `reading@palim.timc0y.com` and its mail-verification DNS. Cloudflare enabled only that dedicated sending subdomain. Its authoritative DNS publishes three MX records at `cf-bounce.palim.timc0y.com`, SPF at the same name, DKIM at `cf-bounce._domainkey.palim.timc0y.com` and DMARC `p=reject` at `_dmarc.palim.timc0y.com`. The exact dedicated names had no published mail records before onboarding. Activity-log email previews were disabled through the documented API and a subsequent GET confirmed `preview_enabled=false`. The provider reports `enabled=true`; no email was submitted. Account-specific sending quotas and recipient acceptance remain unverified.
+Independent read-only security review identified and verified corrections for missing-secret fail-closed behavior and cross-channel duplicate delivery. Concurrent explicit/default requests now share one original receipt even after changing the default. No remaining critical defect was found in the reviewed auth, budget, destination and retry paths. This is agent review, not an external audit.
 
-Identity-provider selection is pending at the user's request. No GitHub OAuth app, replacement auth provider, persistent application credential or permission expansion was created. The existing GitHub sign-in implementation remains in source. The Worker and Pages application have not been deployed, and no production health, real login, MCP-client connection, email delivery, Amazon import or physical Kindle acceptance is claimed.
+Astra supplied the revised reading-atelier direction and inspected Mobbin references for hierarchy, login and address selection. Original CSS/SVG and self-hosted OFL Instrument Serif implement the visual system in DESIGN.md. The one-time UI detector identified small inherited text and a generic hero eyebrow; those were corrected. Latest rendered screenshots and final reviewer disposition belong to the exact-source CI evidence, not the design proposal alone.
 
-## 25 October 2026 Mac deployment preparation
+## Provider preparation
 
-A clean checkout of GitHub main `00c7d5c5a199189f94e1ac14172c36899cd6459e` was independently checked on the operator's Mac. No application fixes were needed.
+Dedicated personal-account resources are D1 `palim`, private Standard R2 `palim-books`, OAuth KV `palim-oauth`, Worker `palim` and Pages `palim-timc0y`. Public R2 access is disabled with no custom bucket domains; the verified `palim-expiry` lifecycle removes objects after two days. The application denies ordinary artifact access after 24 hours and signed links after 15 minutes. Unrelated infrastructure was not reused or changed.
 
-- All 62 tests and strict TypeScript passed with both Node 26.12.0 and the installed Node 22.23.3 LTS runtime. Formatting and the Worker dry-run build passed.
-- The current production dependency audit reported zero vulnerabilities. This does not cover the development dependency tree or establish application security.
-- Checksum-pinned EPUBCheck 5.4.0, run with the existing Java 21 installation and `--failonwarnings`, reported zero fatals, errors, warnings and infos for the generated sample.
-- The disposable HTTPS native runtime and real Chromium 141 acceptance runner passed on this Mac using Node 22.23.3. It exercised discovery, consent, PKCE, authenticated MCP creation, private-download integrity, unconfirmed-send refusal, deletion, illustrated mobile previews, browser creation and original upload. Identity was synthetic and email was not submitted to a live provider.
-- [Exact-source CI run 40177778587](https://github.com/timc0y/palim/actions/runs/40177778587) succeeded. Its downloaded source identity, EPUBCheck and runtime/browser logs were inspected and agreed with the local results.
+The separately approved sender is `reading@palim.timc0y.com`. Cloudflare enabled the dedicated sending subdomain and its isolated MX, SPF, DKIM and DMARC records. Authoritative DNS was checked. A documented API GET verified `preview_enabled=false` and `enabled=true`. No real email was submitted. Account-specific sending quota and actual recipient acceptance still require live evidence; application ceilings are not a provider or monetary guarantee.
 
-Existing Wrangler authentication was valid. Read-only inspection found two available accounts and no `palim` Worker in either. The personal account had no sending subdomains; the other account had an enabled existing sending domain. No remote resources, DNS, credentials or grants were created or changed. Other applications' resources were not reused.
+The Worker disables public `workers.dev` and version URLs. Pages passes requests unchanged through a native service binding, preserving one browser/API/OAuth origin. Alternate preview hosts must fail the canonical-origin check. No new subscription was started.
 
-Deployment remains pending the operator's account selection, approved sender and explicit approval to create Palim-only persistent OAuth and signing credentials. Workers Paid eligibility, actual email allowances, preview retention, private R2 lifecycle and the final canonical origin must be established for the selected account. No hosted URL, production authentication/privacy/isolation result, live GitHub login, real email submission, Amazon import or physical Kindle acceptance is claimed. A real send additionally requires an established recipient, document and purpose with applicable approval.
+## Earlier verified source
 
-## 25 October 2026 release candidate
+- Baseline `00c7d5c5a199189f94e1ac14172c36899cd6459e`: 62 tests, Node 22/26 TypeScript and local build, zero production audit vulnerabilities, checksum-pinned EPUBCheck 5.4.0 with zero fatals/errors/warnings/infos, and disposable native/browser proof. [CI run 40177778587](https://github.com/timc0y/palim/actions/runs/40177778587) passed; downloaded artifact identity and logs were inspected.
+- Pages front-door preparation `9961200bde0a83b9b4f5b31803535f700a1aae30`: [CI run 40186430843](https://github.com/timc0y/palim/actions/runs/40186430843) passed and artifacts were inspected. This used a seeded local identity and the former GitHub source; it did not establish production login or the later Better Auth implementation.
 
-[Checks run 40177170759](https://github.com/timc0y/palim/actions/runs/40177170759) verified source `2012c3a1061cfbd0ade6aebfc0d1501d554bbd01`. The downloaded artifact logs were inspected, not just the job status. The workflow uses explicit Bash failure propagation, including failures before `tee`.
+## Remaining acceptance gates
 
-### Executed acceptance checks
+A real inbox login, Cloudflare provider message acceptance, recipient delivery, Amazon import, physical Kindle rendering and a fresh intended MCP-client connection are distinct unverified gates. No live test mail is authorized until its recipient, document and purpose are established. A successful captured email or provider receipt must never be described as Kindle acceptance.
 
-- Strict TypeScript, formatting and **61 Node tests passed**. Tests exercise real SQLite with the application's D1 queries; R2 and Email are explicit test doubles at this level.
-- `npm audit --omit=dev --audit-level=high` reported **0 vulnerabilities** for the installed production dependency tree at that time. This is not a guarantee against future advisories or application defects.
-- Wrangler bundled the actual Worker and generated the public example. This was a local build, not a deployment.
-- Checksum-pinned EPUBCheck 5.4.0 validated the illustrated sample with `--failonwarnings`: **0 fatal errors, 0 errors, 0 warnings and 0 infos**. The validator reports its current EPUB 3.4 rules; the publisher uses the established EPUB 3 subset, not draft-only features.
-- Native local workerd, D1, R2 and OAuth KV completed HTTPS discovery, dynamic client registration, account-bound consent, PKCE exchange, authenticated MCP initialise/list/create, a private download with the expected SHA-256, unconfirmed-send refusal, artifact deletion and invalid-token refusal.
-- Real Chromium navigated the HTTPS local service, rendered the landing page at desktop and 390-pixel width, entered the authenticated workspace, created a book through the real page JavaScript, and uploaded the original sample EPUB. No page errors or horizontal mobile overflow were observed in those journeys.
+SVG EPUB conformance and browser preview do not establish Amazon conversion fidelity. Original-document inspection is bounded, not antivirus or proof of every EPUB/PDF feature. External host-file transfer remains deny-by-default until its exact origin and client behavior are verified.
 
-The native identity was deliberately seeded in a disposable local database. This proves the application/OAuth protocol journey after identity establishment, not a real GitHub account login. A separate automated test exercises the official Octokit exchange and identity lookup against controlled provider responses, including state replay prevention and token non-retention.
-
-The verification artifact includes the exact source SHA, logs, sample EPUB, native-runtime EPUB, manuscript and real browser screenshots. Its success markers are:
-
-```text
-Native assets, D1 identity, discovery and authentication boundaries passed.
-Native consent, PKCE, MCP create, download hash, unconfirmed-send refusal and deletion passed.
-Real Chromium navigation, mobile layout, browser create and original-upload journeys passed.
-PASS: disposable local runtime proof. Synthetic local identity; no live GitHub sign-in, provider email, Amazon import or physical Kindle claim.
-```
-
-### Behaviours covered
-
-The suite checks EPUB container structure, XML/navigation/metadata, source escaping, diagram output, bounded archives, font obfuscation versus content protection, original EPUB/PDF attachment hashes, tenant isolation, concurrent send and confirmation races, quotas, unsafe sign-in return paths, expiring links, deletion and unknown-send recovery.
-
-The official MCP client exercises all three promised tools, including sending an owned artifact, forwarding a host-provided file unchanged, reading receipts, repeated-intent deduplication, scope refusal and cross-account refusal. The host-file test checks the actual supported file-input shape and controlled fetch path; it is not a fresh ChatGPT installation test.
-
-### Review and corrections
-
-Six bounded agent sessions were used: five specialist/source reviews and one independent execution review. The latter checked `878a3af20ca827ebba8e600d62614c42983c6e86` with Node 22.23.3, reproduced its 52 passing tests and successful example/build, and identified missing MCP send/receipt coverage. That coverage is included in the later 61-test gate. Agent review is not an external security audit.
-
-Confirmed findings were fixed and tested: competing reader-confirmation requests, control-character return redirects, account switching during consent, challenge-budget exhaustion, missing MCP delivery coverage and three security-advised dependency pins. The unsupported sign-in adapter was replaced with maintained Octokit methods.
-
-An early bootstrap pipeline masked a browser-cookie failure because a shell pipe returned the logger's status. Its green badge is not browser evidence. The temporary workflow was removed, the permanent gate now propagates failures, and browser acceptance runs over HTTPS for real secure-cookie semantics. The successful run above contains the actual completed browser result.
-
-### Remaining live acceptance
-
-No production Cloudflare deployment was provisioned or verified. No real GitHub OAuth application was configured. No live Cloudflare email submission, Amazon conversion, Kindle-library item, physical-device reading experience or fresh ChatGPT/Claude/Codex connection was observed. The checked-in resource IDs and sender remain deliberate placeholders.
-
-The current book embeds SVG figures. EPUB conformance and browser appearance do not establish Kindle conversion fidelity. Existing-document inspection is bounded and defensive, not an antivirus engine or proof that every EPUB/PDF feature is supported.
-
-The portable skill/plugin package is present but not listed in a public plugin directory. Remote file handoff requires an exact operator-configured host origin; the default denies all external file fetching.
-
-## Release acceptance
-
-A live release requires the actual provider setup and complete user journey in deployment.md, including physical-device evidence. Keep each stage separate: committed source, tests, native runtime, deployment identity, email submission, recipient-server delivery, Amazon import and human-observed Kindle receipt.
-
-A subsequent 390-pixel visual review found undersized chart labels. The chart layout was changed to stack and wrap labels above the bars, preserve exact values, and mark rounded display values explicitly. The additional regression brings the suite to 62 tests; those tests and the updated sample passed locally. The native browser gate now also opens the actual private illustrated preview and captures both figures. Its current run is the authority for that later source.
-
-The ongoing Checks workflow is the current source-level gate. Consult its exact checked SHA instead of treating this historical record as proof of later changes. Documentation-only updates still run the full gate.
+The Checks workflow records the exact source SHA, tests, build, production dependency audit, independent EPUBCheck and both direct/native Pages browser proof. Inspect that revision and its logs rather than treating this record as proof of later code. Source verification, deployed version, real email and physical-device evidence remain separate.

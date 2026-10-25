@@ -1,6 +1,6 @@
-# palim.
+# palim
 
-**From thought to page.**
+**Ideas, in another light.**
 
 [![Checks](https://github.com/timc0y/palim/actions/workflows/checks.yml/badge.svg)](https://github.com/timc0y/palim/actions/workflows/checks.yml)
 [MIT](LICENSE) · [Deploy your own](docs/deployment.md) · [Verification](docs/verification.md) · [Agent skill](skills/palim/SKILL.md)
@@ -12,12 +12,12 @@ An independent open-source project by [Tim Coy](https://timcoy.uk). Not affiliat
 ## What works in the implementation
 
 - A bounded EPUB publisher: chapters, title/creator/language metadata, automatic cover, Mermaid diagrams, labelled bar charts, uploaded PNG/JPEG figures, source notes and table of contents.
-- A responsive reading workspace: create a draft, preview/download it, export the manuscript, upload an original, confirm a reader and inspect a delivery receipt.
+- A responsive reading workspace: create a draft, preview/download it, export the manuscript, upload an original, sign in by email code, save up to five labelled confirmed Kindle addresses, choose a default and inspect an honest delivery receipt.
 - Three OAuth-protected MCP tools: `create_book`, `send_document`, `get_delivery`.
 - Cloudflare Email submission with attachment hashes, registered destinations, atomic sending allowances and no blind retry after an uncertain outcome.
 - Private temporary files, expiring download links, isolated accounts and scheduled cleanup.
 
-**Release boundary:** the source and local runtime are tested; a public hosted deployment, real GitHub account sign-in, Cloudflare mail submission and physical Kindle import are not claimed. Resource IDs and the sender in `wrangler.jsonc` are deliberate placeholders. [The verification record](docs/verification.md) distinguishes each check.
+**Release boundary:** source checks and captured-mail runtime proofs do not establish live inbox delivery or Kindle import. Dedicated resources and a verified sender are configured for the selected Pages hostname. [The verification record](docs/verification.md) owns the exact deployed revision and observed results.
 
 ## Try the publisher locally
 
@@ -33,7 +33,7 @@ The example produces `artifacts/palim-sample.epub`, a browser preview and an edi
 
 ```sh
 npm run build    # generate public example files and bundle Worker without deployment
-npm run dev      # local Worker and website; sign-in still needs configured OAuth
+npm run dev      # local Worker and website; sign-in needs dedicated secrets and an email boundary
 ```
 
 The local website is at `http://localhost:8787`. A usable authenticated hosted instance requires the [deployment setup](docs/deployment.md). There is no hidden test login in product code.
