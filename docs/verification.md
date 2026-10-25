@@ -1,5 +1,11 @@
 # Verification record
 
+## GitHub publication and full CI — 25 October 2026
+
+All reviewed commits were pushed normally to `main`, verified remotely at `99dd0a0b01cf076dbc0f8117e5b5968a68214b78`. [Exact-source CI 40230624413](https://github.com/timc0y/palim/actions/runs/40230624413) completed successfully: formatting, 83 tests including the real local email-binding contract, Worker/sample build, zero-vulnerability production audit, independent EPUBCheck, full direct-Worker OAuth/browser proof and full Pages/service-binding OAuth/browser proof. Successful logs were inspected. [Verification artifact 12612836414](https://github.com/timc0y/palim/actions/runs/40230624413/artifacts/12612836414) includes the recorded source revision, publication, bundle and browser/runtime evidence. Test accounts/grants and email captures are disposable/local; no production identity/grant or real email was created by the tests.
+
+Production remains the verified cleanup source `dff50ff7e03068db7181e0f14d716afa87003e7c`, Worker `1812298e-fab0-4a33-a1c8-d13dcd38117b`, Pages `43b7ca44-e4ea-4f33-8ec1-e5565422e723`; provider metadata was refreshed after the push. Later changes affect test runners and evidence only, with no differences in application sources, public assets, Worker configuration or Pages code, so redeployment is unnecessary. The previously held grant-test/publication gate is resolved. Earlier held/unverified entries below describe their dated state, not the current release.
+
 ## Full local OAuth regression — 25 October 2026
 
 The owner explicitly approved disposable local OAuth test accounts/grants and matching CI, resolving the earlier test-grant restriction. Full direct-Worker and Pages/browser runs now pass: real Better Auth with captured local mail, client registration, owner-bound consent, PKCE/token exchange, MCP tools/guide, EPUB creation, signed download integrity, unchanged original uploads, binary captured-attachment equality, private-preview CSP, account/destination isolation and session revocation. No production identity/grant or real email was created by these tests.
