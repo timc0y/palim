@@ -2,29 +2,41 @@
 
 ## Reality
 
-- Tim authorised the public `timc0y/palim` repository and implementation on 25 October 2026. The product name is Palim; previous Readparcel planning is background.
-- Intended users create illustrated reading guides through an existing agent or forward existing EPUB/PDF files unchanged. Hosted use is intended to be free within limits.
-- Existing external users, deployment, retained production data and device compatibility are unknown at repository creation.
+- Tim authorised the public MIT `timc0y/palim` repository and implementation on 25 October 2026. Palim is an agent publishing and unchanged-document delivery tool, not a Kindle client or repository crawler.
+- The source implements one Cloudflare Worker, D1, private R2, OAuth KV and Cloudflare Email. Public deployment and external users remain unestablished. Placeholder account resources are not a live setup.
+- The existing agent owns research/authorship. A strict bounded manuscript is rendered without an additional model. Existing EPUB/PDF forwarding bypasses that renderer.
+- `docs/verification.md` owns executed checks and unverified provider/device boundaries. Local evidence must not be restated as a live release.
 
 ## Preserve
 
-- Forwarded bytes are unchanged; no implicit authoring, repair, conversion or branding.
-- Creating a draft does not send email. Destination access, artifact ownership and user authority are checked at delivery.
-- An uncertain send is never blindly retried. Provider submission is not Kindle receipt.
-- Private books and credentials stay out of Git and logs. Input size, rendering work and sending are bounded.
+- Original upload and decoded email attachment are byte-identical. No implicit repair, conversion, branding or metadata rewrite.
+- A draft never sends mail. Delivery uses the authenticated account's confirmed destination, not a model-provided recipient.
+- Repeated delivery intent returns one receipt. Timeout/unknown never authorises an automatic second submission. Explicit intentional resends are distinct.
+- Private manuscripts, addresses, tokens, provider text and other repositories' content stay out of Git and logs. Input, render work, external fetches and email are bounded.
+- Missing evidence stays missing: submitted is not Amazon conversion, library import, device receipt or reading.
 
 ## Current boundary
 
-The initial commit establishes product constraints, not a running product. Implementation and verification will update this profile. Cloudflare Email is the requested delivery provider; no alternate provider or server-side LLM is required.
+- `create_book`, `send_document` and `get_delivery` are the three MCP operations. The workspace owns sign-in, uploads, destination confirmation and temporary downloads.
+- GitHub OAuth supplies identity only; no repository scope. A maintained Cloudflare OAuth provider owns MCP consent, PKCE, tokens and discovery. The tested SDK is pinned; new host compatibility requires its own proof.
+- Diagrams and the automatic cover are embedded SVG; supplied PNG/JPEG assets are supported. Physical Kindle rendering remains unverified. No browser runtime, JEV/Clef dependency or alternate email provider is required.
+- Hosted artifacts expire after 24 hours, signed links after 15 minutes, and minimal delivery records after 35 days. Provider retention is separate. R2 lifecycle is a deployment obligation for crash-orphan cleanup.
 
 ## Ordinary paths
 
-The agent owns research and authorship; one publishing core will own EPUB output; one delivery owner will own unchanged forwarding and receipts. `docs/verification.md` will own executed proof and remaining deployment/device checks.
+- `src/schema.ts` owns manuscript shapes and quotas. `src/book.ts` owns EPUB packaging, `src/figures.ts` figures, and `src/archive.ts` bounded original inspection.
+- `src/service.ts` owns artifact/delivery operations; `src/store.ts` owns atomic D1 admission and recovery. `src/mail.ts` owns the provider payload and integrity/size boundary.
+- `src/auth.ts`, `src/index.ts` and the maintained OAuth package own authentication. `src/mcp.ts` and `src/routes.ts` expose the same service rather than reimplement policy.
+- `skills/palim/SKILL.md` owns editorial workflow. `plugin.json` identifies the portable package; the packaging script supplies an operator-selected actual endpoint.
+- `docs/deployment.md` owns provider setup and acceptance. `docs/verification.md` owns proof. Change those owners instead of creating parallel status pages.
 
 ## Proof
 
-No implementation checks have run at this initial commit. Tests must cover EPUB structure, original attachment hashes, tenant isolation, quotas and uncertain-send recovery. Real email and physical Kindle tests require their own evidence.
+- `npm run check`: strict TypeScript plus SQLite-backed publishing, forwarding, tenant, quota, recovery and MCP tests. External email is a test double here.
+- `npm run build`: local Worker bundling, not deployment. `npm run example`: the actual downloadable publication.
+- CI EPUBCheck tests the produced sample through an independent validator. Native runtime and browser/device evidence are named separately in the verification record.
+- No write, feature flag or hidden fixture mode is added to product code merely for testing. Disposable local databases hold synthetic runtime-test identities.
 
 ## Reconsider when
 
-A representative bounded book cannot fit the chosen runtime; a real supported client needs a new adapter; measured publishing defects justify an additional component; or external users establish a compatibility obligation.
+A real supported client needs an adapter, measured work exceeds the runtime, demonstrated readability defects justify a new renderer, or external users establish a compatibility promise. Do not add queues, models, library sync, alternate providers or output formats merely because a dependency supports them.

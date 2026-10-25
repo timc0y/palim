@@ -1,0 +1,72 @@
+# Deploy your own Palim
+
+The repository is not a live hosted service. Deploy only to resources you control. The checked-in resource IDs and sender are placeholders; `npm run deploy` refuses those placeholders.
+
+## Account setup
+
+Use Node 22.16 or later and a Cloudflare account with Workers Paid and outbound Email Sending enabled for the intended recipients. Install dependencies with `npm ci`, then authenticate Wrangler with `npx wrangler login` and inspect `npx wrangler whoami`.
+
+Create dedicated resources, or explicitly select existing Palim-owned ones:
+
+```sh
+npx wrangler d1 create palim
+npx wrangler kv namespace create OAUTH_KV
+npx wrangler r2 bucket create palim-books
+```
+
+Put the returned IDs in `wrangler.jsonc`. Keep the R2 bucket private. Configure an R2 lifecycle rule deleting objects after two days as crash-orphan protection; the application denies access after one day and deletes ordinary expired objects through its schedule. Do not enable a public R2 URL.
+
+Set `ORIGIN` to the actual HTTPS origin, without a path or trailing slash, and configure the Worker domain/route for that same origin. The canonical origin check is intentional. Set `SENDER` to an address on a verified Cloudflare Email sending domain. Disable stored email previews for private books and verify provider daily/monthly quotas. Do not enable email routing or change DNS on an unrelated domain as an incidental setup step.
+
+Choose the Cloudflare rate-limiting namespace configured for this Worker so it does not unintentionally share counters with another application. The edge limiter is approximate protection for anonymous authentication traffic, not the application's global spend or sending budget.
+
+## Identity and secrets
+
+Create a GitHub OAuth application for this deployment. Its homepage is the canonical origin; its callback is `https://YOUR-HOST/auth/callback`. The code requests identity only, not repository permissions.
+
+Provision secrets through Wrangler's secret store, never committed vars or public workflow inputs:
+
+```sh
+npx wrangler secret put GITHUB_CLIENT_ID
+npx wrangler secret put GITHUB_CLIENT_SECRET
+npx wrangler secret put SIGNING_SECRET
+```
+
+Use a cryptographically random signing secret with at least 32 bytes of entropy. Its rotation invalidates sessions' private download links and outstanding reader confirmation hashes; plan that deliberately. Do not reuse another project's secret.
+
+`FILE_ORIGINS` is empty by default. To support a client's file attachments, verify that client's actual download origin and explicitly add its exact HTTPS origin. Never use a wildcard or allow an arbitrary user-controlled host. The fetch path refuses credentials and redirects, uses a deadline and bounds downloaded bytes. A host whose redirects cannot meet that contract is unsupported; use the authenticated file-upload workspace instead.
+
+## Initialise and deploy
+
+```sh
+npx wrangler d1 migrations apply palim --remote
+npm run deploy
+```
+
+Deployment runs static preflight, TypeScript/tests, example generation and Wrangler. It does not prove that remote bindings, sender verification, OAuth credentials or a Kindle destination work. The local build command does not deploy:
+
+```sh
+npm run build
+```
+
+## Prove the actual offered journey
+
+Open `/` and `/app` on the real HTTPS host. Verify that unauthenticated `/mcp` responds with OAuth discovery guidance. Complete a fresh GitHub login, connect a real MCP client and approve consent. Wrong-origin writes and invalid bearer tokens must fail.
+
+Add the exact sender to Amazon's approved personal-document email list, confirm personal-document archiving for library use, enter your Kindle address and request one verification book. Read the code from the Kindle—not logs or a captured local fixture—and submit it in the workspace.
+
+Create one guide through the intended phone/client workflow. Inspect its download, sources, cover, table of contents, diagrams, code and larger-font reflow. Send it and independently check Amazon import and the physical device. Then upload an existing EPUB and compare its source hash with the decoded attachment in a controlled mail test. A real send must never rewrite that original.
+
+Record actual deployment version, client/device versions and each observed result in `docs/verification.md` without addresses, access tokens, private books or codes. Until these steps pass, call the deployment unverified rather than production-ready.
+
+## Operation and recovery
+
+Default sending allowance: three submissions per account per UTC day, 80 shared per day and 2,400 per month. Verification books count, with a lower challenge budget. Review the actual Cloudflare account allowances, which may be shared with other projects. Rate limiting is not a monetary guarantee.
+
+A `submitted` record has a provider message ID. Inspect it in Cloudflare if troubleshooting is needed. `unknown` must not automatically become a new submission. A user can explicitly request another copy, accepting the possibility of a duplicate.
+
+Disable an abusive or compromised account by setting its `users.disabled` field; every tool rechecks the user. Revoke corresponding grants through the owning OAuth/provider facilities when needed. There is no operator dashboard or bulk customer email tool in this version.
+
+To remove an account, first list and remove its owned private objects, revoke its grants, then delete its user row so the foreign-key cascades remove account records. Keep required provider audit information under the provider's policy; deleting local records cannot recall email or erase an Amazon library copy.
+
+Review the scheduled cleanup and bucket lifecycle. Backups and provider-side retention are separate from the application's expiry. Never claim total deletion from all processors merely because an R2 object was removed.
