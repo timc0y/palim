@@ -380,7 +380,6 @@ button:hover {
 .edition-excerpt {
   background: var(--white);
   border: 1px solid var(--line);
-  box-shadow: 0 20px 60px #11151b08;
   padding: var(--space-4);
 }
 .excerpt-meta,
@@ -1093,7 +1092,7 @@ summary {
     font-size: 1.0625rem;
   }
   .excerpt-meta {
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     gap: var(--space-1);
   }
   .excerpt-footer {
@@ -1264,4 +1263,30 @@ summary {
   min-height: var(--target-min);
   align-items: center;
   font-size: var(--text-label);
+}
+
+.exposure-example {
+  margin-top: 2rem;
+  padding-block: 1.25rem;
+  border-block: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+.exposure-example span {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.exposure-example strong {
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.exposure-example p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
 }

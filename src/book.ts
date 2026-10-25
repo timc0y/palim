@@ -6,7 +6,9 @@ import { renderFigure, coverSvg, type Asset } from './figures.js';
 import { invariant, PalimError } from './errors.js';
 import { canEmail, safeFilename } from './mail.js';
 
-export const BOOK_CSS = `html{color-scheme:light dark}body{line-height:1.5;margin:5%;}h1,h2,h3{line-height:1.18;page-break-after:avoid}h1{margin-top:1.4em}p{orphans:2;widows:2}a{text-decoration:underline}img{max-width:100%;height:auto}figure{margin:1.2em 0;page-break-inside:avoid}figcaption{font-size:.85em;line-height:1.4;margin-top:.6em}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8em;border-left:2px solid;padding-left:.8em}code{font-family:monospace}blockquote{margin-left:0;padding-left:1em;border-left:2px solid}table{border-collapse:collapse;width:100%;font-size:.9em}th,td{padding:.5em;border-bottom:1px solid;text-align:left;vertical-align:top}th{font-weight:bold}.title-page{text-align:center}.subtitle{font-size:1.2em}.source-note{font-size:.85em}nav ol{line-height:1.8}.cover{margin:0;text-align:center}.cover img{max-height:95vh}.caption{font-size:.85em}`;
+export const BOOK_CSS = `body{font-family:Georgia,"Times New Roman",serif;font-size:1em;line-height:1.65;margin:5%;overflow-wrap:break-word}h1,h2,h3{font-family:Arial,sans-serif;line-height:1.2;page-break-after:avoid;break-after:avoid;font-weight:600}h1{font-size:2em;margin:0 0 1em}h2{font-size:1.35em;margin:2em 0 .7em}h3{font-size:1.1em;margin:1.5em 0 .5em}p{margin:0 0 1em;orphans:3;widows:3}a{text-decoration:underline;text-underline-offset:.15em}img{display:block;max-width:100%;height:auto}figure{margin:2em 0;page-break-inside:avoid;break-inside:avoid}figure img{margin:auto}figcaption{font-family:Arial,sans-serif;font-size:.8em;line-height:1.5;margin-top:1em}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85em;border:1px solid;padding:1em}code{font-family:monospace}blockquote{margin:1.5em 0;padding:0 1em;border-left:1px solid}table{border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:.85em;line-height:1.5;margin:1.5em 0}th,td{padding:.7em .4em;border-bottom:1px solid;text-align:left;vertical-align:top}th{font-weight:bold}li{margin-bottom:.6em}.title-page{text-align:center}.subtitle{font-size:1.25em}.source-note{font-size:.8em}nav ol{line-height:1.8}.cover{margin:0;text-align:center}.cover img{width:100%;max-width:100%;max-height:95vh;object-fit:contain}.caption{font-size:.85em}`;
+export const PREVIEW_CSS = `${BOOK_CSS}
+*{box-sizing:border-box}html{color-scheme:light;background:#FAFAF7;color:#11151B}body{max-width:66ch;margin:0 auto;padding:clamp(1.25rem,5vw,4rem) clamp(1.25rem,4vw,2rem);font-size:1.125rem;line-height:1.75}a{color:#315D9C}a:focus-visible{outline:2px solid #315D9C;outline-offset:4px}::selection{background:#BACCF4;color:#11151B}.preview-header{padding-bottom:2rem;border-bottom:1px solid #D9DCE0}.preview-header h1{font-size:clamp(2.5rem,6vw,4rem);letter-spacing:-.035em;margin:.5rem 0;line-height:1.05}.preview-header .subtitle{font-size:1.125rem;color:#626975;font-family:Arial,sans-serif;line-height:1.5;margin:1rem 0}.preview-meta{font: .875rem/1.5 Arial,sans-serif;color:#626975}.preview-contents{font:1rem/1.5 Arial,sans-serif;padding:1.5rem 0 2rem}.preview-contents summary{cursor:pointer;min-height:2.75rem;display:list-item;padding:.6rem 0}.preview-contents ol{margin:.5rem 0;padding-left:1.3rem}.preview-contents a{display:inline-block;padding:.35rem 0}main>section{margin:0 0 4rem;scroll-margin-top:2rem}main>section+section{padding-top:3rem;border-top:1px solid #D9DCE0}main>section>h2{font-size:1.75rem;letter-spacing:-.025em;margin-bottom:1.25rem}main h3{font-size:1.2rem}figure{background:#FFF;padding:1.25rem;border:1px solid #D9DCE0}figure img{max-height:28rem;width:auto;max-width:100%}figcaption,.source-note{color:#626975}td,th{border-color:#D9DCE0}pre{border-color:#D9DCE0}.preview-tools{font: .875rem/1.5 Arial,sans-serif;display:flex;justify-content:space-between;margin-bottom:2rem}.preview-tools a{min-height:2.75rem;display:inline-flex;align-items:center}main>section:last-child ol{padding-left:1.25rem}main>section:last-child li{font-size:1rem}main>section:last-child a{overflow-wrap:anywhere}@media(min-width:48rem){body{font-size:1.25rem}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}`;
 export interface BuiltBook {
   bytes: Uint8Array;
   source: string;
@@ -75,7 +77,14 @@ export async function buildBook(
     manifest.push({ id, href, type: 'application/xhtml+xml', properties: '' });
     spine.push(id);
     if (inToc) toc.push({ title, href });
-    preview.push(body);
+    if (id !== 'cover' && id !== 'title')
+      preview.push(
+        body.replace(
+          /<(\/?)h([1-5])(\s[^>]*)?>/g,
+          (_, close: string, level: string, attrs: string = '') =>
+            `<${close}h${Number(level) + 1}${attrs}>`,
+        ),
+      );
   };
   addPage(
     'cover',
@@ -116,7 +125,7 @@ export async function buildBook(
     md.renderer.rules.heading_open = (tokens, at) => {
       const level = Math.min(6, Number(tokens[at]!.tag.slice(1)) + 1);
       tokens[at]!.tag = `h${level}`;
-      return `<h${level} id="section-${++heading}">`;
+      return `<h${level} id="chapter-${index + 1}-section-${++heading}">`;
     };
     md.renderer.rules.heading_close = (tokens, at) =>
       `</h${Math.min(6, Number(tokens[at]!.tag.slice(1)) + 1)}>\n`;
@@ -143,7 +152,7 @@ export async function buildBook(
     addPage(
       `chapter-${index + 1}`,
       chapter.title,
-      `<section><h1>${e(chapter.title)}</h1>${body}</section>`,
+      `<section id="chapter-${index + 1}"><h1>${e(chapter.title)}</h1>${body}</section>`,
     );
   }
   for (const figure of book.figures)
@@ -156,7 +165,7 @@ export async function buildBook(
     addPage(
       'sources',
       'Sources and further reading',
-      `<section><h1>Sources and further reading</h1><ol>${book.sources.map((s) => `<li><p><a href="${e(s.url)}">${e(s.title)}</a>${s.note ? ` — ${e(s.note)}` : ''}</p></li>`).join('')}</ol></section>`,
+      `<section id="sources"><h1>Sources and further reading</h1><ol>${book.sources.map((s) => `<li><p><a href="${e(s.url)}">${e(s.title)}</a>${s.note ? ` — ${e(s.note)}` : ''}</p></li>`).join('')}</ol></section>`,
     );
   file(
     'EPUB/nav.xhtml',
@@ -198,7 +207,7 @@ export async function buildBook(
   return {
     bytes,
     source,
-    preview: `<!doctype html><html lang="${e(book.language)}"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${e(book.title)}</title><style>${BOOK_CSS}body{max-width:42rem;margin:3rem auto;padding:0 1rem}.cover img{max-height:70vh}section{margin-bottom:4rem}</style></head><body>${inlinePreview}</body></html>`,
+    preview: `<!doctype html><html lang="${e(book.language)}"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${e(book.title)}</title><style>${PREVIEW_CSS}</style></head><body><div class="preview-tools"><a href="/app">Back to desk</a></div><header class="preview-header"><p class="preview-meta">Reading preview</p><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}<p class="preview-meta">${e(book.creator || 'Reading edition')}${book.edition ? ` · ${e(book.edition)}` : ''}</p></header><nav class="preview-contents" aria-label="Contents"><details><summary>In this edition</summary><ol>${book.chapters.map((chapter, index) => `<li><a href="#chapter-${index + 1}">${e(chapter.title)}</a></li>`).join('')}${book.sources.length ? '<li><a href="#sources">Sources and further reading</a></li>' : ''}</ol></details></nav><main>${inlinePreview}</main></body></html>`,
     filename: safeFilename(book.title, 'application/epub+zip'),
     hash: await sha256(bytes),
     wordCount: book.chapters.reduce(

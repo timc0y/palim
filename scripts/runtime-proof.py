@@ -216,6 +216,38 @@ try:
             browser_page.set_viewport_size({'width': 390, 'height': 844})
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
             browser_page.screenshot(path=str(ARTIFACTS / 'landing-mobile.png'), full_page=True)
+            sample_page = context.new_page()
+            csp_errors = []
+            sample_page.on('console', lambda message: csp_errors.append(message.text) if message.type == 'error' and 'Content Security Policy' in message.text else None)
+            for width, height, label in [(390, 844, 'mobile'), (1440, 1000, 'desktop')]:
+                sample_page.set_viewport_size({'width': width, 'height': height})
+                response = sample_page.goto(ORIGIN + '/sample.html', wait_until='networkidle')
+                assert "style-src 'self'" in response.headers['content-security-policy']
+                expect(sample_page.locator('h1')).to_have_count(1)
+                assert sample_page.locator('body').evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)') >= 18
+                assert not sample_page.evaluate('document.documentElement.scrollWidth > innerWidth')
+                assert sample_page.locator('main p').first.bounding_box()['y'] < height - 80
+                assert sample_page.evaluate('new Set([...document.querySelectorAll("[id]")].map(e=>e.id)).size === document.querySelectorAll("[id]").length')
+                sample_page.screenshot(path=str(ARTIFACTS / f'sample-reader-{label}.png'), full_page=True)
+                sample_page.locator('main').screenshot(path=str(ARTIFACTS / f'sample-prose-{label}.png'))
+                sample_page.goto(ORIGIN, wait_until='networkidle')
+                sample_page.locator('#edition').screenshot(path=str(ARTIFACTS / f'sample-landing-{label}.png'))
+            assert not csp_errors, csp_errors
+            sample_page.close()
+            # Inspect the actual packaged EPUB, rather than assuming its browser preview is identical.
+            import zipfile
+            epub_dir = ARTIFACTS / 'sample-epub-unpacked'
+            with zipfile.ZipFile(ROOT / 'public/sample.epub') as publication:
+                publication.extractall(epub_dir)
+            epub_page = context.new_page()
+            for width, height, label in [(390, 844, 'mobile'), (1440, 1000, 'desktop')]:
+                epub_page.set_viewport_size({'width': width, 'height': height})
+                for chapter in ['cover', 'chapter-1', 'chapter-2']:
+                    epub_page.goto((epub_dir / 'EPUB' / f'{chapter}.xhtml').as_uri())
+                    assert not epub_page.evaluate('document.documentElement.scrollWidth > innerWidth')
+                    epub_page.screenshot(path=str(ARTIFACTS / f'epub-{chapter}-{label}.png'), full_page=True)
+            epub_page.close()
+            print('Public sample strict CSP, first-screen prose, unique headings/anchors and actual EPUB reflow passed.')
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#signin').wait_for(state='visible')
             placeholder = browser_page.locator('#login-email').evaluate('(e)=>getComputedStyle(e,"::placeholder").color')
@@ -253,14 +285,14 @@ try:
             print(f'Rendered workspace focus contrast: {contrast(workspace_focus,workspace_bg):.2f}:1.')
             browser_page.locator('h1').click()
             browser_page.locator('#example-button').click()
-            expect(browser_page.locator('#title')).to_have_value('The shape of an idea')
+            expect(browser_page.locator('#title')).to_have_value('One stop of light')
             expect(browser_page.locator('#create-panel')).to_be_visible()
             expect(browser_page.locator('#upload-panel')).to_be_hidden()
             browser_page.locator('.job-choices a[href="#upload-form"]').click()
             expect(browser_page.locator('#create-panel')).to_be_hidden()
             expect(browser_page.locator('#upload-panel')).to_be_visible()
             browser_page.locator('.job-choices a[href="#create-form"]').click()
-            expect(browser_page.locator('#title')).to_have_value('The shape of an idea')
+            expect(browser_page.locator('#title')).to_have_value('One stop of light')
             browser_page.locator('#create-form button[type=submit]').click()
             browser_page.locator('#created a', has_text='Download').wait_for()
             expect(browser_page.locator('#created a.button').first).to_have_text('Download EPUB')
@@ -272,6 +304,9 @@ try:
             preview_page.set_viewport_size({'width': 390, 'height': 844})
             preview_page.goto(preview_url, wait_until='networkidle')
             expect(preview_page.locator('figure')).to_have_count(2)
+            expect(preview_page.locator('h1')).to_have_count(1)
+            assert preview_page.locator('body').evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)') >= 18
+            preview_page.screenshot(path=str(ARTIFACTS / 'private-reader-mobile.png'), full_page=True)
             assert not preview_page.evaluate('document.documentElement.scrollWidth > innerWidth')
             preview_page.locator('figure').nth(1).screenshot(path=str(ARTIFACTS / 'chart-mobile.png'))
             preview_page.locator('figure').nth(0).screenshot(path=str(ARTIFACTS / 'diagram-mobile.png'))

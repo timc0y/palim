@@ -1,56 +1,60 @@
 {
-  "title": "The shape of an idea",
-  "subtitle": "A short guide to turning complexity into understanding",
+  "title": "One stop of light",
+  "subtitle": "A small field guide to photographic exposure",
   "creator": "Palim",
   "language": "en",
-  "description": "An illustrative reading edition demonstrating diagrams, comparisons, source notes and readable technical explanations.",
-  "edition": "Example edition 01",
+  "description": "Understand what changes when you halve the light, then try it with your own camera.",
+  "edition": "Sample reading edition",
   "chapters": [
     {
-      "title": "Start with a question",
-      "markdown": "A useful explanation begins with something the reader wants to understand. It does not begin with a list of everything the author knows.\n\nImagine a small publishing tool. Your agent understands the source material. A publisher turns that explanation into a book. A delivery service carries the finished file to your reader.\n\n![A small publishing journey](figure:journey)\n\nThe boundaries matter. The publisher does not need access to your whole repository. The delivery service does not need to rewrite your book. Each part does one necessary job.\n\n## The question worth asking\n\nInstead of asking for a comprehensive overview, ask: **What should I be able to explain after reading this?**\n\nFor an architecture guide, that might be who owns each fact, how one request travels through the system, and what changes when a dependency fails."
+      "title": "Make one deliberate change",
+      "markdown": "A cyclist passes through a patch of evening light. You want the rider sharp, but your photograph is blurred. Making the whole image brighter will not solve that problem. You need a shorter exposure.\n\nThe useful question is simple: **what must stay still, and what can change?**\n\nA camera gives you two physical ways to control the light reaching its sensor: the size of the lens opening and the time the shutter is open. ISO affects the brightness of the recorded image; it does not open the lens or keep the shutter open longer.\n\n![The path of light through a camera](figure:light-path)\n\n## Think in halves and doubles\n\nA stop is a factor of two. Keeping the scene and aperture fixed, an exposure of 1/250 second admits twice as much light as 1/500 second. The shorter exposure gives a moving subject less time to travel across the frame.\n\nThat gives you a decision rather than a recipe: shorten the exposure to reduce motion blur, then decide how to compensate for the light you have given up."
     },
     {
-      "title": "Choose the form that explains",
-      "markdown": "A diagram is useful when its relationships answer a question. A chart is useful when comparing positions makes real values easier to understand. Neither is improved by adding decoration that hides the point.\n\n| Reader question | Useful form |\n| --- | --- |\n| What happens next? | A sequence |\n| What depends on what? | A relationship diagram |\n| What do we gain or give up? | A comparison |\n\n![An explicitly hypothetical comparison](figure:example-bars)\n\nThese numbers are **invented demonstration values**, not a measurement of learning or product performance. In a real book, the author would supply the actual data, units, period and source.\n\n## Preserve the explanation\n\nKeep ordinary words as text. Put a caption beside the figure. Make the point understandable even when the reader cannot distinguish colours."
+      "title": "Trade time for an opening",
+      "markdown": "Suppose your meter suggests **f/8 at 1/250 second, ISO 200**. You choose 1/500 second for the moving rider. That halves the exposure time. Opening the lens from f/8 to f/5.6 adds approximately one stop of light, compensating for the shorter time.\n\n| Setting | Starting point | Faster shutter |\n| --- | --- | --- |\n| Aperture | f/8 | f/5.6 |\n| Shutter | 1/250 s | 1/500 s |\n| ISO | 200 | 200 |\n\nThese are an illustrative pair of equivalent settings, not a prescription for every scene. The brightness can remain similar while the picture changes: the faster shutter reduces motion blur, and the wider opening can make less of the scene appear in focus.\n\n![Relative light at three shutter times](figure:shutter-times)\n\n## Keep the trade-off visible\n\nIf your lens cannot open further, increasing ISO may give a usable image brightness. It does not recover the light that never reached the sensor. The right compromise depends on the picture you are trying to make.\n\nA sharp rider against a soft background may be exactly right. A landscape with detail from foreground to distance asks for a different choice."
     },
     {
-      "title": "Some things should stay unchanged",
-      "markdown": "Creating a new book and forwarding an existing book are different operations.\n\nWhen somebody supplies an EPUB and asks to send it unchanged, there is nothing to author. The original file should remain the original file.\n\n```text\nuploaded bytes\n  → integrity check\n  → email attachment\n```\n\nThe attachment can be compared with the upload using a SHA-256 checksum. Matching checksums establish byte identity at that boundary. They do not establish what a receiving service later converts, displays or stores.\n\nThat distinction is the whole idea: make new explanations carefully, and leave existing books alone."
+      "title": "Try three frames",
+      "markdown": "Choose a subject moving across your view: a person walking or leaves moving in the wind. Use a safe position and steady the camera. Keep the framing and available light as consistent as you can.\n\n1. In shutter-priority mode, make a frame at 1/125 second.\n2. Make another at 1/250, then one at 1/500. Let the camera adjust the aperture; note if it reaches its limit.\n3. Compare the moving edges at the same magnification. Look for a change in motion blur before judging overall brightness.\n\n## Read the photograph, then the settings\n\nWhich frame expresses the movement you wanted? What did the camera change to make it? If the last frame is darker, did the lens run out of aperture?\n\nWrite down the answer in one sentence. That small observation is more useful than memorising a supposedly perfect setting.\n\n**Take this with you:** choose the effect first. Change one setting deliberately. Notice what the camera has to trade in return."
     }
   ],
   "figures": [
     {
-      "id": "journey",
+      "id": "light-path",
       "kind": "mermaid",
-      "source": "flowchart TD\n A[Your question] --> B[Agent explains]\n B --> C[Palim publishes]\n C --> D[Download the EPUB]\n C --> E[Send when requested]",
-      "alt": "A question goes to the authoring agent, then to Palim, which produces an EPUB for download or requested delivery.",
-      "caption": "One ordinary path, with a clear owner for each responsibility."
+      "source": "flowchart TD\n A[Lens opening] --> B[Shutter time]\n B --> C[Light reaches sensor]",
+      "alt": "Light passes through the lens opening, is admitted for the shutter time, then reaches the sensor.",
+      "caption": "The physical path. Aperture controls the opening; shutter speed controls the duration."
     },
     {
-      "id": "example-bars",
+      "id": "shutter-times",
       "kind": "bars",
-      "unit": "Hypothetical items",
+      "unit": "Relative light",
       "data": [
-        { "label": "First example", "value": 8 },
-        { "label": "Second example", "value": 14 },
-        { "label": "Third example", "value": 22 }
+        {
+          "label": "1/500 second",
+          "value": 1
+        },
+        {
+          "label": "1/250 second",
+          "value": 2
+        },
+        {
+          "label": "1/125 second",
+          "value": 4
+        }
       ],
-      "source": "Invented values for demonstrating the chart renderer; not research findings.",
-      "alt": "Three demonstration bars with values eight, fourteen and twenty-two.",
-      "caption": "A chart should disclose what its values actually represent."
+      "source": "Calculated ratios with fixed aperture and constant scene lighting; not measured camera data.",
+      "alt": "Relative light doubles from one at 1/500 second, to two at 1/250, to four at 1/125.",
+      "caption": "Each doubling of exposure time adds one stop. Read the ratios, not an absolute brightness."
     }
   ],
   "sources": [
     {
-      "title": "EPUB 3.3 specification",
-      "url": "https://www.w3.org/TR/epub-33/",
-      "note": "The publication format and metadata contract."
-    },
-    {
-      "title": "Cloudflare Email Sending Workers API",
-      "url": "https://developers.cloudflare.com/email-service/api/send-emails/workers-api/",
-      "note": "Submission to the email service is distinct from ebook conversion and device receipt."
+      "title": "Nikon: A Basic Look at the Basics of Exposure",
+      "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/a-basic-look-at-the-basics-of-exposure",
+      "note": "Background on lens opening, exposure time and stops. This edition uses original prose and worked examples; no source photographs are reproduced."
     }
   ]
 }

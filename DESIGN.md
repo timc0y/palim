@@ -44,7 +44,7 @@ components:
 
 # Palim visual system — cinematic review branch
 
-The user rejected the previous pale serif design on 25 October 2026. This replacement follows Astra’s selected cinematic editorial reading-studio brief. It is a review preview; the current deployed source and acceptance remain in docs/verification.md. Product truth remains in SIMPLE.md.
+The user rejected the previous pale serif design on 25 October 2026. This replacement follows Astra’s selected cinematic editorial reading-studio brief. The current deployed source and acceptance remain in docs/verification.md. Product truth remains in SIMPLE.md.
 
 ## Composition and type
 
@@ -69,3 +69,7 @@ Compare the current branch's desktop/mobile CI screenshots with the previously d
 The deterministic UI scan was reviewed against the actual renders. Its full-bleed-stage and flex-height navigation padding findings describe intentional container ownership, and its specimen-font finding is the explicitly scoped reading excerpt. Display/privacy tracking was relaxed. Palette/transparency and type-role findings are not a claim of a clean detector report; the rendered review remains the aesthetic authority.
 
 Astra accepted the cinematic landing, artwork and typography, then requested a bounded workspace hierarchy correction. Empty Create starts with title/manuscript; recipient selection lives beside file results and the shelf. Download EPUB is the primary result action, Preview is secondary, Kindle sending is a separate optional context, and checksums/source exports sit under Technical details. A single transient client selection synchronizes owned confirmed-address pickers; the existing backend still enforces ownership and explicit send safety. Dark header/hero focus uses ice, light surfaces use dark blue, and placeholders use the muted text role. Native browser checks measure the actual focused outline and placeholder colours, including the dark workspace nav.
+
+## Reading sample refinement
+
+The public sample is a useful short photography edition, “One stop of light”, with a concrete exposure trade-off, calculated relative-light ratios and a practical exercise. The landing excerpt, public reader and EPUB share that manuscript. The browser reader starts with a compact masthead, title/deck and opening prose, without the EPUB cover or duplicate title page. It uses a 66ch maximum container, serif prose and restrained sans headings/metadata. Public static HTML loads generated same-origin reader.css under the unchanged strict CSP; private previews retain their existing no-script sandbox and self-contained styles. Packaged EPUBs keep responsive covers and reader-overridable type. Unique chapter-prefixed anchors and one combined-preview h1 preserve navigation.

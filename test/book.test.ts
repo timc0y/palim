@@ -231,3 +231,29 @@ test('font obfuscation is accepted but content encryption is refused', async () 
     else await assert.rejects(inspectDocument(bytes), /Protected content/);
   }
 });
+
+test('combined reading preview has one title and unique chapter anchors', async () => {
+  const book = await buildBook(
+    {
+      ...simpleBook,
+      chapters: [
+        {
+          title: 'First chapter',
+          markdown: 'Opening paragraph.\n\n## An explanation\n\nSome detail.',
+        },
+        {
+          title: 'Second chapter',
+          markdown: 'Another opening.\n\n## An explanation\n\nMore detail.',
+        },
+      ],
+    },
+    new Map(),
+    time,
+  );
+  assert.equal((book.preview.match(/<h1[ >]/g) || []).length, 1);
+  const ids = [...book.preview.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.match(book.preview, /href="#chapter-2"/);
+  assert.match(book.preview, /id="chapter-2-section-1"/);
+  assert.doesNotMatch(book.preview, /class="cover"/);
+});

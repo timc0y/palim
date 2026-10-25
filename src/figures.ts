@@ -144,14 +144,20 @@ export function coverSvg(
   subtitle: string | undefined,
   creator: string | undefined,
 ): string {
-  const lines: string[] = [];
-  let line = '';
-  for (const word of title.split(/\s+/)) {
-    if ((line + ' ' + word).length > 23 && line) {
-      lines.push(line);
-      line = word;
-    } else line += (line ? ' ' : '') + word;
-  }
-  if (line) lines.push(line);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600"><rect width="1200" height="1600" fill="#f2eee4"/><path d="M110 130H1090M110 1460H1090" stroke="#302d29" stroke-width="3"/><text x="110" y="230" font-family="sans-serif" font-size="24" letter-spacing="8" fill="#584d43">A READING EDITION</text>${lines.map((l, i) => `<text x="110" y="${480 + i * 110}" font-family="serif" font-size="82" fill="#25231f">${e(l)}</text>`).join('')}<path d="M110 1180H240" stroke="#923f33" stroke-width="12"/>${subtitle ? `<text x="110" y="1270" font-family="sans-serif" font-size="25" fill="#584d43">${e(subtitle.slice(0, 65))}</text>` : ''}${creator ? `<text x="110" y="1400" font-family="sans-serif" font-size="27" fill="#25231f">${e(creator)}</text>` : ''}</svg>`;
+  const wrap = (text: string, length: number): string[] => {
+    const lines: string[] = [];
+    let line = '';
+    for (const word of text.split(/\s+/)) {
+      if ((line + ' ' + word).length > length && line) {
+        lines.push(line);
+        line = word;
+      } else line += (line ? ' ' : '') + word;
+    }
+    if (line) lines.push(line);
+    return lines;
+  };
+  const lines = wrap(title, 17);
+  const size = Math.min(118, 650 / lines.length);
+  const subtitleLines = subtitle ? wrap(subtitle, 42) : [];
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600"><rect width="1200" height="1600" fill="#11151b"/><path d="M110 130H1090M110 1460H1090" stroke="#626975" stroke-width="3"/><text x="110" y="230" font-family="sans-serif" font-size="32" letter-spacing="5" fill="#BACCF4">A READING EDITION</text>${lines.map((line, i) => `<text x="110" y="${430 + i * size * 1.15}" font-family="sans-serif" font-size="${size}" fill="#FAFAF7">${e(line)}</text>`).join('')}<path d="M110 1120H240" stroke="#BACCF4" stroke-width="6"/>${subtitleLines.map((line, i) => `<text x="110" y="${1220 + i * 52}" font-family="sans-serif" font-size="40" fill="#BACCF4">${e(line)}</text>`).join('')}${creator ? `<text x="110" y="1400" font-family="sans-serif" font-size="36" fill="#FAFAF7">${e(creator)}</text>` : ''}</svg>`;
 }
