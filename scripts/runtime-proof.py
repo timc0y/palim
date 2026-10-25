@@ -229,6 +229,11 @@ try:
                 assert sample_page.locator('main p').first.bounding_box()['y'] < height - 80
                 assert sample_page.evaluate('new Set([...document.querySelectorAll("[id]")].map(e=>e.id)).size === document.querySelectorAll("[id]").length')
                 sample_page.screenshot(path=str(ARTIFACTS / f'sample-reader-{label}.png'), full_page=True)
+                if label == 'mobile':
+                    sample_page.evaluate('document.body.style.zoom="200%"')
+                    assert not sample_page.evaluate('document.documentElement.scrollWidth > innerWidth')
+                    sample_page.screenshot(path=str(ARTIFACTS / 'sample-reader-zoom-mobile.png'), full_page=True)
+                    sample_page.evaluate('document.body.style.zoom="100%"')
                 sample_page.locator('main').screenshot(path=str(ARTIFACTS / f'sample-prose-{label}.png'))
                 sample_page.goto(ORIGIN, wait_until='networkidle')
                 sample_page.locator('#edition').screenshot(path=str(ARTIFACTS / f'sample-landing-{label}.png'))

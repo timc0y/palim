@@ -387,7 +387,7 @@ button:hover {
   display: flex;
   justify-content: space-between;
   gap: 1.25rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 .excerpt-meta {
@@ -1098,7 +1098,7 @@ summary {
   .excerpt-footer {
     flex-wrap: wrap;
     gap: var(--space-1);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
   .boundaries {
     grid-template-columns: 1fr;
