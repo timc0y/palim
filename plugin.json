@@ -17,7 +17,10 @@
         "developerName": "Tim Coy",
         "category": "Productivity",
         "brandColor": "#934435",
-        "defaultPrompt": ["Make an illustrated guide to this concept.", "Send this EPUB to my reader unchanged."]
+        "defaultPrompt": [
+          "Make an illustrated guide to this concept.",
+          "Send this EPUB to my reader unchanged."
+        ]
       }
     }
   }

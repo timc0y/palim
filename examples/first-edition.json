@@ -6,16 +6,51 @@
   "description": "An illustrative reading edition demonstrating diagrams, comparisons, source notes and readable technical explanations.",
   "edition": "Example edition 01",
   "chapters": [
-    { "title": "Start with a question", "markdown": "A useful explanation begins with something the reader wants to understand. It does not begin with a list of everything the author knows.\n\nImagine a small publishing tool. Your agent understands the source material. A publisher turns that explanation into a book. A delivery service carries the finished file to your reader.\n\n![A small publishing journey](figure:journey)\n\nThe boundaries matter. The publisher does not need access to your whole repository. The delivery service does not need to rewrite your book. Each part does one necessary job.\n\n## The question worth asking\n\nInstead of asking for a comprehensive overview, ask: **What should I be able to explain after reading this?**\n\nFor an architecture guide, that might be who owns each fact, how one request travels through the system, and what changes when a dependency fails." },
-    { "title": "Choose the form that explains", "markdown": "A diagram is useful when its relationships answer a question. A chart is useful when comparing positions makes real values easier to understand. Neither is improved by adding decoration that hides the point.\n\n| Reader question | Useful form |\n| --- | --- |\n| What happens next? | A sequence |\n| What depends on what? | A relationship diagram |\n| What do we gain or give up? | A comparison |\n\n![An explicitly hypothetical comparison](figure:example-bars)\n\nThese numbers are **invented demonstration values**, not a measurement of learning or product performance. In a real book, the author would supply the actual data, units, period and source.\n\n## Preserve the explanation\n\nKeep ordinary words as text. Put a caption beside the figure. Make the point understandable even when the reader cannot distinguish colours." },
-    { "title": "Some things should stay unchanged", "markdown": "Creating a new book and forwarding an existing book are different operations.\n\nWhen somebody supplies an EPUB and asks to send it unchanged, there is nothing to author. The original file should remain the original file.\n\n```text\nuploaded bytes\n  → integrity check\n  → email attachment\n```\n\nThe attachment can be compared with the upload using a SHA-256 checksum. Matching checksums establish byte identity at that boundary. They do not establish what a receiving service later converts, displays or stores.\n\nThat distinction is the whole idea: make new explanations carefully, and leave existing books alone." }
+    {
+      "title": "Start with a question",
+      "markdown": "A useful explanation begins with something the reader wants to understand. It does not begin with a list of everything the author knows.\n\nImagine a small publishing tool. Your agent understands the source material. A publisher turns that explanation into a book. A delivery service carries the finished file to your reader.\n\n![A small publishing journey](figure:journey)\n\nThe boundaries matter. The publisher does not need access to your whole repository. The delivery service does not need to rewrite your book. Each part does one necessary job.\n\n## The question worth asking\n\nInstead of asking for a comprehensive overview, ask: **What should I be able to explain after reading this?**\n\nFor an architecture guide, that might be who owns each fact, how one request travels through the system, and what changes when a dependency fails."
+    },
+    {
+      "title": "Choose the form that explains",
+      "markdown": "A diagram is useful when its relationships answer a question. A chart is useful when comparing positions makes real values easier to understand. Neither is improved by adding decoration that hides the point.\n\n| Reader question | Useful form |\n| --- | --- |\n| What happens next? | A sequence |\n| What depends on what? | A relationship diagram |\n| What do we gain or give up? | A comparison |\n\n![An explicitly hypothetical comparison](figure:example-bars)\n\nThese numbers are **invented demonstration values**, not a measurement of learning or product performance. In a real book, the author would supply the actual data, units, period and source.\n\n## Preserve the explanation\n\nKeep ordinary words as text. Put a caption beside the figure. Make the point understandable even when the reader cannot distinguish colours."
+    },
+    {
+      "title": "Some things should stay unchanged",
+      "markdown": "Creating a new book and forwarding an existing book are different operations.\n\nWhen somebody supplies an EPUB and asks to send it unchanged, there is nothing to author. The original file should remain the original file.\n\n```text\nuploaded bytes\n  → integrity check\n  → email attachment\n```\n\nThe attachment can be compared with the upload using a SHA-256 checksum. Matching checksums establish byte identity at that boundary. They do not establish what a receiving service later converts, displays or stores.\n\nThat distinction is the whole idea: make new explanations carefully, and leave existing books alone."
+    }
   ],
   "figures": [
-    { "id": "journey", "kind": "mermaid", "source": "flowchart TD\n A[Your question] --> B[Agent explains]\n B --> C[Palim publishes]\n C --> D[Download the EPUB]\n C --> E[Send when requested]", "alt": "A question goes to the authoring agent, then to Palim, which produces an EPUB for download or requested delivery.", "caption": "One ordinary path, with a clear owner for each responsibility." },
-    { "id": "example-bars", "kind": "bars", "unit": "Hypothetical items", "data": [{ "label": "First example", "value": 8 }, { "label": "Second example", "value": 14 }, { "label": "Third example", "value": 22 }], "source": "Invented values for demonstrating the chart renderer; not research findings.", "alt": "Three demonstration bars with values eight, fourteen and twenty-two.", "caption": "A chart should disclose what its values actually represent." }
+    {
+      "id": "journey",
+      "kind": "mermaid",
+      "source": "flowchart TD\n A[Your question] --> B[Agent explains]\n B --> C[Palim publishes]\n C --> D[Download the EPUB]\n C --> E[Send when requested]",
+      "alt": "A question goes to the authoring agent, then to Palim, which produces an EPUB for download or requested delivery.",
+      "caption": "One ordinary path, with a clear owner for each responsibility."
+    },
+    {
+      "id": "example-bars",
+      "kind": "bars",
+      "unit": "Hypothetical items",
+      "data": [
+        { "label": "First example", "value": 8 },
+        { "label": "Second example", "value": 14 },
+        { "label": "Third example", "value": 22 }
+      ],
+      "source": "Invented values for demonstrating the chart renderer; not research findings.",
+      "alt": "Three demonstration bars with values eight, fourteen and twenty-two.",
+      "caption": "A chart should disclose what its values actually represent."
+    }
   ],
   "sources": [
-    { "title": "EPUB 3.3 specification", "url": "https://www.w3.org/TR/epub-33/", "note": "The publication format and metadata contract." },
-    { "title": "Cloudflare Email Sending Workers API", "url": "https://developers.cloudflare.com/email-service/api/send-emails/workers-api/", "note": "Submission to the email service is distinct from ebook conversion and device receipt." }
+    {
+      "title": "EPUB 3.3 specification",
+      "url": "https://www.w3.org/TR/epub-33/",
+      "note": "The publication format and metadata contract."
+    },
+    {
+      "title": "Cloudflare Email Sending Workers API",
+      "url": "https://developers.cloudflare.com/email-service/api/send-emails/workers-api/",
+      "note": "Submission to the email service is distinct from ebook conversion and device receipt."
+    }
   ]
 }

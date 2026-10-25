@@ -1,1 +1,80 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Privacy and limits · Palim</title><link rel="stylesheet" href="/style.css"></head><body><header class="wrap nav"><a class="wordmark" href="/">palim<span>.</span></a><a href="/app">Workspace ↗</a></header><main class="prose"><p class="eyebrow">PLAIN-LANGUAGE DATA FLOW</p><h1>Your reading.<br/><em>Your choice.</em></h1><p>Palim is independent open-source software by Tim Coy. Each self-hosted instance has its own operator and Cloudflare account. This page describes the software’s defaults, not a guarantee about an unverified deployment.</p><h2>What is processed</h2><p>GitHub provides your public account ID and username for sign-in. Palim does not request repository access. Your agent selects the manuscript or file it sends to the service. The hosted Worker and private storage process those bytes. There is no authoring model running inside Palim.</p><p>When you request delivery, Cloudflare Email receives the document and sends it to your registered Amazon document address. Amazon controls conversion, archiving and Kindle library access. Your agent platform and both providers have their own data practices.</p><h2>What is retained</h2><p>Uploaded files, generated books, source manuscripts and previews expire after 24 hours. Access is denied after expiry even before scheduled cleanup removes their stored bytes. Private download links expire after 15 minutes. They are bearer links: anyone you share one with can download until it expires.</p><p>Account settings persist until removed by the operator. Browser sessions last seven days. Login attempts last ten minutes. Reader confirmation codes expire after one hour and permit five attempts. Minimal delivery records and keyed destination hashes are retained for 35 days for recovery, abuse prevention and monthly allowances. Manuscripts, raw destinations and provider error text are not application logs.</p><h2>Originals remain original</h2><p>The forwarding path reads bounded metadata but does not rewrite, repair, recompress or watermark your EPUB or PDF. A hash verifies the submitted attachment. Amazon may convert the file it imports; Palim does not control that representation.</p><h2>Real limits</h2><p>Uploads are limited to 20 MiB. Cloudflare’s ordinary email limit is 5 MiB including encoding and headers, so some valid uploads cannot be emailed. Generated guides are bounded in length, figure complexity and image dimensions. The default account allowance is two renders, six uploads and three email submissions per UTC day, with a shared service ceiling. Verification books count as email submissions.</p><p>An accepted email submission is not confirmed Kindle delivery. A timeout is not permission to send another copy. The service cannot read your Amazon library, replace old books or migrate annotations.</p><h2>Operator responsibilities</h2><p>Before opening a hosted instance to other people, configure provider retention and disable Cloudflare email-preview storage, verify account limits and run the deployment and device checks. Keep private buckets private, and do not put credentials into the repository.</p><p>Security reports and operator setup instructions are in the <a href="https://github.com/timc0y/palim">Palim repository</a>. Use this service only for material you are entitled to send.</p></main></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Privacy and limits · Palim</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="wrap nav">
+      <a class="wordmark" href="/">palim<span>.</span></a
+      ><a href="/app">Workspace ↗</a>
+    </header>
+    <main class="prose">
+      <p class="eyebrow">PLAIN-LANGUAGE DATA FLOW</p>
+      <h1>Your reading.<br /><em>Your choice.</em></h1>
+      <p>
+        Palim is independent open-source software by Tim Coy. Each self-hosted instance has its own
+        operator and Cloudflare account. This page describes the software’s defaults, not a
+        guarantee about an unverified deployment.
+      </p>
+      <h2>What is processed</h2>
+      <p>
+        GitHub provides your public account ID and username for sign-in. Palim does not request
+        repository access. Your agent selects the manuscript or file it sends to the service. The
+        hosted Worker and private storage process those bytes. There is no authoring model running
+        inside Palim.
+      </p>
+      <p>
+        When you request delivery, Cloudflare Email receives the document and sends it to your
+        registered Amazon document address. Amazon controls conversion, archiving and Kindle library
+        access. Your agent platform and both providers have their own data practices.
+      </p>
+      <h2>What is retained</h2>
+      <p>
+        Uploaded files, generated books, source manuscripts and previews expire after 24 hours.
+        Access is denied after expiry even before scheduled cleanup removes their stored bytes.
+        Private download links expire after 15 minutes. They are bearer links: anyone you share one
+        with can download until it expires.
+      </p>
+      <p>
+        Account settings persist until removed by the operator. Browser sessions last seven days.
+        Login attempts last ten minutes. Reader confirmation codes expire after one hour and permit
+        five attempts. Minimal delivery records and keyed destination hashes are retained for 35
+        days for recovery, abuse prevention and monthly allowances. Manuscripts, raw destinations
+        and provider error text are not application logs.
+      </p>
+      <h2>Originals remain original</h2>
+      <p>
+        The forwarding path reads bounded metadata but does not rewrite, repair, recompress or
+        watermark your EPUB or PDF. A hash verifies the submitted attachment. Amazon may convert the
+        file it imports; Palim does not control that representation.
+      </p>
+      <h2>Real limits</h2>
+      <p>
+        Uploads are limited to 20 MiB. Cloudflare’s ordinary email limit is 5 MiB including encoding
+        and headers, so some valid uploads cannot be emailed. Generated guides are bounded in
+        length, figure complexity and image dimensions. The default account allowance is two
+        renders, six uploads and three email submissions per UTC day, with a shared service ceiling.
+        Verification books count as email submissions.
+      </p>
+      <p>
+        An accepted email submission is not confirmed Kindle delivery. A timeout is not permission
+        to send another copy. The service cannot read your Amazon library, replace old books or
+        migrate annotations.
+      </p>
+      <h2>Operator responsibilities</h2>
+      <p>
+        Before opening a hosted instance to other people, configure provider retention and disable
+        Cloudflare email-preview storage, verify account limits and run the deployment and device
+        checks. Keep private buckets private, and do not put credentials into the repository.
+      </p>
+      <p>
+        Security reports and operator setup instructions are in the
+        <a href="https://github.com/timc0y/palim">Palim repository</a>. Use this service only for
+        material you are entitled to send.
+      </p>
+    </main>
+  </body>
+</html>

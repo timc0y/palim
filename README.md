@@ -48,11 +48,11 @@ npm run plugin -- https://your-real-palim-host
 
 This packages the skill with your endpoint in `.local/plugin`. It does not deploy, register or publish the plugin. Client support must be tested through that client's actual connection flow; an official SDK protocol test is not proof of every host.
 
-| Tool | Responsibility |
-| --- | --- |
-| `create_book` | Publish the agent's supplied manuscript. A draft never sends email. |
-| `send_document` | Deliver an owned artifact or supported host file, unchanged. |
-| `get_delivery` | Read submission evidence without resending. |
+| Tool            | Responsibility                                                      |
+| --------------- | ------------------------------------------------------------------- |
+| `create_book`   | Publish the agent's supplied manuscript. A draft never sends email. |
+| `send_document` | Deliver an owned artifact or supported host file, unchanged.        |
+| `get_delivery`  | Read submission evidence without resending.                         |
 
 Examples:
 

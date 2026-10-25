@@ -2,7 +2,5 @@
   "singleQuote": true,
   "trailingComma": "all",
   "printWidth": 100,
-  "overrides": [
-    { "files": "wrangler.jsonc", "options": { "trailingComma": "none" } }
-  ]
+  "overrides": [{ "files": "wrangler.jsonc", "options": { "trailingComma": "none" } }]
 }

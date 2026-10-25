@@ -5,7 +5,9 @@
   "type": "module",
   "description": "From thought to page. Illustrated EPUBs and unchanged ebook forwarding.",
   "license": "MIT",
-  "engines": { "node": ">=22.16.0" },
+  "engines": {
+    "node": ">=22.16.0"
+  },
   "scripts": {
     "dev": "npm run example && wrangler dev",
     "typecheck": "tsc --noEmit",
