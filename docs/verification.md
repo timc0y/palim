@@ -1,5 +1,9 @@
 # Verification record
 
+## Address-draft refresh regression — 25 October 2026
+
+The documentation-only follow-up [CI 40230874986](https://github.com/timc0y/palim/actions/runs/40230874986) exposed an intermittent browser failure: an account refresh after submission closed an address form the user had just opened. Refresh now opens setup automatically only when no addresses exist; otherwise it preserves the disclosure and typed draft. Explicit save/capacity handling remains unchanged. A deterministic regression changes the default address with the add-address form open and verifies both its open state and typed email/label survive. Full direct-Worker and Pages OAuth/browser proofs, all 83 unit/contract tests, build and formatting pass locally with disposable identities/grants and captured mail only. No production grant or real email was created. The earlier green CI below remains evidence for its exact source; it did not establish absence of this race.
+
 ## GitHub publication and full CI — 25 October 2026
 
 All reviewed commits were pushed normally to `main`, verified remotely at `99dd0a0b01cf076dbc0f8117e5b5968a68214b78`. [Exact-source CI 40230624413](https://github.com/timc0y/palim/actions/runs/40230624413) completed successfully: formatting, 83 tests including the real local email-binding contract, Worker/sample build, zero-vulnerability production audit, independent EPUBCheck, full direct-Worker OAuth/browser proof and full Pages/service-binding OAuth/browser proof. Successful logs were inspected. [Verification artifact 12612836414](https://github.com/timc0y/palim/actions/runs/40230624413/artifacts/12612836414) includes the recorded source revision, publication, bundle and browser/runtime evidence. Test accounts/grants and email captures are disposable/local; no production identity/grant or real email was created by the tests.

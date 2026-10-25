@@ -196,7 +196,11 @@ try:
             rows = json.loads(request('/api/account')[2])['destinations']
             assert all('confirmed' not in row for row in rows)
             travel = next(row for row in rows if row['label'] == 'Travel')
+            page.locator('#setup-details').evaluate('(e)=>e.open=true')
+            page.locator('#kindle-email').fill('draft@kindle.com')
             page.locator('#reader-list .reader-item').filter(has_text='Travel').get_by_role('button',name='Make default').click()
+            expect(page.locator('#setup-details')).to_have_attribute('open', '')
+            expect(page.locator('#kindle-email')).to_have_value('draft@kindle.com')
             expect(page.locator('#reader-list .reader-item').filter(has_text='Travel')).to_contain_text('Default')
             assert json.loads(request('/api/account')[2])['defaultDestinationId'] == travel['id']
             for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
@@ -598,6 +602,13 @@ try:
                 assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Saved shelf action too small'
             browser_page.locator('#shelf').screenshot(path=str(ARTIFACTS / 'shelf-mobile.png'))
             browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
+            browser_page.locator('#kindle-email').fill('draft@kindle.com')
+            browser_page.locator('#reader-label').fill('Draft address')
+            browser_page.locator('#reader-list .reader-item').filter(has_text='Travel Kindle').get_by_role('button', name='Make default').click()
+            expect(browser_page.locator('#reader-list .reader-item').filter(has_text='Travel Kindle')).to_contain_text('Default')
+            expect(browser_page.locator('#setup-details')).to_have_attribute('open', '')
+            expect(browser_page.locator('#kindle-email')).to_have_value('draft@kindle.com')
+            expect(browser_page.locator('#reader-label')).to_have_value('Draft address')
             browser_page.screenshot(path=str(ARTIFACTS / 'destinations-mobile.png'), full_page=True)
             browser_page.locator('#setup-details').evaluate('(el) => el.open = false')
             browser_page.locator('#shelf .send-action').first.click()

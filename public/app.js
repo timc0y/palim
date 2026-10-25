@@ -324,7 +324,7 @@ async function refresh() {
     $('destination-status').textContent = currentAccount.destinations.length
       ? `${currentAccount.destinations.length} of 5 addresses saved`
       : 'No saved Kindle addresses yet.';
-    $('setup-details').open = !currentAccount.destinations.length;
+    if (!currentAccount.destinations.length) $('setup-details').open = true;
     const full = currentAccount.destinations.length >= 5;
     $('destination-form').hidden = full;
     $('reader-limit').hidden = !full;
