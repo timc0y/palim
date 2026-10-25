@@ -1,6 +1,16 @@
 # Verification record
 
-## Current reading-sample refinement — 25 October 2026
+## Current reader polish — 25 October 2026
+
+Live sample: [palim-timc0y.pages.dev/sample.html](https://palim-timc0y.pages.dev/sample.html). Application source `ded93c162120407af96ff6ba22f087ffcc796455` is deployed as Worker `02456742-cc9d-47a1-9397-20c1825b8ec3` and Pages `b61e8180-6c67-4cd7-b32d-31f7afe6c957`. Cloudflare production metadata reports the exact source and success. Live HTML, CSS, EPUB, original exposure illustration, app and font bytes match local generated/committed files.
+
+Astra's concrete follow-up findings were addressed: public h1/h2/h3 hierarchy, Manrope web headings and restrained wordmark, readable chart labels and adjacent values, an original area/time exposure comparison in place of the software flowchart, one landing divider, and fixed ISO/Auto ISO disabled in the exercise. The unchanged example keeps its real chapter structure when created in the workspace. Existing authenticated image upload supplies the sample illustration; source assets stay out of the document shelf. No Nikon photographs were copied.
+
+[Exact-source CI 40200890906](https://github.com/timc0y/palim/actions/runs/40200890906) passed; its source, 69 tests, zero-vulnerability production audit, EPUBCheck without errors/warnings, and direct/native Pages browser logs were inspected. [Screenshot artifact 12601768926](https://github.com/timc0y/palim/actions/runs/40200890906/artifacts/12601768926) includes full sample desktop/mobile, landing, body/figure details, private preview, enlarged text, and packaged EPUB XHTML pages rendered in Chromium. Those last images are not evidence from a dedicated EPUB reader, Apple Books, Amazon import or Kindle hardware.
+
+Live Chromium confirmed loaded self-hosted Manrope, no skipped public heading level, readable first-screen prose, contents links and normal/200% mobile reflow. Public strict CSP remains unchanged. The private preview retains its sandbox and blocked scripts/network defaults; a narrow canonical /fonts/ allowance and anonymous CORS on only the exact public Manrope assets enable its web typography. An independent read-only security review found no blocker in that boundary or authenticated owned-image path. Runtime tests verify loaded private fonts and source-image ownership, using captured synthetic mail only. Independent Astra aesthetic acceptance of these exact final renders remains pending. No live email or Kindle send occurred.
+
+## Previous reading-sample refinement — 25 October 2026
 
 Live sample: [palim-timc0y.pages.dev/sample.html](https://palim-timc0y.pages.dev/sample.html). Deployed source is `f5a47f2997dbaaa399228f3892c5fc4d6e354947`, Worker `7c48665c-2274-4def-9174-208d920d40e7`, Pages `1e4af1e4-2ab2-423e-91f9-9702f2aa3817`. Cloudflare production metadata reports this exact source and success. Live landing, reader, stylesheet, EPUB, app assets and font bytes match generated/committed files. The previous deployment below is historical.
 
