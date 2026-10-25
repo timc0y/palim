@@ -7,6 +7,30 @@ import { prepareEmail, messageBudget, canEmail } from '../src/mail.js';
 import { LIMITS } from '../src/schema.js';
 import { sha256 } from '../src/xml.js';
 
+test('an operator allowance affects only its account and preserves attempts and shared budgets', async () => {
+  const f = await fixture();
+  const a = await f.palim.upload('alice', pdf(), 'Manual.pdf');
+  let receipt = await f.palim.send('alice', a.artifactId);
+  f.sql.prepare('UPDATE users SET daily_send_limit=10 WHERE id=?').run('alice');
+  assert.equal((await f.palim.account('alice')).limits.sends, 10);
+  assert.equal((await f.palim.account('bob')).limits.sends, 3);
+  for (let i = 1; i < 10; i++)
+    receipt = await f.palim.send('alice', a.artifactId, receipt.deliveryId);
+  await assert.rejects(f.palim.send('alice', a.artifactId, receipt.deliveryId), /allowance/);
+  assert.equal(
+    f.sql.prepare('SELECT COUNT(*) AS n FROM deliveries WHERE owner=?').get('alice')!.n,
+    10,
+  );
+  assert.equal(
+    f.sql.prepare('SELECT COUNT(*) AS n FROM mail_attempts WHERE owner=?').get('alice')!.n,
+    10,
+  );
+  const b = await f.palim.upload('bob', pdf(), 'Other.pdf');
+  let other = await f.palim.send('bob', b.artifactId);
+  for (let i = 1; i < 3; i++) other = await f.palim.send('bob', b.artifactId, other.deliveryId);
+  await assert.rejects(f.palim.send('bob', b.artifactId, other.deliveryId), /allowance/);
+});
+
 test('original EPUB is stored and forwarded byte for byte without authoring', async () => {
   const f = await fixture();
   const original = (await buildBook(simpleBook)).bytes;

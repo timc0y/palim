@@ -22,6 +22,7 @@ export interface User {
   disabled: number;
   created_at: number;
   default_destination_id: string | null;
+  daily_send_limit: number;
 }
 export interface ReaderDestination {
   id: string;

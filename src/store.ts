@@ -179,7 +179,7 @@ export class Store {
           `INSERT INTO deliveries(id,owner,send_key,purpose,artifact_id,sha256,destination_hash,destination_mask,destination_id,default_intent_key,state,resend_of,created_at,updated_at,sender)
         SELECT ?,id,?,'document',?,?,?,?,?,?,'submitting',?,?,?,? FROM users WHERE id=? AND disabled=0 AND sender_alias=?
         AND EXISTS(SELECT 1 FROM reader_destinations WHERE owner=? AND id=? AND id=?)
-        AND (SELECT COUNT(*) FROM deliveries WHERE owner=? AND created_at>=?) < ?
+        AND (SELECT COUNT(*) FROM deliveries WHERE owner=? AND created_at>=?) < daily_send_limit
         AND (SELECT COUNT(*) FROM mail_attempts WHERE created_at>=?) < ?
         AND (SELECT COUNT(*) FROM mail_attempts WHERE created_at>=?) < ?
         ON CONFLICT DO NOTHING`,
@@ -204,7 +204,6 @@ export class Store {
           r.destination_id ?? null,
           r.owner,
           floor,
-          LIMITS.sends,
           floor,
           LIMITS.globalDaily,
           month,
