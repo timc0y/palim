@@ -865,7 +865,7 @@ a {
   transform: translateY(1px);
 }
 
-/* Page-position ticks: eight marks, the third one filled. */
+/* Page-position ticks: one per page, the current one filled. */
 .machine__ticks {
   display: flex;
   gap: 0.32rem;
@@ -896,6 +896,24 @@ a {
 
   .rail--bottom {
     gap: 1.25rem;
+    grid-template-columns: auto 1fr;
+  }
+
+  .rail--bottom .rule {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .rail--bottom .rail-nav {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .rail--bottom .foot-tag {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    letter-spacing: 0.14em;
   }
 
   .rail-nav {
@@ -908,7 +926,7 @@ a {
   }
 
   .ink-page {
-    padding: 2.6rem 1.5rem 3rem;
+    padding: 11cqh 9cqh 12cqh;
   }
 
   .key {

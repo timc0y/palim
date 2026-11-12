@@ -1,5 +1,38 @@
 # Verification record
 
+## Landing page replacement — 12 November 2026
+
+The landing page is now a single abstract object: a retro e-reader on warm paper, with no body
+copy, no feature grid and no SEO block. The owner asked for a retro Kindle, a retro IBM
+sensibility and an original mark, and rejected a striped wordmark as a copy of IBM's 8-bar logo.
+Source is commit `4d62271` on `main`; the deployed Worker version is
+`f02667ee-1a19-47cc-a546-59042092ae8d` at 100% behind the `palim-timc0y.pages.dev` front door,
+whose current Pages deployment is `36196c63`.
+
+Three independent read-only reviews (Gemini 3.8 Flash, Muse 1.3, GPT-6.1 Sol) ran against the
+rendered page under the interface-craft method. Their findings were applied rather than dismissed:
+the position indicator was lying (eight dots for three pages, and a hard-coded third dot), the
+layout overflowed horizontally at 320px, the screen content collapsed at 200% zoom, the page
+auto-cycled with no pause control, the e-ink flash inverted a transparent layer instead of the
+glass, the emblem was a generic document icon, and the screen showed pie and bar charts that read
+as an analytics dashboard rather than a book. The charts are now book furniture: typeset prose, an
+open book spread and a framed illustration plate.
+
+Local checks: `npm run check` passed 89 tests, `npm run format:check` passed, and the strict CSP
+`style-src 'self'` forced every varying measurement to become a class rather than an inline
+attribute. Live Chromium at 1440x900, 390x844 and 320x800 showed no horizontal overflow, no console
+errors and no failed requests; the prose page stayed inside the glass at 200% zoom on a 640x360
+viewport. The tab order reaches the skip link, the wordmark, four navigation links, both page
+buttons and the footer, with a blue focus ring on paper and a light blue ring on the dark device.
+The page buttons change the page, the position tick and the location bar together. Reduced motion
+changes the page without the flash. Live `/` returned 200 with the expected security headers, and
+`/mcp` and `/api/account` still returned 401.
+
+Not verified: no screen-reader pass, no physical device, no client-integration or Amazon import
+evidence was produced for this change, and no document or provider email was sent. The hosted
+behaviour above is Chromium evidence on the real HTTPS origin. The published repository is
+`github.com/timc0y/palim`, public and MIT.
+
 ## Illustrated authoring work — 27 October 2026
 
 Deployed Worker version `25d30cd5-c1b6-4cfc-ac5f-064c25af1d78` is at 100% on the existing `palim-timc0y.pages.dev` front door, whose current Pages deployment is `278b3cf8-a62c-40c2-91e6-a478c87c9ad5`. The deployed working tree is uncommitted on base `15a1698b83048b5de49c979c1f71eb05f83addff`; the binary Git diff for `src`, `public`, Wrangler and package configuration, and the example/plugin build scripts has SHA-256 `a2c2fbdd4f8626069d6ff803a939c3acaa7b87c214e1926e642584ba13711b76`. This digest identifies that tracked diff, not a commit or a full artifact hash.
