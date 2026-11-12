@@ -1,50 +1,40 @@
-@charset "UTF-8";
-/*
- * Palim landing — retro reading machine.
- * Self-contained: the landing owns its visual world and does not load style.css.
- */
-
-/* latin-ext */
 @font-face {
-  font-family: 'Manrope';
+  font-family: 'IBM Plex Mono';
   font-style: normal;
-  font-weight: 400 800;
+  font-weight: 400;
   font-display: swap;
-  src: url(/fonts/Manrope-Extended.woff2) format('woff2');
-  unicode-range:
-    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
-    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2C60-2C7F,
-    U+A720-A7FF;
+  src: url('/fonts/IBMPlexMono-Latin-400.woff2') format('woff2');
 }
-/* latin */
+
 @font-face {
-  font-family: 'Manrope';
+  font-family: 'IBM Plex Mono';
   font-style: normal;
-  font-weight: 400 800;
+  font-weight: 500;
   font-display: swap;
-  src: url(/fonts/Manrope-Latin.woff2) format('woff2');
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC,
-    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url('/fonts/IBMPlexMono-Latin-500.woff2') format('woff2');
 }
 
 :root {
-  --paper: #ece7d9;
-  --paper-edge: #d8d1be;
-  --paper-dot: rgba(24, 24, 18, 0.1);
-  --ink: #14140e;
-  --ink-soft: #55544a;
-  --blue: #1d49c8;
-  --blue-deep: #123590;
-  --device: #232320;
-  --device-hi: #35352d;
-  --screen: #dbd5c2;
-  --screen-deep: #c7c0a9;
-  --glyph: #8d8774;
-  --glyph-deep: #6b6656;
-  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  --paper: #e8e5db;
+  --ink: #1a1916;
+  --deck: #131311;
+  --indigo: #263fa9;
+  --indigo-deep: #17256c;
+  --key: #f4f1e8;
+  --margin: 1.25rem;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 760px) {
+  :root {
+    --margin: 3.5rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --margin: 4.5rem;
+  }
 }
 
 * {
@@ -52,900 +42,384 @@
 }
 
 html {
-  -webkit-text-size-adjust: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  color-scheme: light;
+  scrollbar-width: thin;
+  scrollbar-color: var(--indigo) var(--paper);
+}
+
+::selection {
+  background: var(--indigo);
+  color: var(--key);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--paper);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--indigo);
 }
 
 body {
   margin: 0;
-  min-height: 100svh;
-  display: grid;
-  grid-template-rows: auto auto auto;
-  align-content: space-between;
-  background: var(--paper);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--deck);
   color: var(--ink);
-  font-family: var(--sans);
-  font-size: 100%;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
-
-/* A sparse dot field, like a punched card. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle at 1px 1px, var(--paper-dot) 1px, transparent 1.6px);
-  background-size: 1.5rem 1.5rem;
-  mask-image: radial-gradient(120% 90% at 50% 45%, #000 25%, transparent 95%);
-}
-
-/* Print grain over the whole sheet. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 8;
-  pointer-events: none;
-  background-image: var(--grain);
-  background-size: 140px 140px;
-  opacity: 0.055;
-  mix-blend-mode: multiply;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 400;
+  font-variant-ligatures: none;
+  line-height: 1.4;
 }
 
 a {
   color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus {
+  outline: none;
 }
 
 :focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 4px;
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
 }
 
-.skip-link {
-  position: fixed;
-  z-index: 40;
-  top: 0.75rem;
-  left: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-decoration: none;
-}
-
-.skip-link:not(:focus) {
-  clip-path: inset(50%);
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.visually-hidden {
+.skip {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  left: var(--margin);
+  top: 0.75rem;
+  z-index: 3;
+  padding: 0.55rem 0.8rem;
+  background: var(--indigo);
+  color: var(--key);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  transform: translateY(-5rem);
 }
 
-/* ------------------------------------------------------------------ rails */
+.skip:focus {
+  transform: none;
+}
 
-.rail {
-  position: relative;
-  z-index: 2;
+.skip:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.bar {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
-  padding: clamp(1.75rem, 4vw, 3rem) clamp(1.5rem, 6vw, 5rem);
+  padding: 1.35rem var(--margin) 0;
+  background: var(--paper);
 }
 
-.rail--top {
-  border-bottom: 1px solid var(--paper-edge);
-}
-
-.rail--bottom {
-  border-top: 1px solid var(--paper-edge);
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.rail--bottom .rule {
-  justify-self: start;
-}
-
-.rail--bottom .rail-nav {
-  justify-self: end;
-}
-
-.mark {
-  margin: 0;
-  line-height: 0;
-}
-
-/* The emblem: an abstract e-ink page. */
 .logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
+  display: flex;
+  border-radius: 4px;
   text-decoration: none;
 }
 
 .logo__emblem {
+  width: 2rem;
+  height: 2rem;
   display: block;
-  width: 1.55rem;
-  height: 1.55rem;
-  flex: none;
 }
 
-.logo__emblem rect:first-child {
-  fill: var(--blue);
+.logo__emblem rect {
+  fill: var(--indigo);
 }
 
-/* The mark's own geometry: a stepped, folded page. */
-.logo__emblem .logo__stroke {
+.logo__stroke {
   fill: none;
-  stroke: var(--paper);
+  stroke: #f6f4ee;
   stroke-width: 2;
   stroke-linecap: square;
   stroke-linejoin: miter;
 }
 
-.logo__word {
-  font-family: var(--mono);
-  font-size: clamp(1.05rem, 2.4vw, 1.5rem);
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink);
-  padding-top: 0.1em;
-}
-
-.rail-nav {
-  display: flex;
-  align-items: center;
-  gap: clamp(1.25rem, 3vw, 2.75rem);
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.rail-nav a {
-  position: relative;
-  padding: 0.5rem 0;
+.privacy {
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
   text-decoration: none;
-  color: var(--ink-soft);
-  transition: color 150ms;
+  text-underline-offset: 0.28em;
+  padding: 0.7rem 0.15rem;
+  margin: -0.7rem -0.15rem;
 }
 
-.rail-nav a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0.25rem;
-  height: 1px;
-  background: var(--blue);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 180ms ease-out;
+.privacy:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
 }
 
-.rail-nav a:hover,
-.rail-nav a:focus-visible {
-  color: var(--ink);
+.page {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(1.75rem, 4vh, 3rem);
+  padding: 1.75rem var(--margin) 2rem;
+  background: var(--paper);
 }
 
-.rail-nav a:hover::after,
-.rail-nav a:focus-visible::after {
-  transform: scaleX(1);
+.page:focus {
+  outline: none;
 }
 
-/* One promoted action: the studio is where the work happens. */
-.rail-nav__primary {
-  padding: 0.7rem 1.15rem;
-  border: 1px solid var(--ink);
-  border-radius: 0.25rem;
-  background: var(--ink);
-  color: var(--paper);
-  letter-spacing: 0.2em;
+.plate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(2rem, 5vh, 3.25rem);
 }
 
-.rail-nav__primary::after {
-  display: none;
-}
-
-.rail-nav__primary:hover,
-.rail-nav__primary:focus-visible {
-  background: var(--blue);
-  border-color: var(--blue);
-  color: var(--paper);
-}
-
-/* A plotter line: the house rule. */
-.rule {
-  display: block;
-  width: 3.5rem;
-  height: auto;
-  flex: none;
-}
-
-.rule path {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 1.5;
-}
-
-.foot-tag {
+.word {
   margin: 0;
-  text-align: center;
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  font-weight: 500;
+  font-size: clamp(4.75rem, 20vw, 11rem);
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+  white-space: nowrap;
 }
 
-/* ------------------------------------------------------------------ stage */
-
-.stage {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 6vw, 5rem);
-  min-width: 0;
+.caret {
+  display: inline-block;
+  width: 0.38em;
+  height: 0.52em;
+  margin-left: 0.12em;
+  background: var(--indigo);
+  vertical-align: baseline;
+  animation: blink 1.2s steps(1, end) infinite;
 }
 
-.machine {
-  /* A floor keeps the screen readable when the viewport is short; the stage scrolls. */
-  --machine-h: clamp(20rem, calc(100svh - 13.5rem), 34rem);
-  height: var(--machine-h);
-  width: min(calc(var(--machine-h) * 0.72), 100%);
-  perspective: 1400px;
-}
-
-.machine__body {
-  position: relative;
-  height: 100%;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
-  gap: 3.5%;
-  padding: 5.5% 6% 5%;
-  border-radius: 1.4rem;
-  background: linear-gradient(158deg, var(--device-hi) 0%, var(--device) 44%, #191813 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.55),
-    0 1.25rem 2.5rem -1rem rgba(20, 20, 14, 0.5),
-    0 0.2rem 0.4rem rgba(20, 20, 14, 0.18);
-  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-}
-
-/* Machined trim: one bright hairline along the top edge. */
-.machine__body::before {
-  content: '';
-  position: absolute;
-  top: 0.6rem;
-  left: 14%;
-  right: 14%;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    #8d8c82 26%,
-    #d3d2c6 50%,
-    #8d8c82 74%,
-    transparent
-  );
-  opacity: 0.55;
-}
-
-/* ----------------------------------------------------------------- screen */
-
-/* The screen is a query container, so its contents scale with the glass
-   instead of overflowing when the viewport is short or zoomed. */
-.machine__screen {
-  position: relative;
-  overflow: hidden;
-  container-type: size;
-  border-radius: 0.3rem;
-  background: linear-gradient(176deg, var(--screen) 0%, var(--screen-deep) 100%);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.7),
-    0 0 0 3px rgba(255, 255, 255, 0.05),
-    inset 0 0 2.5rem rgba(92, 82, 52, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
-/* Grain in the glass. */
-.machine__screen::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  background-image: var(--grain);
-  background-size: 120px 120px;
-  opacity: 0.1;
-  mix-blend-mode: multiply;
-}
-
-/* Status row: marks only, no words. */
-.ink-status {
-  position: absolute;
-  z-index: 4;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem 1rem 0;
-}
-
-.ink-status__bars {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5px;
-  width: 0.9rem;
-}
-
-.ink-status__bars i {
-  display: block;
-  height: 1.5px;
-  background: var(--glyph-deep);
-}
-
-.ink-status__bars i:nth-child(2) {
-  width: 70%;
-}
-
-.ink-status__bars i:nth-child(3) {
-  width: 46%;
-}
-
-.ink-status__spacer {
-  flex: 1;
-}
-
-.ink-status__wifi {
-  width: 0.75rem;
-  height: 0.5rem;
-  border-top: 1.5px solid var(--glyph-deep);
-  border-radius: 0.75rem 0.75rem 0 0;
-}
-
-.ink-status__battery {
-  position: relative;
-  width: 1.15rem;
-  height: 0.55rem;
-  border: 1.5px solid var(--glyph-deep);
-  border-radius: 1px;
-}
-
-.ink-status__battery::after {
-  content: '';
-  position: absolute;
-  top: 1.5px;
-  bottom: 1.5px;
-  left: 1.5px;
-  width: 62%;
-  background: var(--glyph-deep);
-}
-
-/* Pages */
-.ink-pages {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-}
-
-.ink-page {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  /* Proportional to the glass, so the page survives 200% zoom. */
-  padding: 11cqh 9cqh 12cqh;
-  font-size: clamp(0.4rem, 2.9cqh, 0.95rem);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 240ms ease-out;
-}
-
-/* The figure pages: the illustration carries the page, the caption sits under it. */
-.ink-page[data-page='1'],
-.ink-page[data-page='2'] {
-  padding-bottom: 2.6rem;
-}
-
-.ink-page[data-page='1'] .ink-figure,
-.ink-page[data-page='2'] .ink-figure {
-  flex: 0 1 auto;
-  width: 100%;
-  height: auto;
-  margin-bottom: 1.4rem;
-}
-
-.ink-page.is-current {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Abstract prose. Thin, square-ended rules read as printed, not as a loader.
-   Sizes follow the glass, so a short screen still holds a whole page. */
-.ink-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 2.6cqh;
-}
-
-.ink-lines i {
-  display: block;
-  height: 0.8cqh;
-  background: var(--glyph);
-  opacity: 0.58;
-  width: var(--w, 100%);
-}
-
-/* Widths and bar heights, as classes: the page ships under a strict style-src. */
-.w-100 {
-  --w: 100%;
-}
-.w-99 {
-  --w: 99%;
-}
-.w-98 {
-  --w: 98%;
-}
-.w-97 {
-  --w: 97%;
-}
-.w-96 {
-  --w: 96%;
-}
-.w-95 {
-  --w: 95%;
-}
-.w-93 {
-  --w: 93%;
-}
-.w-92 {
-  --w: 92%;
-}
-.w-90 {
-  --w: 90%;
-}
-.w-88 {
-  --w: 88%;
-}
-.w-84 {
-  --w: 84%;
-}
-.w-72 {
-  --w: 72%;
-}
-.w-71 {
-  --w: 71%;
-}
-.w-48 {
-  --w: 48%;
-}
-.w-40 {
-  --w: 40%;
-}
-
-.h-34 {
-  --h: 34%;
-}
-.h-46 {
-  --h: 46%;
-}
-.h-58 {
-  --h: 58%;
-}
-.h-62 {
-  --h: 62%;
-}
-.h-68 {
-  --h: 68%;
-}
-.h-76 {
-  --h: 76%;
-}
-.h-90 {
-  --h: 90%;
-}
-
-.ink-lines i.head {
-  height: 1.9cqh;
-  width: 46%;
-  margin-bottom: 2.4cqh;
-  background: var(--glyph-deep);
-  opacity: 0.82;
-}
-
-.ink-lines i.gap {
-  height: 0;
-  margin-top: 2.4cqh;
-}
-
-/* Abstract figure. */
-.ink-figure {
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-  display: block;
-}
-
-.ink-figure circle,
-.ink-figure rect,
-.ink-figure path,
-.ink-figure line {
-  fill: none;
-  stroke: var(--glyph-deep);
-  stroke-width: 2.2;
-  opacity: 0.72;
-  vector-effect: non-scaling-stroke;
-}
-
-.ink-figure .solid {
-  fill: var(--glyph-deep);
-  stroke: none;
-  opacity: 0.5;
-}
-
-.ink-figure .faint {
-  stroke: var(--glyph);
-  opacity: 0.55;
-}
-
-/* Abstract chart. */
-.ink-chart {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  align-items: flex-end;
-  gap: 5%;
-  padding: 0 3% 0.75rem;
-  border-bottom: 1px solid var(--glyph);
-  background-image: repeating-linear-gradient(
-    to top,
-    transparent 0 33%,
-    rgba(141, 135, 116, 0.26) 33% calc(33% + 1px)
-  );
-}
-
-.ink-chart i {
-  display: block;
-  flex: 1;
-  height: var(--h, 40%);
-  background: var(--glyph-deep);
-  opacity: 0.6;
-}
-
-.ink-chart i:nth-child(3n) {
-  opacity: 0.38;
-}
-
-.ink-caption {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6cqh;
-  margin-top: auto;
-  padding-top: 2cqh;
-}
-
-.ink-caption i {
-  display: block;
-  height: 0.62cqh;
-  background: var(--glyph);
-  opacity: 0.56;
-  width: var(--w, 100%);
-}
-
-/* An illustration plate: a page of pictures, the way a book carries figures. */
-.ink-plate {
-  flex: 1 1 auto;
-  min-height: 0;
-  margin: 0.9rem 0;
-  padding: 0.75rem;
-  border: 1px solid var(--glyph);
-}
-
-.ink-plate svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.ink-plate path,
-.ink-plate circle {
-  fill: none;
-  stroke: var(--glyph-deep);
-  stroke-width: 1.6;
-  opacity: 0.75;
-  vector-effect: non-scaling-stroke;
-}
-
-.ink-plate .solid {
-  fill: var(--glyph-deep);
-  stroke: none;
-  opacity: 0.4;
-}
-
-.ink-plate .faint {
-  stroke: var(--glyph);
-  opacity: 0.5;
-}
-
-/* Location bar along the bottom of the glass. */
-.ink-progress {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 4;
-  height: 0.6rem;
-  border-top: 1px solid rgba(141, 135, 116, 0.45);
-  background: rgba(141, 135, 116, 0.12);
-}
-
-.ink-progress__fill {
-  display: block;
-  height: 100%;
-  width: var(--p, 33%);
-  background: var(--glyph-deep);
-  opacity: 0.4;
-  transition: width 400ms ease-out;
-}
-
-.ink-progress__mark {
-  position: absolute;
-  top: -0.28rem;
-  left: var(--p, 33%);
-  width: 0.28rem;
-  height: 0.28rem;
-  background: var(--glyph-deep);
-  transform: translateX(-50%);
-  transition: left 400ms ease-out;
-}
-
-/* The refresh: e-ink particles flash the whole panel, then settle. */
-.machine__screen.is-refreshing::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-  background: #14140e;
-  opacity: 0;
-  animation: ink-flash 560ms steps(1, end);
-}
-
-@keyframes ink-flash {
-  0% {
-    opacity: 0.88;
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
   }
-  35% {
-    opacity: 0;
-  }
-  71% {
-    opacity: 0.7;
-  }
-  76%,
+  50%,
   100% {
     opacity: 0;
   }
 }
 
-/* --------------------------------------------------------------- keyboard */
-
-.keyboard {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0 1%;
+.fold {
+  display: block;
+  width: calc(100% + var(--margin));
+  height: auto;
+  margin-right: calc(var(--margin) * -1);
+  overflow: visible;
 }
 
-.keyboard__row {
-  display: flex;
-  gap: 0.3rem;
+/* Below the wide breakpoint the fold is scaled to fit, not chopped: the
+         idea is the fold, so it has to complete. */
+@media (max-width: 1079px) {
+  .fold {
+    width: 100%;
+    margin-right: 0;
+  }
 }
 
-.keyboard__row--inset {
-  padding-inline: 1.4%;
+.fold path {
+  fill: none;
+  stroke: var(--indigo);
+  stroke-width: 20;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+@media (min-width: 1080px) {
+  .plate {
+    display: grid;
+    grid-template-columns: auto minmax(16rem, 1fr);
+    align-items: center;
+    gap: clamp(4rem, 7vw, 8rem);
+    width: 100%;
+  }
+
+  .fold {
+    justify-self: stretch;
+  }
+}
+
+.horizon {
+  flex: none;
+  height: 156px;
+  background: var(--deck);
+}
+
+.horizon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 1080px) {
+  .horizon {
+    height: 240px;
+  }
+}
+
+.deck {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 0.35rem var(--margin) 1.35rem;
+  background: var(--deck);
+}
+
+.deck :focus-visible {
+  outline-color: var(--key);
+  outline-offset: 6px;
 }
 
 .key {
-  display: block;
-  flex: 1 1 0;
-  height: 1.05rem;
-  border-radius: 0.18rem;
-  background:
-    radial-gradient(circle at 50% 26%, rgba(255, 255, 255, 0.09), transparent 70%),
-    linear-gradient(180deg, #3a3a32, #24241e);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.13),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-    0 1px 0 rgba(0, 0, 0, 0.5);
-}
-
-.key--half {
-  flex: 1.5 1 0;
-}
-
-.key--wide {
-  flex: 1.8 1 0;
-}
-
-.key--space {
-  flex: 5.4 1 0;
-}
-
-/* Two accent keys: darker than the emblem, so the screen keeps the eye. */
-.key--blue {
-  background: linear-gradient(180deg, #1c2f5c, #14223f);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
-    0 1px 0 rgba(0, 0, 0, 0.5);
-}
-
-/* --------------------------------------------------------------- controls */
-
-.machine__controls {
-  display: flex;
+  flex: 1 1 auto;
+  max-width: 9.5rem;
+  min-width: 0;
+  height: 3.15rem;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0 2%;
+  justify-content: center;
+  padding: 0 0.75rem;
+  border-radius: 5px;
+  background: var(--key);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 4px 0 #3a3834,
+    0 10px 16px rgba(0, 0, 0, 0.28);
+  transition: transform 180ms var(--ease);
 }
 
-.control {
-  appearance: none;
-  border: 1px solid #3f3f36;
-  background: linear-gradient(180deg, #32322b, #1d1d18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
-  color: #9c9b8f;
-  width: 2.4rem;
-  height: 1.9rem;
-  border-radius: 0.3rem;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  cursor: pointer;
-  transition:
-    color 140ms,
-    border-color 140ms;
+.key:hover {
+  transform: translateY(-2px);
+  background: #fffdf8;
 }
 
-.control svg {
-  width: 0.8rem;
-  height: 0.8rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-}
-
-.control:hover {
-  color: var(--paper);
-  border-color: #6a6a5c;
-}
-
-.control:focus-visible {
-  outline-color: var(--paper);
-  outline-offset: 3px;
-}
-
-/* The device is dark: focus and hover need light indicators here. */
-.machine :focus-visible {
-  outline-color: #9db4ff;
-}
-
-.control:active {
+.key:active {
   transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 0 #3a3834,
+    0 4px 8px rgba(0, 0, 0, 0.28);
 }
 
-/* Page-position ticks: one per page, the current one filled. */
-.machine__ticks {
-  display: flex;
-  gap: 0.32rem;
-  align-items: center;
+.key--go {
+  background: var(--indigo);
+  color: var(--key);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 4px 0 var(--indigo-deep),
+    0 10px 16px rgba(0, 0, 0, 0.28);
 }
 
-.machine__ticks i {
-  display: block;
-  width: 0.28rem;
-  height: 0.28rem;
-  border-radius: 50%;
-  border: 1px solid #5a5a4c;
+.key--go:hover {
+  background: #314bc0;
 }
 
-.machine__ticks i.is-current {
-  background: var(--blue);
-  border-color: var(--blue);
+.key--go:active {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 0 var(--indigo-deep),
+    0 4px 8px rgba(0, 0, 0, 0.28);
 }
 
-/* ------------------------------------------------------------ small screens */
-
-@media (max-width: 44rem) {
-  .rail {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.5rem;
-  }
-
-  .rail--bottom {
-    gap: 1.25rem;
-    grid-template-columns: auto 1fr;
-  }
-
-  .rail--bottom .rule {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .rail--bottom .rail-nav {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: end;
-  }
-
-  .rail--bottom .foot-tag {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    letter-spacing: 0.14em;
-  }
-
-  .rail-nav {
-    flex-wrap: wrap;
-    gap: 0.75rem 1.75rem;
-  }
-
-  .foot-tag {
-    text-align: left;
-  }
-
-  .ink-page {
-    padding: 11cqh 9cqh 12cqh;
+@media (min-width: 760px) {
+  .deck {
+    gap: 0.9rem;
+    padding: 0.5rem var(--margin) 2rem;
   }
 
   .key {
-    height: 0.85rem;
+    height: 3.4rem;
+    padding: 0 1.15rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .machine__body {
-    transition: none;
-  }
-
-  .machine__screen.is-refreshing::before {
+  .caret {
     animation: none;
   }
 
-  .ink-page,
-  .ink-progress__fill,
-  .ink-progress__mark {
+  .key,
+  .key:hover,
+  .key:active {
     transition: none;
+    transform: none;
   }
+}
+
+/* ---------------------------------------------------------------- line */
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.line__prompt {
+  color: var(--indigo);
+  user-select: none;
+}
+
+.line__code {
+  font-size: clamp(0.8125rem, 0.55rem + 1.1vw, 1.0625rem);
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.line__copy {
+  appearance: none;
+  border: 1px solid #b9b4a6;
+  border-radius: 3px;
+  background: transparent;
+  color: #6d685d;
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  transition:
+    color 140ms,
+    border-color 140ms,
+    background-color 140ms;
+}
+
+.line__copy:hover {
+  color: var(--paper);
+  background: var(--indigo);
+  border-color: var(--indigo);
+}
+
+.line__copy:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+}
+
+.line__copy[data-copied] {
+  color: var(--paper);
+  background: var(--indigo);
+  border-color: var(--indigo);
 }

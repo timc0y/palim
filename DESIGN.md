@@ -46,45 +46,47 @@ components:
 
 The user rejected the previous pale serif design on 25 October 2026. This replacement follows Astra’s selected cinematic editorial reading-studio brief. The current deployed source and acceptance remain in docs/verification.md. Product truth remains in SIMPLE.md.
 
-## The landing page — a reading machine (12 November 2026)
+## The landing page — the mark is the picture (12 November 2026)
 
-The owner replaced the landing page with a new world and asked for it to be original, abstract and
-uncramped. The landing is now a single object: a retro e-reader on warm paper. `public/kindle.css`
-and `public/kindle.js` own it; `public/style.css` still owns the workspace and the reader.
+The owner replaced the landing page twice in one session. It is now the version four independent
+designers each answered separately, of which the owner picked one direction.
 
-**Composition.** One full-width machine, centred on a warm paper field with a sparse punch-card dot
-grid and print grain. Top rail, stage, bottom rail. The device is the whole page: charcoal body,
-e-ink glass, a blank keyboard with two dark accent keys, page-turn buttons and a location bar.
-Nothing else competes. There is no headline, no body copy, no feature grid and no SEO block.
+**The idea.** The hero _is_ the mark. The stepped, folded-page stroke that lives in the corner
+emblem is enlarged until it runs off the right edge of the page and becomes the picture. The
+small emblem and the giant one are the same object at two scales, which is what makes the page
+read as a system rather than an arrangement. The wordmark is set large in IBM Plex Mono with a
+blinking block caret, like a shell prompt waiting for a command.
 
-**The screen.** Three abstract pages, changed only by the visitor: typeset prose, an open book
-spread, and a framed illustration plate. Rules are thin and square-ended so they read as print
-rather than a loading skeleton. Figures are book furniture, never dashboard charts, because the
-product publishes illustrated EPUBs. The location bar and the three position ticks are truthful:
-they follow the current page. A page change flashes the whole glass dark, as e-ink does.
+**References, and what was taken from each.**
 
-**Identity.** The mark is an original blue square holding a stepped, folded-page stroke; it rhymes
-with the plotter rule in the bottom rail. An earlier striped wordmark was rejected by the owner as
-copied from IBM's 8-bar logo and does not appear. Wordmarks use a system monospace stack, uppercase
-and widely tracked, so the brand reads as machine output. The workspace and privacy pages carry the
-same emblem and monospace voice, so the product is one thing.
+- _boat.dev_: a deep indigo field, a dithered pixel horizon, IBM Plex Mono for every technical
+  voice, a terminal block with a copy button, and one filled button among quiet links.
+- _prenostics_: a white ground rather than a colour field, an indigo ink, and single magenta and
+  cyan accents used only twice in the whole page — one bookmark in the shelf and one spine.
+- _Kindle and early hardware_: the hardware keys are the navigation, and they behave like keys.
+- The pixel shelf of books is drawn as inline SVG with a dithered reflection, not as an image.
 
-**Restraint with an entry point.** The owner asked for no cramped text. Navigation stays to four
-tracked mono labels, and exactly one — studio — is promoted to a filled button, because a landing
-page still has to give a visitor somewhere to start.
+**What it deliberately is not.** There is no headline, no tagline, no paragraph, no feature list
+and no pricing. The page explains itself through one command line and four keys. The owner
+asked for no taglines, and this page takes that literally.
 
-**Honest motion.** Nothing advances on its own. Auto-cycling was removed: WCAG 2.2.2 requires a
-control for moving content, and the page has no room for one without adding the copy the owner
-asked to avoid. Page changes are button-driven. The pointer tilt and the refresh flash both stop
-under `prefers-reduced-motion`.
+**Restraint with a way in.** Exactly one action is promoted: `studio`, the filled indigo key.
+The `connect` key is the one an open-source visitor actually needs, and it points at the
+documented MCP connection. Privacy stays a quiet link in the top bar, where a legal notice
+belongs, rather than pretending to be a destination.
 
-**Robustness.** The glass is a size container, so its contents scale with the device instead of
-overflowing: 200% zoom on a short viewport still shows a whole page. The device is sized against
-its container, so there is no horizontal scroll at 320px. Focus is blue on paper and a light blue
-on the dark device.
+**The fold has to complete.** Below the wide breakpoint the fold is scaled to fit rather than
+cropped: the idea is the fold, so a chopped fold would be three unrelated bars. The bleed off
+the right edge is a deliberate crop that only happens where the whole shape is legible.
 
-**CSP.** The page ships under `style-src 'self'`. Every varying measurement is a class, never an
-inline `style` attribute, and no script is inline.
+**Robustness.** Zero horizontal overflow at 1440, 390 and 320 pixels. Focus is visible on the
+cream ground and on the dark shelf. `prefers-reduced-motion` stops the caret blink and the key
+lift. The page carries no inline `style` attributes and no external requests, because it ships
+under `style-src 'self'`.
+
+**Type.** The landing and the workspace share IBM Plex Mono for the wordmark and the technical
+voice, self-hosted under `public/fonts/`. The body face remains Manrope. The favicon and the
+Codex plugin icon are the same emblem.
 
 ## Composition and type
 

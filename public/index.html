@@ -2,165 +2,155 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>palim</title>
     <meta name="description" content="palim" />
-    <meta name="theme-color" content="#ece7d9" />
+    <meta name="theme-color" content="#e8e5db" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/kindle.css" />
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/Manrope-Latin.woff2" crossorigin />
+    <link
+      rel="preload"
+      href="/fonts/IBMPlexMono-Latin-500.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <script type="module" src="/kindle.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#machine">Skip to the reading machine</a>
+    <a class="skip" href="#page">Skip to content</a>
 
-    <header class="rail rail--top">
-      <h1 class="mark">
-        <a class="logo" href="/">
-          <svg class="logo__emblem" viewBox="0 0 32 32" aria-hidden="true">
-            <rect x="0" y="0" width="32" height="32" rx="3" />
-            <path class="logo__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
-          </svg>
-          <span class="logo__word">palim</span>
-        </a>
-      </h1>
-      <nav class="rail-nav" aria-label="Primary">
-        <a href="/sample.html">sample</a>
-        <a class="rail-nav__primary" href="/app">studio</a>
-        <a href="https://github.com/timc0y/palim#connect-palim">connect</a>
-        <a href="/privacy.html">privacy</a>
-      </nav>
+    <header class="bar">
+      <a class="logo" href="/" aria-label="Home">
+        <svg class="logo__emblem" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="0" y="0" width="32" height="32" rx="3" />
+          <path class="logo__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
+        </svg>
+      </a>
+      <a class="privacy" href="/privacy.html">privacy</a>
     </header>
 
-    <main class="stage" id="machine">
-      <div class="machine">
-        <div class="machine__body">
-          <div class="machine__screen">
-            <div class="ink-status" aria-hidden="true">
-              <span class="ink-status__bars"><i></i><i></i><i></i></span>
-              <span class="ink-status__spacer"></span>
-              <span class="ink-status__wifi"></span>
-              <span class="ink-status__battery"></span>
-            </div>
-
-            <div class="ink-pages" data-pages>
-              <div class="ink-page is-current" data-page="0" aria-hidden="true">
-                <div class="ink-lines">
-                  <i class="head"></i>
-                  <i class="w-100"></i>
-                  <i class="w-96"></i>
-                  <i class="w-99"></i>
-                  <i class="w-93"></i>
-                  <i class="w-72"></i>
-                  <i class="gap"></i>
-                  <i class="w-97"></i>
-                  <i class="w-92"></i>
-                  <i class="w-98"></i>
-                  <i class="w-88"></i>
-                  <i class="w-71"></i>
-                  <i class="gap"></i>
-                  <i class="w-95"></i>
-                  <i class="w-90"></i>
-                  <i class="w-99"></i>
-                  <i class="w-84"></i>
-                  <i class="gap"></i>
-                  <i class="w-96"></i>
-                  <i class="w-78"></i>
-                </div>
-              </div>
-
-              <div class="ink-page" data-page="1" aria-hidden="true">
-                <svg class="ink-figure" viewBox="0 0 240 176" role="presentation">
-                  <path d="M10 14h76c14 0 22 6 22 16v132c0-10-8-16-22-16H10z" />
-                  <path d="M230 14h-76c-14 0-22 6-22 16v132c0-10 8-16 22-16h76z" />
-                  <path class="faint" d="M120 30v132" />
-                  <path class="solid" d="M26 42h54v4H26zM26 56h38v4H26zM26 70h48v4H26z" />
-                  <path class="solid" d="M152 42h54v4h-54zM152 56h34v4h-34zM152 70h46v4h-46z" />
-                  <rect x="26" y="90" width="54" height="52" />
-                  <path class="faint" d="M26 105h54M26 118h54M26 131h54" />
-                  <path class="faint" d="M152 90h54v52h-54zM152 105h54M152 118h54M152 131h54" />
-                </svg>
-                <div class="ink-caption">
-                  <i class="w-72"></i>
-                  <i class="w-48"></i>
-                </div>
-              </div>
-
-              <div class="ink-page" data-page="2" aria-hidden="true">
-                <svg class="ink-figure" viewBox="0 0 240 176" role="presentation">
-                  <rect x="12" y="10" width="216" height="156" />
-                  <path class="faint" d="M12 42h216M12 142h216" />
-                  <path d="M40 130l34-50 26 34 24-46 52 62z" />
-                  <circle cx="190" cy="66" r="17" />
-                  <path class="solid" d="M40 130h136v12H40z" />
-                  <path class="faint" d="M28 152h48M28 160h30" />
-                </svg>
-                <div class="ink-caption">
-                  <i class="w-84"></i>
-                  <i class="w-40"></i>
-                </div>
-              </div>
-            </div>
-
-            <div class="ink-progress" aria-hidden="true">
-              <span class="ink-progress__fill"></span>
-              <span class="ink-progress__mark"></span>
-            </div>
-          </div>
-
-          <div class="keyboard" aria-hidden="true">
-            <div class="keyboard__row">
-              <i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
-              ><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
-              ><i class="key"></i><i class="key"></i><i class="key"></i>
-            </div>
-            <div class="keyboard__row keyboard__row--inset">
-              <i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
-              ><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
-              ><i class="key"></i><i class="key"></i>
-            </div>
-            <div class="keyboard__row keyboard__row--inset">
-              <i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
-              ><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
-              ><i class="key"></i><i class="key key--wide"></i>
-            </div>
-            <div class="keyboard__row">
-              <i class="key key--blue"></i><i class="key key--half"></i
-              ><i class="key key--space"></i><i class="key key--half"></i
-              ><i class="key key--blue"></i>
-            </div>
-          </div>
-
-          <div class="machine__controls">
-            <button class="control" type="button" data-prev aria-label="Previous page">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M10 3 5 8l5 5" />
-              </svg>
-            </button>
-            <span class="machine__ticks" aria-hidden="true"> <i></i><i></i><i></i> </span>
-            <button class="control" type="button" data-next aria-label="Next page">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M6 3l5 5-5 5" />
-              </svg>
-            </button>
-          </div>
-        </div>
+    <main class="page" id="page" tabindex="-1">
+      <div class="plate">
+        <h1 class="word">palim<span class="caret" aria-hidden="true"></span></h1>
+        <svg class="fold" viewBox="0 28 520 196" aria-hidden="true">
+          <path d="M0 90H52L96 46H506M0 150H150L194 106H430M0 206H78" />
+        </svg>
       </div>
-      <p class="visually-hidden">
-        An e-ink reading machine with a keyboard. The screen cycles through an abstract page of
-        text, a diagram and a chart. Use the page controls to move between them.
+
+      <p class="line">
+        <span class="line__prompt" aria-hidden="true">$</span>
+        <code class="line__code">codex plugin add palim@palim</code>
+        <button class="line__copy" type="button" data-copy>copy</button>
       </p>
     </main>
 
-    <footer class="rail rail--bottom">
-      <svg class="rule" viewBox="0 0 56 8" aria-hidden="true">
-        <path d="M0 4h14l3-3h12l3 3h8l3-3h13" />
+    <div class="horizon" aria-hidden="true">
+      <svg viewBox="0 0 1440 240" preserveAspectRatio="xMidYMax slice">
+        <defs>
+          <pattern id="bits" width="8" height="8" patternUnits="userSpaceOnUse">
+            <rect width="8" height="8" fill="white" />
+            <rect width="4" height="4" fill="black" />
+            <rect x="4" y="4" width="4" height="4" fill="black" />
+          </pattern>
+          <mask id="refl" maskUnits="userSpaceOnUse" x="0" y="0" width="1440" height="240">
+            <rect width="1440" height="240" fill="url(#bits)" />
+          </mask>
+          <pattern id="seam" width="16" height="32" patternUnits="userSpaceOnUse">
+            <rect width="16" height="8" fill="#e8e5db" />
+            <rect x="8" width="8" height="8" fill="#8e8a7e" />
+            <rect y="8" width="8" height="8" fill="#5a564c" />
+            <rect x="8" y="8" width="8" height="8" fill="#2a2824" />
+            <rect y="16" width="16" height="8" fill="#131311" />
+            <rect x="8" y="16" width="8" height="8" fill="#4a463e" />
+            <rect y="24" width="16" height="8" fill="#131311" />
+            <rect y="24" width="8" height="8" fill="#2c2a26" />
+          </pattern>
+        </defs>
+
+        <rect width="1440" height="160" fill="#e8e5db" />
+        <rect y="160" width="1440" height="80" fill="#131311" />
+        <rect y="136" width="1440" height="32" fill="url(#seam)" />
+
+        <g mask="url(#refl)" shape-rendering="crispEdges">
+          <rect x="48" y="176" width="24" height="40" fill="#e4e0d4" />
+          <rect x="80" y="184" width="16" height="28" fill="#d4cfc3" />
+          <rect x="216" y="180" width="24" height="32" fill="#e4e0d4" />
+          <rect x="512" y="176" width="48" height="32" fill="#f7f4ec" />
+          <rect x="560" y="176" width="16" height="32" fill="#b7b2a6" />
+          <rect x="576" y="176" width="48" height="32" fill="#f3f0e6" />
+          <rect x="696" y="168" width="48" height="48" fill="#c5cef0" />
+          <rect x="712" y="168" width="8" height="16" fill="#f414df" />
+          <rect x="816" y="176" width="48" height="32" fill="#f7f4ec" />
+          <rect x="864" y="176" width="16" height="32" fill="#b7b2a6" />
+          <rect x="880" y="176" width="48" height="32" fill="#f3f0e6" />
+          <rect x="904" y="168" width="8" height="20" fill="#0b98eb" />
+          <rect x="1120" y="180" width="16" height="32" fill="#d4cfc3" />
+          <rect x="1144" y="172" width="24" height="44" fill="#e4e0d4" />
+          <rect x="1176" y="184" width="16" height="28" fill="#d4cfc3" />
+          <rect x="1288" y="184" width="24" height="28" fill="#e4e0d4" />
+        </g>
+
+        <g shape-rendering="crispEdges">
+          <rect x="48" y="64" width="24" height="96" fill="#1e1d1a" />
+          <rect x="48" y="64" width="8" height="96" fill="#121110" />
+          <rect x="64" y="72" width="8" height="80" fill="#e8e5db" />
+
+          <rect x="80" y="96" width="16" height="64" fill="#5c574e" />
+          <rect x="80" y="96" width="8" height="64" fill="#2a2824" />
+
+          <rect x="216" y="80" width="24" height="80" fill="#2c2a26" />
+          <rect x="216" y="80" width="8" height="80" fill="#141312" />
+          <rect x="232" y="88" width="8" height="64" fill="#e8e5db" />
+
+          <rect x="512" y="96" width="48" height="64" fill="#f7f4ec" />
+          <rect x="560" y="96" width="16" height="64" fill="#232220" />
+          <rect x="576" y="96" width="48" height="64" fill="#efeae0" />
+          <rect x="520" y="108" width="32" height="8" fill="#c4bdae" />
+          <rect x="520" y="124" width="24" height="8" fill="#c4bdae" />
+          <rect x="520" y="140" width="28" height="8" fill="#c4bdae" />
+          <rect x="584" y="108" width="32" height="8" fill="#c9c2b4" />
+          <rect x="584" y="124" width="20" height="8" fill="#c9c2b4" />
+          <rect x="584" y="140" width="28" height="8" fill="#c9c2b4" />
+
+          <rect x="696" y="48" width="48" height="112" fill="#263fa9" />
+          <rect x="696" y="48" width="8" height="112" fill="#1c2d80" />
+          <rect x="736" y="56" width="8" height="96" fill="#dfe3f6" />
+          <rect x="712" y="48" width="8" height="32" fill="#f414df" />
+
+          <rect x="816" y="88" width="48" height="72" fill="#f7f4ec" />
+          <rect x="864" y="88" width="16" height="72" fill="#232220" />
+          <rect x="880" y="88" width="48" height="72" fill="#efeae0" />
+          <rect x="824" y="104" width="32" height="8" fill="#c4bdae" />
+          <rect x="824" y="120" width="24" height="8" fill="#c4bdae" />
+          <rect x="824" y="136" width="28" height="8" fill="#c4bdae" />
+          <rect x="888" y="104" width="32" height="8" fill="#c9c2b4" />
+          <rect x="888" y="120" width="20" height="8" fill="#c9c2b4" />
+          <rect x="888" y="136" width="24" height="8" fill="#c9c2b4" />
+          <rect x="904" y="64" width="8" height="40" fill="#0b98eb" />
+
+          <rect x="1120" y="72" width="16" height="88" fill="#2c2a26" />
+          <rect x="1120" y="72" width="8" height="88" fill="#141312" />
+          <rect x="1144" y="48" width="24" height="112" fill="#4e4a43" />
+          <rect x="1144" y="48" width="8" height="112" fill="#2a2824" />
+          <rect x="1160" y="56" width="8" height="96" fill="#e8e5db" />
+          <rect x="1176" y="88" width="16" height="72" fill="#1e1d1a" />
+          <rect x="1176" y="88" width="8" height="72" fill="#121110" />
+
+          <rect x="1288" y="96" width="24" height="64" fill="#3a3833" />
+          <rect x="1288" y="96" width="8" height="64" fill="#1e1d1a" />
+          <rect x="1304" y="104" width="8" height="48" fill="#e8e5db" />
+        </g>
       </svg>
-      <p class="foot-tag">mit &middot; open source &middot; not affiliated with amazon</p>
-      <nav class="rail-nav" aria-label="Secondary">
-        <a href="/sample.epub">epub</a>
-        <a href="https://github.com/timc0y/palim">source</a>
-      </nav>
-    </footer>
+    </div>
+
+    <nav class="deck" aria-label="Primary">
+      <a class="key" href="/sample.html">sample</a>
+      <a class="key key--go" href="/app">studio</a>
+      <a class="key" href="https://github.com/timc0y/palim#connect-palim" rel="noreferrer"
+        >connect</a
+      >
+      <a class="key" href="https://github.com/timc0y/palim" rel="noreferrer">source</a>
+    </nav>
   </body>
 </html>
