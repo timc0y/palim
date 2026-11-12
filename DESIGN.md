@@ -8,7 +8,7 @@ Paper `#e8e5db`, ink `#1a1916`, indigo `#263fa9`. The landing deck and the studi
 
 ## Type
 
-IBM Plex Mono carries the wordmark, commands, labels and keys. Manrope carries the manuscript, the sample and the privacy page. Both are self-hosted. See `THIRD_PARTY.md`.
+One mono size carries the wordmark, commands, labels, keys and headings. One reading size carries the manuscript, the sample and privacy prose. Both faces are self-hosted. See `THIRD_PARTY.md`.
 
 ## Landing
 
@@ -16,7 +16,7 @@ No headline, tagline or feature list. The word, the fold, two install commands, 
 
 ## Studio
 
-One task at a time, on the paper. Task keys are the landing keys: a paper face, a four-pixel lip, indigo for the task in progress. The sign-in card is the one boxed surface. Forms keep visible labels. Optional setup stays in a disclosure. An error sits beside the control that failed.
+One task at a time, on the paper. Task keys are the landing keys: a paper face, a four-pixel lip, indigo for the task in progress. The other actions use that same paper key. One indigo key commits the form. Optional setup uses one disclosure: a chevron, indigo while open, the same focus ring as the keys. The file slot and the address menu use that same marker. The sign-in card is the one boxed surface. Forms keep visible labels. An error sits beside the control that failed.
 
 ## Reading
 

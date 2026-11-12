@@ -222,7 +222,7 @@ function showReceipt(receipt) {
   const file = currentAccount?.artifacts.find((a) => a.artifactId === receipt.artifactId);
   recipient.textContent = `${file?.filename || 'Document'} · To: ${target?.email || receipt.destination || 'Your selected Kindle address'}`;
   const details = document.createElement('details');
-  details.className = 'technical-details';
+  details.className = 'disclosure technical-details';
   const summary = document.createElement('summary');
   summary.textContent = 'Submission details';
   details.append(summary, id);
@@ -259,7 +259,7 @@ function showArtifact(target, artifact) {
     actions.append(preview);
   }
   const technical = document.createElement('details');
-  technical.className = 'technical-details';
+  technical.className = 'disclosure technical-details';
   const summary = document.createElement('summary');
   summary.textContent = 'Technical details';
   const hash = document.createElement('p');

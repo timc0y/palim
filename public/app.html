@@ -36,7 +36,7 @@
       </div>
       <nav class="job-choices" aria-label="Choose a task">
         <a class="button" href="#create-panel">Create an EPUB</a
-        ><a class="button secondary" href="#upload-panel">Send an existing file</a>
+        ><a class="button" href="#upload-panel">Send an existing file</a>
       </nav>
       <section id="signin" class="signin-panel" hidden>
         <h2>Sign in</h2>
@@ -83,7 +83,7 @@
                 required
                 placeholder="A title for your idea"
               />
-              <details class="book-metadata">
+              <details class="disclosure book-metadata">
                 <summary>Author and language</summary>
                 <div class="field-row">
                   <div>
@@ -129,9 +129,7 @@
               </p>
               <div class="actions">
                 <button type="submit">Create EPUB</button>
-                <button class="plain-button" type="button" id="example-button">
-                  Use the example
-                </button>
+                <button class="secondary" type="button" id="example-button">Use the example</button>
               </div>
             </form>
             <div id="created" class="result" hidden></div>
@@ -139,7 +137,8 @@
           <section class="panel task-panel" id="upload-panel" aria-label="Send an existing file">
             <form id="upload-form">
               <label class="file-drop" for="original"
-                ><span class="upload-symbol" aria-hidden="true">↥</span
+                ><span class="upload-symbol" aria-hidden="true"
+                  ><svg viewBox="0 0 16 16"><path d="M8 12V4M4.5 7.5 8 4l3.5 3.5" /></svg></span
                 ><strong id="file-name">Choose an EPUB or PDF</strong
                 ><span id="file-info">Unchanged · 20 MiB</span
                 ><input
@@ -172,7 +171,7 @@
               <strong id="sender-address"></strong>
               <button
                 id="copy-sender"
-                class="plain-button"
+                class="secondary"
                 type="button"
                 aria-describedby="copy-sender-status"
               >
@@ -180,7 +179,7 @@
               </button>
               <span id="copy-sender-status" class="field-help" role="status"></span>
             </div>
-            <details class="amazon-setup">
+            <details class="disclosure amazon-setup">
               <summary>Amazon setup</summary>
               <ol>
                 <li>
@@ -208,7 +207,7 @@
               </p>
             </details>
             <div id="reader-list"></div>
-            <details id="setup-details">
+            <details class="disclosure" id="setup-details">
               <summary>Add a Kindle address</summary>
               <p class="field-help">
                 Saving sends no email. Your first address becomes the default.
@@ -227,7 +226,7 @@
                   autocapitalize="none"
                   spellcheck="false"
                   maxlength="180"
-                  placeholder="Paste the full address from Amazon"
+                  placeholder="name@kindle.com"
                   aria-describedby="kindle-email-help"
                 />
                 <p id="kindle-email-help" class="field-help">
@@ -241,7 +240,7 @@
             </details>
           </section>
           <section class="panel connect-panel" id="connect-agent">
-            <details id="connect-details">
+            <details class="disclosure" id="connect-details">
               <summary>Connect your agent</summary>
               <p>
                 Connect once and sign in. Your agent reads the guide, then creates a book or
@@ -255,7 +254,7 @@
                 >
                 · <a href="/palim-plugin.zip">Codex connection package</a>
               </p>
-              <details class="book-metadata">
+              <details class="disclosure book-metadata">
                 <summary>Give your agent an image</summary>
                 <p class="field-help">
                   PNG or JPEG, up to 20 MiB and four million pixels. A book can use up to 8 MiB of
