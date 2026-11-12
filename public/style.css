@@ -1,4 +1,27 @@
 @charset "UTF-8";
+/* IBM Plex Mono: the technical voice, shared with the landing page. */
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/fonts/IBMPlexMono-Latin-400.woff2) format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(/fonts/IBMPlexMono-Latin-500.woff2) format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* latin-ext */
 @font-face {
   font-family: 'Manrope';
@@ -23,23 +46,23 @@
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 :root {
-  --paper: #fafaf7;
-  --white: #ffffff;
-  --ink: #11151b;
-  --muted: #626975;
-  --success: #2c584c;
+  /* The palette is the landing page's: cream paper, ink, one indigo. */
+  --paper: #e8e5db;
+  --white: #f7f5ee;
+  --ink: #1a1916;
+  --muted: #6d685d;
+  --success: #2f5d4c;
   --danger: #8f2424;
-  --line: #d9dce0;
-  --accent: #baccf4;
-  --action: #11151b;
-  --focus: #315d9c;
-  --input-border: #828a96;
+  --line: #d6d1c2;
+  --accent: #c5cef0;
+  --action: #263fa9;
+  --action-deep: #17256c;
+  --focus: #263fa9;
+  --input-border: #b3ae9f;
   /* The brand, shared with the landing page: an IBM-blue mark, a monospace voice. */
   --ibm: #263fa9;
   --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
   --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-  --ibm: #1d49c8;
   font-family: var(--sans);
   font-size: 100%;
   color: var(--ink);
@@ -47,14 +70,14 @@
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
-  --canvas: #f1f3f3;
-  --surface-subtle: #f8f9fa;
-  --control-track: #e1e5e8;
-  --surface-hover: #eceef0;
-  --action-hover: #2c343e;
-  --on-dark-muted: #c2c7d0;
-  --on-dark-faint: #9ca4b0;
-  --on-dark-border: #858a94;
+  --canvas: #ded9cb;
+  --surface-subtle: #f1efe6;
+  --control-track: #d2cdbe;
+  --surface-hover: #e6e2d6;
+  --action-hover: #314bc0;
+  --on-dark-muted: #c6c1b3;
+  --on-dark-faint: #9d9789;
+  --on-dark-border: #7d786c;
   --container-max: 82.5rem;
   --site-margin: clamp(1.25rem, calc(0.41428571rem + 3.42857143vw), 3.5rem);
   --grid-gap: clamp(1.5rem, calc(1rem + 2vw), 3rem);
@@ -75,9 +98,6 @@
   --target-min: 2.75rem;
   --radius-control: 0.5rem;
   --radius-surface: 0.75rem;
-  /* The brand: an IBM-blue mark and a monospace voice, shared with the landing page. */
-  --ibm: #1d49c8;
-  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 * {
   box-sizing: border-box;
@@ -141,9 +161,10 @@ p {
 .nav {
   min-height: 5.75rem;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--line);
 }
 /* The mark: an emblem plus the word, matching the landing page. */
@@ -203,7 +224,10 @@ button,
   background: var(--action);
   color: var(--white);
   border: 1px solid var(--action);
-  border-radius: 8px;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 #ffffff2e,
+    0 2px 0 var(--action-deep);
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1.4;
@@ -211,19 +235,31 @@ button,
   transition:
     background-color 150ms,
     border-color 150ms,
-    color 150ms;
+    color 150ms,
+    transform 150ms;
 }
 .button:hover,
 button:hover {
   background: var(--action-hover);
+  border-color: var(--action-hover);
+}
+
+.button:active,
+button:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 0 #ffffff1a,
+    0 1px 0 var(--action-deep);
 }
 .secondary {
   background: transparent;
   border-color: var(--input-border);
   color: var(--ink);
+  box-shadow: none;
 }
 .secondary:hover {
   background: var(--surface-hover);
+  border-color: var(--muted);
 }
 .small-button {
   min-height: var(--target-min);
@@ -498,8 +534,9 @@ button:hover {
 #account-name {
   max-width: 13.75rem;
   overflow-wrap: anywhere;
-  color: #b8c0cc;
+  color: #c6c1b3;
   font-size: var(--text-meta);
+  font-family: var(--mono);
 }
 .workspace {
   padding-block: var(--space-4) var(--space-5);
@@ -532,27 +569,32 @@ button:hover {
   display: flex;
   flex-wrap: wrap;
   width: fit-content;
-  gap: 0.25rem;
-  border-radius: 10px;
-  padding: 0.25rem;
-  background: var(--control-track);
-  margin-bottom: var(--space-3);
+  gap: 0.5rem;
+  margin-bottom: var(--space-4);
 }
 .job-choices .button {
-  color: var(--muted);
-  border: 0;
-  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--input-border);
+  background: var(--white);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 2px 0 #b9b4a6;
   min-height: var(--control-height);
   padding: 0.625rem 1.25rem;
-  font-size: var(--text-label);
+  font-size: 0.9375rem;
 }
 .job-choices .button[aria-current] {
-  background: var(--white);
-  color: var(--ink);
-  box-shadow: 0 1px 4px #11151b0c;
+  background: var(--action);
+  border-color: var(--action);
+  color: var(--white);
+  box-shadow:
+    inset 0 1px 0 #ffffff2e,
+    0 2px 0 var(--action-deep);
 }
 .job-choices .button:not([aria-current]):hover {
-  background: #ffffff70;
+  background: #fffdf8;
+  border-color: var(--muted);
 }
 #reader-choice {
   display: flex;
@@ -597,9 +639,9 @@ button:hover {
 }
 .task-panel {
   background: var(--white);
-  padding: 2rem var(--space-4);
-  border: 1px solid #dce0e3;
-  border-radius: 12px;
+  padding: 1.75rem var(--space-4) 2rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
 }
 .panel h2 {
   font-size: 1.4375rem;
@@ -618,8 +660,10 @@ button:hover {
 }
 label {
   display: block;
-  font-size: var(--text-label);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
   font-weight: 500;
+  letter-spacing: 0.01em;
   margin-bottom: var(--space-1);
 }
 input,
@@ -629,7 +673,7 @@ select {
   display: block;
   width: 100%;
   border: 1px solid var(--input-border);
-  border-radius: 8px;
+  border-radius: 3px;
   background: var(--white);
   color: var(--ink);
   padding: 0.75rem 0.875rem;
@@ -690,7 +734,8 @@ textarea {
 .field-help,
 .quiet {
   color: var(--muted);
-  font-size: var(--text-meta);
+  font-family: var(--mono);
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 .field-help {
@@ -1081,7 +1126,19 @@ summary {
     display: none;
   }
   .wordmark {
-    font-size: 1.875rem;
+    font-size: 1rem;
+  }
+
+  .nav {
+    min-height: 4.25rem;
+  }
+
+  #account-name {
+    max-width: 100%;
+  }
+
+  .workspace-page .nav nav {
+    gap: 0.75rem;
   }
 
   .hero-stage {

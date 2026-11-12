@@ -264,12 +264,11 @@ export class Palim {
     await this.store.user(owner);
     const parsed = BookSchema.safeParse(value);
     if (!parsed.success)
+      // One plain sentence for the reader. The issue list is developer detail
+      // and does not belong in a public payload.
       throw new PalimError(
         'INVALID_MANUSCRIPT',
-        parsed.error.issues
-          .map((i) => `${i.path.join('.')}: ${i.message}`)
-          .join('; ')
-          .slice(0, 1600),
+        'The manuscript could not be rendered. Check the title, the language code and the chapter text.',
       );
     await this.store.admit(owner, 'render');
     const book: Book = parsed.data;

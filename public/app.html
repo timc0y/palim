@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Your workspace · Palim</title>
+    <title>Studio · Palim</title>
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#FAFAF7" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
@@ -11,7 +11,7 @@
     <script type="module" src="/app.js"></script>
   </head>
   <body class="workspace-page">
-    <a class="skip-link" href="#main-content">Skip to workspace</a>
+    <a class="skip-link" href="#main-content">Skip to studio</a>
     <header class="nav wrap">
       <a class="wordmark" href="/">
         <svg class="wordmark__emblem" viewBox="0 0 32 32" aria-hidden="true">
@@ -30,21 +30,18 @@
     <main id="main-content" class="wrap workspace">
       <div class="workspace-heading">
         <div>
-          <h1>Reading desk</h1>
-          <p>Make a book or send one you already have.</p>
+          <h1>Studio</h1>
+          <p>Create an EPUB, or send one you already have.</p>
         </div>
         <a id="connect-shortcut" href="#connect-agent" hidden>Connect your agent</a>
       </div>
       <nav class="job-choices" aria-label="Choose a task">
-        <a class="button" href="#create-form" aria-controls="create-panel">Create an EPUB</a
-        ><a class="button secondary" href="#upload-form" aria-controls="upload-panel"
-          >Send an existing file</a
-        >
+        <a class="button" href="#create-panel">Create an EPUB</a
+        ><a class="button secondary" href="#upload-panel">Send an existing file</a>
       </nav>
-      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
       <section id="signin" class="signin-panel" hidden>
         <h2>Sign in to Palim</h2>
-        <p>Use your normal inbox, not your Kindle address. We’ll email a six-digit sign-in code.</p>
+        <p>We’ll email a six-digit code to your inbox. Your Kindle address comes later.</p>
         <form id="login-email-form">
           <label for="login-email">Your inbox email</label>
           <input
@@ -73,9 +70,7 @@
           <button id="change-login-email" type="button" class="plain-button">Change email</button>
           <button id="resend-login" type="button" class="plain-button">Request another code</button>
         </form>
-        <p class="quiet">
-          The sign-in code expires after five minutes. No books are sent when you sign in.
-        </p>
+        <p class="quiet">The code expires after five minutes. Signing in sends nothing.</p>
       </section>
       <div id="desk" class="desk" hidden>
         <div class="desk-main">
@@ -128,41 +123,22 @@
                 placeholder="Write or paste the text you want to read."
               ></textarea>
               <p class="field-help">
-                Markdown headings, lists, code and tables are supported. For multiple chapters and
-                your own figures, use a connected agent.
+                Markdown headings, lists, code and tables work. For chapters and figures, use a
+                connected agent.
               </p>
+              <p class="field-help" id="manuscript-count"></p>
               <p id="example-status" class="field-help" hidden>
                 Example figures and sources are included while you edit.
                 <button type="button" class="plain-button" id="remove-example">Remove them</button>
               </p>
               <div class="actions">
-                <button type="submit">Create EPUB <span aria-hidden="true">↗</span></button
+                <button type="submit">Create EPUB</button>
                 ><button class="plain-button" type="button" id="example-button">
                   Use the example
                 </button>
               </div>
             </form>
             <div id="created" class="result" hidden></div>
-            <details class="book-metadata">
-              <summary>Upload an image for your agent</summary>
-              <p class="field-help">
-                PNG or JPEG, up to 20 MiB and four million pixels. A book can use up to 8 MiB of
-                images. Uploads share your allowance and expire after 24 hours. Give the asset ID to
-                your connected agent.
-              </p>
-              <form id="image-form">
-                <label for="figure-image">Figure image</label>
-                <input
-                  id="figure-image"
-                  type="file"
-                  accept="image/png,image/jpeg,.png,.jpg,.jpeg"
-                  required
-                />
-                <button type="submit">Upload image</button>
-              </form>
-              <p id="image-result" class="field-help" role="status" hidden></p>
-              <div id="image-assets"></div>
-            </details>
           </section>
           <section class="panel task-panel" id="upload-panel" aria-label="Send an existing file">
             <h2>Send an existing file</h2>
@@ -179,27 +155,22 @@
                   required
               /></label>
               <p class="field-help">
-                Upload first, then choose where to send. Email is limited to 5 MiB after encoding.
+                Upload first, then choose where to send. Email carries 5 MiB after encoding; larger
+                files stay downloadable.
               </p>
-              <button type="submit">Upload unchanged ↗</button>
+              <button type="submit">Upload unchanged</button>
             </form>
             <div id="uploaded" class="result" hidden></div>
           </section>
           <section class="panel shelf-panel">
             <h2>Temporary shelf</h2>
-            <div id="reader-choice" class="reader-picker" hidden>
-              <label for="send-reader">Send to</label
-              ><select id="send-reader" data-reader-choice aria-describedby="reader-choice-help">
-                <option value="">Add a Kindle address to send</option>
-              </select>
-              <p class="field-help" id="reader-choice-help">
-                Each Send uses the selected address. Creating and downloading need no Kindle setup.
-              </p>
+            <div id="shelf" class="shelf">
+              <p class="quiet">Files you create or upload appear here for 24 hours.</p>
             </div>
-            <div id="shelf" class="shelf"><p class="quiet">Your recent files appear here.</p></div>
           </section>
         </div>
         <aside class="desk-aside">
+          <p class="field-help" id="allowance"></p>
           <section class="panel reader-panel">
             <h2>Kindle addresses</h2>
             <p id="destination-status">No saved Kindle addresses yet.</p>
@@ -217,7 +188,7 @@
               <span id="copy-sender-status" class="field-help" role="status"></span>
             </div>
             <details class="amazon-setup">
-              <summary>Amazon setup (UK)</summary>
+              <summary>Amazon setup</summary>
               <ol>
                 <li>
                   <a href="https://www.amazon.co.uk/mycd" target="_blank" rel="noopener noreferrer"
@@ -230,11 +201,11 @@
                 </li>
                 <li>
                   Find your <strong>Send-to-Kindle email address</strong> in the same settings and
-                  save it below.
+                  save it in the form below.
                 </li>
               </ol>
               <p class="field-help">
-                Use the Amazon store your Kindle is registered to.
+                These links are the UK store. Use the Amazon store your Kindle is registered to.
                 <a
                   href="https://www.amazon.co.uk/gp/help/customer/display.html?nodeId=GX9XLEVV8G4DB28H"
                   target="_blank"
@@ -267,8 +238,8 @@
                   aria-describedby="kindle-email-help"
                 />
                 <p id="kindle-email-help" class="field-help">
-                  Copy the full address Amazon assigned to your device, including any underscores or
-                  suffix. This is different from your inbox email.
+                  The full address Amazon gave your device, including any suffix. Not your inbox
+                  email.
                 </p>
                 <label for="reader-label">Name <span class="optional">optional</span></label>
                 <input id="reader-label" maxlength="40" placeholder="e.g. Bedside or Travel" />
@@ -280,8 +251,8 @@
             <details id="connect-details">
               <summary>Connect your agent</summary>
               <p>
-                Connect once and sign in. Your agent uses the guide to create books or send existing
-                files when you ask.
+                Connect once and sign in. Your agent reads the guide, then creates a book or
+                forwards an original unchanged, when you ask.
               </p>
               <code id="mcp-url"></code
               ><button id="copy-mcp" class="secondary">Copy MCP address</button>
@@ -291,6 +262,25 @@
                 >
                 · <a href="/palim-plugin.zip">Codex connection package</a>
               </p>
+              <details class="book-metadata">
+                <summary>Give your agent an image</summary>
+                <p class="field-help">
+                  PNG or JPEG, up to 20 MiB and four million pixels. A book can use up to 8 MiB of
+                  images. Uploads share your allowance and expire after 24 hours.
+                </p>
+                <form id="image-form">
+                  <label for="figure-image">Figure image</label>
+                  <input
+                    id="figure-image"
+                    type="file"
+                    accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+                    required
+                  />
+                  <button type="submit">Upload image</button>
+                </form>
+                <p id="image-result" class="field-help" role="status" hidden></p>
+                <div id="image-assets"></div>
+              </details>
             </details>
           </section>
           <section class="panel receipt-panel" id="receipt-panel" hidden>
@@ -298,9 +288,6 @@
             <div id="receipt"></div>
             <button class="secondary" id="refresh-receipt">Refresh receipt</button>
           </section>
-          <p class="aside-note">
-            Files stay here for 24 hours. Download the work you want to keep.
-          </p>
         </aside>
       </div>
     </main>

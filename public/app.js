@@ -3,13 +3,35 @@ let currentAccount = null,
   receiptId = null,
   example = null,
   selectedReaderId = '';
-function notice(message, error = false) {
-  $('notice').textContent = message;
-  $('notice').className = `notice${error ? ' error' : ''}`;
-  $('notice').hidden = false;
+/** The feedback slot for an area, created on demand. */
+function feedbackFor(area) {
+  if (!area) return null;
+  let box = area.querySelector(':scope > .action-feedback');
+  if (!box) {
+    box = document.createElement('p');
+    box.className = 'action-feedback';
+    box.tabIndex = -1;
+    area.append(box);
+  }
+  return box;
+}
+
+/** Show a message in the feedback slot beside the control that caused it. */
+function feedback(area, message, error = false) {
+  const box = feedbackFor(area);
+  if (!box) return null;
+  box.textContent = message;
+  box.className = `action-feedback${error ? ' error' : ''}`;
+  box.setAttribute('role', error ? 'alert' : 'status');
+  return box;
 }
 async function api(path, options = {}) {
-  const response = await fetch(path, { credentials: 'same-origin', ...options });
+  let response;
+  try {
+    response = await fetch(path, { credentials: 'same-origin', ...options });
+  } catch {
+    throw new Error('Palim could not reach the server. Check your connection and try again.');
+  }
   let data;
   try {
     data = await response.json();
@@ -53,16 +75,11 @@ function button(label, callback, style = 'secondary') {
   return b;
 }
 async function busy(element, work) {
-  const original = element.textContent;
+  const label = element.querySelector('.btn-label') || element;
+  const original = label.textContent;
   const form = element.closest('form'),
     area = form || element.closest('.shelf-item,.reader-item') || element.parentElement;
-  let feedback = area.querySelector(':scope > .action-feedback');
-  if (!feedback) {
-    feedback = document.createElement('p');
-    feedback.className = 'action-feedback';
-    feedback.tabIndex = -1;
-    area.append(feedback);
-  }
+  const feedback = feedbackFor(area);
   feedback.textContent = '';
   if (form) {
     feedback.id = `${form.id}-feedback`;
@@ -80,7 +97,7 @@ async function busy(element, work) {
     'login-email-form': 'Requesting code…',
     'login-code-form': 'Signing in…',
   };
-  element.textContent =
+  label.textContent =
     element.id === 'resend-login'
       ? 'Requesting code…'
       : states[form?.id] || (/Send/.test(original) ? 'Sending…' : 'Working…');
@@ -106,7 +123,7 @@ async function busy(element, work) {
   } finally {
     if (form) form.setAttribute('aria-busy', 'false');
     element.disabled = false;
-    element.textContent = original;
+    label.textContent = original;
   }
 }
 function chosenReader() {
@@ -210,9 +227,8 @@ function showReceipt(receipt) {
   summary.textContent = 'Submission details';
   details.append(summary, id);
   box.append(state, recipient, message, details);
-  box.tabIndex = -1;
-  box.focus();
-  notice(receipt.message);
+  state.tabIndex = -1;
+  state.focus();
 }
 async function send(artifactId) {
   const destinationId = chosenReader()?.id;
@@ -256,8 +272,8 @@ function showArtifact(target, artifact) {
   box.append(technical);
   syncReaderChoices();
   updateSendTargets();
-  box.tabIndex = -1;
-  box.focus();
+  title.tabIndex = -1;
+  title.focus();
   if (!artifact.emailEligible) {
     const warning = document.createElement('p');
     warning.textContent =
@@ -292,16 +308,16 @@ function showShelf(artifacts) {
     links.append(link('Download', a.downloadUrl));
     if (a.previewUrl) links.append(link('Preview', a.previewUrl));
     if (a.emailEligible) links.append(sendButton(a.artifactId));
-    links.append(
-      button(
-        'Delete',
-        async () => {
-          await api(`/api/files/${a.artifactId}`, { method: 'DELETE' });
-          await refresh();
-        },
-        'plain-button',
-      ),
+    const remove = button(
+      'Delete',
+      async () => {
+        await api(`/api/files/${a.artifactId}`, { method: 'DELETE' });
+        await refresh();
+      },
+      'plain-button',
     );
+    remove.setAttribute('aria-label', `Delete ${a.filename}`);
+    links.append(remove);
     const recipient = document.createElement('p');
     recipient.className = 'send-target';
     item.append(title, info);
@@ -359,6 +375,10 @@ async function refresh() {
     $('destination-status').textContent = currentAccount.destinations.length
       ? `${currentAccount.destinations.length} of 5 addresses saved`
       : 'No saved Kindle addresses yet.';
+    const limits = currentAccount.limits;
+    $('allowance').textContent = limits
+      ? `Each day: ${limits.renders} books, ${limits.uploads} uploads, ${limits.sends} emails. Files live for ${limits.retentionHours} hours.`
+      : '';
     if (!currentAccount.destinations.length) $('setup-details').open = true;
     const full = currentAccount.destinations.length >= 5;
     $('destination-form').hidden = full;
@@ -373,27 +393,28 @@ async function refresh() {
       const address = document.createElement('p');
       address.textContent = d.email + (d.isDefault ? ' · Default' : '');
       row.append(name, address);
-      if (!d.isDefault)
-        row.append(
-          button(
-            'Make default',
-            async () => {
-              await post(`/api/destinations/${d.id}/default`, {});
-              await refresh();
-            },
-            'plain-button',
-          ),
-        );
-      row.append(
-        button(
-          'Remove',
+      if (!d.isDefault) {
+        const makeDefault = button(
+          'Make default',
           async () => {
-            await api(`/api/destinations/${d.id}`, { method: 'DELETE' });
+            await post(`/api/destinations/${d.id}/default`, {});
             await refresh();
           },
           'plain-button',
-        ),
+        );
+        makeDefault.setAttribute('aria-label', `Make ${d.label} the default address`);
+        row.append(makeDefault);
+      }
+      const removeAddress = button(
+        'Remove',
+        async () => {
+          await api(`/api/destinations/${d.id}`, { method: 'DELETE' });
+          await refresh();
+        },
+        'plain-button',
       );
+      removeAddress.setAttribute('aria-label', `Remove ${d.label}`);
+      row.append(removeAddress);
       list.append(row);
     }
     showShelf(currentAccount.artifacts.filter((artifact) => artifact.kind === 'document'));
@@ -408,21 +429,31 @@ async function refresh() {
       $('desk').hidden = true;
       $('connect-shortcut').hidden = true;
       $('logout').hidden = true;
-      $('reader-choice').hidden = true;
       $('image-result').hidden = true;
       $('image-result').textContent = '';
       $('image-assets').replaceChildren();
       $('image-form').reset();
-    } else notice(e.message, true);
+      // Clear the previous account's private files and addresses from the page.
+      for (const id of ['created', 'uploaded', 'shelf', 'reader-list']) {
+        $(id).replaceChildren();
+        $(id).hidden = true;
+      }
+      $('destination-status').textContent = '';
+      $('sender-address').textContent = '';
+      $('account-name').textContent = '';
+      currentAccount = null;
+      selectedReaderId = '';
+      receiptId = null;
+    } else feedback($('desk'), e.message, true);
   }
 }
 function chooseTask(hash) {
-  const upload = hash === '#upload-form';
+  const upload = hash === '#upload-panel';
   $('create-panel').hidden = upload;
   $('upload-panel').hidden = !upload;
   for (const a of document.querySelectorAll('.job-choices a')) {
-    if (a.hash === (upload ? '#upload-form' : '#create-form'))
-      a.setAttribute('aria-current', 'page');
+    if (a.hash === (upload ? '#upload-panel' : '#create-panel'))
+      a.setAttribute('aria-current', 'true');
     else a.removeAttribute('aria-current');
   }
 }
@@ -433,10 +464,12 @@ for (const a of document.querySelectorAll('.job-choices a'))
     chooseTask(a.hash);
   });
 addEventListener('hashchange', () => {
-  if (['#create-form', '#upload-form'].includes(location.hash)) chooseTask(location.hash);
+  if (['#create-panel', '#upload-panel'].includes(location.hash)) chooseTask(location.hash);
 });
-chooseTask(location.hash === '#upload-form' ? '#upload-form' : '#create-form');
-$('connect-shortcut').addEventListener('click', () => {
+chooseTask(location.hash === '#upload-panel' ? '#upload-panel' : '#create-panel');
+$('connect-shortcut').addEventListener('click', (event) => {
+  event.preventDefault();
+  history.replaceState(null, '', location.pathname);
   $('connect-details').open = true;
   $('connect-details').querySelector('summary').focus({ preventScroll: true });
 });
@@ -447,6 +480,15 @@ $('original').addEventListener('change', () => {
     ? `${(file.size / 1024).toFixed(1)} KiB · Original file`
     : 'Your original stays unchanged · up to 20 MiB';
 });
+const MANUSCRIPT_LIMIT = 50000;
+const manuscriptCount = $('manuscript-count');
+const updateManuscriptCount = () => {
+  const used = $('manuscript').value.length;
+  manuscriptCount.textContent = `${used.toLocaleString()} / ${MANUSCRIPT_LIMIT.toLocaleString()} characters`;
+};
+$('manuscript').addEventListener('input', updateManuscriptCount);
+updateManuscriptCount();
+
 $('figure-image').addEventListener('change', () => {
   $('image-result').hidden = true;
   $('image-result').textContent = '';
@@ -454,10 +496,12 @@ $('figure-image').addEventListener('change', () => {
 $('create-form').addEventListener('submit', (event) => {
   event.preventDefault();
   busy(event.submitter, async () => {
+    const markdown = $('manuscript').value;
+    const heading = /^\s{0,3}#{1,3}\s+(.+)$/m.exec(markdown)?.[1]?.trim();
     const body = {
       title: $('title').value.trim(),
       language: $('language').value,
-      chapters: [{ title: 'The guide', markdown: $('manuscript').value }],
+      chapters: [{ title: heading || $('title').value.trim() || 'Reading edition', markdown }],
     };
     if ($('creator').value.trim()) body.creator = $('creator').value.trim();
     if (example) {
@@ -470,14 +514,17 @@ $('create-form').addEventListener('submit', (event) => {
         .map((f) => ({ ...f }));
       for (const figure of body.figures) {
         if (figure.kind === 'image' && figure.assetId === '00000000-0000-4000-8000-000000000001') {
-          const illustration = await fetch('/images/sample-exposure.png');
-          if (!illustration.ok) throw new Error('The example illustration could not be loaded.');
-          const uploaded = await api('/api/files?kind=image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'image/png', 'X-Filename': 'sample-exposure.png' },
-            body: await illustration.blob(),
-          });
-          figure.assetId = uploaded.artifactId;
+          if (!example.assetId) {
+            const illustration = await fetch('/images/sample-exposure.png');
+            if (!illustration.ok) throw new Error('The example illustration could not be loaded.');
+            const uploaded = await api('/api/files?kind=image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'image/png', 'X-Filename': 'sample-exposure.png' },
+              body: await illustration.blob(),
+            });
+            example.assetId = uploaded.artifactId;
+          }
+          figure.assetId = example.assetId;
         }
       }
       body.sources = example.sources;
@@ -485,7 +532,7 @@ $('create-form').addEventListener('submit', (event) => {
     }
     const artifact = await post('/api/books', body);
     showArtifact('created', artifact);
-    notice('Your book is ready. It has not been sent.');
+    feedback($('create-form'), 'Your book is ready. It has not been sent.');
     await refresh();
   });
 });
@@ -505,7 +552,8 @@ $('example-button').addEventListener('click', (event) =>
       .map((c) => `# ${c.title}\n\n${c.markdown}`)
       .join('\n\n');
     $('example-status').hidden = false;
-    notice(
+    feedback(
+      $('create-form'),
       'Loaded the illustrated example. You can edit its text; referenced figures and source notes stay attached.',
     );
   }),
@@ -513,7 +561,10 @@ $('example-button').addEventListener('click', (event) =>
 $('remove-example').addEventListener('click', () => {
   example = null;
   $('example-status').hidden = true;
-  notice('Example figures and sources removed. Remove any figure: references from your text.');
+  feedback(
+    $('create-form'),
+    'Example figures and sources removed. Remove any figure: references left in your text.',
+  );
 });
 $('upload-form').addEventListener('submit', (event) => {
   event.preventDefault();
@@ -529,7 +580,7 @@ $('upload-form').addEventListener('submit', (event) => {
       body: file,
     });
     showArtifact('uploaded', artifact);
-    notice('The original is uploaded unchanged. Nothing has been sent.');
+    feedback($('upload-form'), 'Uploaded unchanged. Nothing has been sent.');
     await refresh();
   });
 });
@@ -590,8 +641,12 @@ $('copy-sender').addEventListener('click', (event) =>
 );
 $('copy-mcp').addEventListener('click', (event) =>
   busy(event.currentTarget, async () => {
-    await navigator.clipboard.writeText(`${location.origin}/mcp`);
-    notice('MCP address copied.');
+    try {
+      await navigator.clipboard.writeText(`${location.origin}/mcp`);
+    } catch {
+      throw new Error('Copy is unavailable. Select and copy the address above.');
+    }
+    feedback($('connect-panel'), 'MCP address copied.');
   }),
 );
 document.addEventListener('change', (event) => {

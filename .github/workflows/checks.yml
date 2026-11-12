@@ -13,7 +13,8 @@ defaults:
     shell: bash
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest now resolves to a release Playwright 1.56 cannot install.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       WRANGLER_SEND_METRICS: 'false'

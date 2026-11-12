@@ -210,7 +210,7 @@ try:
             travel = next(row for row in rows if row['label'] == 'Travel')
             page.locator('#setup-details').evaluate('(e)=>e.open=true')
             page.locator('#kindle-email').fill('draft@kindle.com')
-            page.locator('#reader-list .reader-item').filter(has_text='Travel').get_by_role('button',name='Make default').click()
+            page.locator('#reader-list .reader-item').filter(has_text='Travel').get_by_role('button',name='Make Travel Kindle the default address').click()
             expect(page.locator('#setup-details')).to_have_attribute('open', '')
             expect(page.locator('#kindle-email')).to_have_value('draft@kindle.com')
             expect(page.locator('#reader-list .reader-item').filter(has_text='Travel')).to_contain_text('Default')
@@ -478,17 +478,17 @@ try:
             browser_page.goto(ORIGIN, wait_until='networkidle')
             browser_page.keyboard.press('Tab')
             browser_page.keyboard.press('Tab')
-            assert browser_page.locator('.landing-header .wordmark').evaluate('(e)=>e.matches(":focus-visible")')
-            dark_focus = browser_page.locator('.landing-header .wordmark').evaluate('(e)=>getComputedStyle(e).outlineColor')
-            dark_bg = browser_page.locator('.landing-header').evaluate('(e)=>getComputedStyle(e).backgroundColor')
-            assert contrast(dark_focus,dark_bg) >= 3
-            browser_page.locator('.landing-header').screenshot(path=str(ARTIFACTS / 'focus-dark-header.png'))
-            browser_page.locator('.excerpt-footer a').focus()
-            assert browser_page.locator('.excerpt-footer a').evaluate('(e)=>e.matches(":focus-visible")')
-            light_focus = browser_page.locator('.excerpt-footer a').evaluate('(e)=>getComputedStyle(e).outlineColor')
-            light_bg = browser_page.locator('.edition-section').evaluate('(e)=>getComputedStyle(e).backgroundColor')
+            assert browser_page.locator('.bar .logo').evaluate('(e)=>e.matches(":focus-visible")')
+            light_focus = browser_page.locator('.bar .logo').evaluate('(e)=>getComputedStyle(e).outlineColor')
+            light_bg = browser_page.locator('.bar').evaluate('(e)=>getComputedStyle(e).backgroundColor')
             assert contrast(light_focus,light_bg) >= 3
-            browser_page.locator('.edition-excerpt').screenshot(path=str(ARTIFACTS / 'focus-light-excerpt.png'))
+            browser_page.locator('.bar').screenshot(path=str(ARTIFACTS / 'focus-light-bar.png'))
+            browser_page.locator('.deck .key').first.focus()
+            assert browser_page.locator('.deck .key').first.evaluate('(e)=>e.matches(":focus-visible")')
+            dark_focus = browser_page.locator('.deck .key').first.evaluate('(e)=>getComputedStyle(e).outlineColor')
+            dark_bg = browser_page.locator('.deck').evaluate('(e)=>getComputedStyle(e).backgroundColor')
+            assert contrast(dark_focus,dark_bg) >= 3
+            browser_page.locator('.deck').screenshot(path=str(ARTIFACTS / 'focus-dark-deck.png'))
             browser_page.locator('h1').click()
             print(f'Rendered focus contrast: dark {contrast(dark_focus,dark_bg):.2f}:1, light {contrast(light_focus,light_bg):.2f}:1.')
             browser_page.screenshot(path=str(ARTIFACTS / 'landing-desktop.png'), full_page=True)
@@ -518,7 +518,7 @@ try:
                     sample_page.evaluate('document.body.style.zoom="100%"')
                 sample_page.locator('main').screenshot(path=str(ARTIFACTS / f'sample-prose-{label}.png'))
                 sample_page.goto(ORIGIN, wait_until='networkidle')
-                sample_page.locator('#edition').screenshot(path=str(ARTIFACTS / f'sample-landing-{label}.png'))
+                sample_page.locator('.plate').screenshot(path=str(ARTIFACTS / f'sample-landing-{label}.png'))
             assert not csp_errors, csp_errors
             sample_page.close()
             # Inspect the actual packaged EPUB, rather than assuming its browser preview is identical.
@@ -586,10 +586,10 @@ try:
             expect(browser_page.locator('#title')).to_have_value('One stop of light')
             expect(browser_page.locator('#create-panel')).to_be_visible()
             expect(browser_page.locator('#upload-panel')).to_be_hidden()
-            browser_page.locator('.job-choices a[href="#upload-form"]').click()
+            browser_page.locator('.job-choices a[href="#upload-panel"]').click()
             expect(browser_page.locator('#create-panel')).to_be_hidden()
             expect(browser_page.locator('#upload-panel')).to_be_visible()
-            browser_page.locator('.job-choices a[href="#create-form"]').click()
+            browser_page.locator('.job-choices a[href="#create-panel"]').click()
             expect(browser_page.locator('#title')).to_have_value('One stop of light')
             browser_page.locator('#create-form button[type=submit]').click()
             browser_page.locator('#created a', has_text='Download').wait_for()
@@ -615,7 +615,7 @@ try:
             preview_page.locator('figure').nth(1).screenshot(path=str(ARTIFACTS / 'chart-mobile.png'))
             preview_page.locator('figure').nth(0).screenshot(path=str(ARTIFACTS / 'diagram-mobile.png'))
             preview_page.close()
-            browser_page.locator('.job-choices a[href="#upload-form"]').click()
+            browser_page.locator('.job-choices a[href="#upload-panel"]').click()
             browser_page.locator('#original').set_input_files(str(ROOT / 'public/sample.epub'))
             browser_page.locator('#upload-form button[type=submit]').click()
             browser_page.locator('#uploaded a', has_text='Download').wait_for()
@@ -636,10 +636,10 @@ try:
             database.commit()
             # A fresh upload refreshes account settings while preserving the earlier created result.
             browser_page.locator('#upload-form button[type=submit]').click()
-            expect(browser_page.locator('#send-reader option')).to_have_count(3)
+            expect(browser_page.locator('#uploaded-reader option')).to_have_count(3)
             expect(browser_page.locator('#shelf .shelf-item')).to_have_count(3)
             browser_page.locator('#uploaded-reader').select_option(reader_ids[1])
-            expect(browser_page.locator('#send-reader')).to_have_value(reader_ids[1])
+            expect(browser_page.locator('#uploaded-reader')).to_have_value(reader_ids[1])
             expect(browser_page.locator('#created-reader')).to_have_value(reader_ids[1])
             expect(browser_page.locator('#uploaded .send-target')).to_contain_text('travel@kindle.com')
             browser_page.locator('#uploaded-reader').select_option(reader_ids[0])
@@ -652,7 +652,7 @@ try:
             browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
             browser_page.locator('#kindle-email').fill('draft@kindle.com')
             browser_page.locator('#reader-label').fill('Draft address')
-            browser_page.locator('#reader-list .reader-item').filter(has_text='Travel Kindle').get_by_role('button', name='Make default').click()
+            browser_page.locator('#reader-list .reader-item').filter(has_text='Travel Kindle').get_by_role('button', name='Make Travel Kindle the default address').click()
             expect(browser_page.locator('#reader-list .reader-item').filter(has_text='Travel Kindle')).to_contain_text('Default')
             expect(browser_page.locator('#setup-details')).to_have_attribute('open', '')
             expect(browser_page.locator('#kindle-email')).to_have_value('draft@kindle.com')
@@ -686,7 +686,17 @@ try:
             assert browser_page.evaluate('getComputedStyle(document.documentElement).scrollBehavior') == 'auto'
             browser_page.set_viewport_size({'width':390,'height':844})
             browser_page.evaluate('document.body.style.zoom = "200%"')
-            assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth'), '200% zoom overflow'
+            overflow = browser_page.evaluate('''() => {
+                const limit = document.documentElement.clientWidth;
+                const wide = [];
+                for (const el of document.querySelectorAll('body *')) {
+                    const box = el.getBoundingClientRect();
+                    if (box.width && box.right > limit + 1)
+                        wide.push(`${el.tagName}.${(el.className || '').toString().slice(0, 40)} right=${Math.round(box.right)} width=${Math.round(box.width)}`);
+                }
+                return { limit, scroll: document.documentElement.scrollWidth, wide: wide.slice(0, 8) };
+            }''')
+            assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth'), f'200% zoom overflow {overflow}'
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-zoom-mobile.png'), full_page=True)
             assert not errors, errors
             browser.close()
