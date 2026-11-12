@@ -4,9 +4,9 @@ What has actually been checked for the current release, and what has not.
 
 ## Latest deployment
 
-On 12 November 2026, commit `0801fcb` was deployed to the `tims` account. The Worker `palim` version is `03593ede-970d-498e-9b2b-f88690beb2f3`. The Pages project `palim-timc0y` deployment is `2cd2c6f3`, served at https://palim-timc0y.pages.dev. Remote D1 already had every checked-in migration.
+On 12 November 2026, commit `f14ae0f` was deployed to the `tims` account. The Worker `palim` version is `1931bb4d-a604-4746-901e-e4f94900bc17`. The existing Pages front door at https://palim-timc0y.pages.dev serves that Worker. Remote D1 was left as already migrated.
 
-The live host returned the current landing and studio. Unauthenticated `/mcp` answered `401` with OAuth discovery for that same origin. This check did not sign in, send mail, import a file to Amazon, or read a device.
+The live host returned the current landing: the word, the small mark, the two commands, three books and four keys, with no horizontal overflow at 320px. Unauthenticated `/mcp` answered `401` with OAuth discovery for that same origin. This check did not sign in, send mail, import a file to Amazon, or read a device.
 
 ## What CI proves
 
