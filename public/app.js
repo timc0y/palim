@@ -292,7 +292,7 @@ function showShelf(artifacts) {
   if (!artifacts.length) {
     const p = document.createElement('p');
     p.className = 'empty';
-    p.textContent = 'Your recent files will appear here for 24 hours.';
+    p.textContent = 'Here for 24 hours.';
     shelf.append(p);
     return;
   }

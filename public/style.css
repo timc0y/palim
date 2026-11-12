@@ -334,7 +334,7 @@ button:active {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-3);
-  margin-bottom: var(--space-3);
+  margin-bottom: 0.75rem;
 }
 .workspace-heading > a {
   font-family: var(--mono);
@@ -348,7 +348,7 @@ button:active {
   font-weight: 500;
   letter-spacing: 0.14em;
   line-height: 1.4;
-  margin: 0 0 0.85rem;
+  margin: 0;
 }
 .job-choices {
   display: flex;
