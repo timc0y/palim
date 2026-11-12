@@ -175,16 +175,19 @@ a {
 }
 
 .plate {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: clamp(2rem, 5vh, 3.25rem);
+  --hero: clamp(2.85rem, 13vw, 10rem);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.75rem, 3vw, 4rem);
+  width: 100%;
+  min-width: 0;
 }
 
 .word {
   margin: 0;
   font-weight: 500;
-  font-size: clamp(4.75rem, 20vw, 11rem);
+  font-size: var(--hero);
   letter-spacing: -0.035em;
   line-height: 0.92;
   white-space: nowrap;
@@ -213,19 +216,10 @@ a {
 
 .fold {
   display: block;
-  width: calc(100% + var(--margin));
+  width: min(100%, calc(var(--hero) * 0.92 * 520 / 196));
   height: auto;
-  margin-right: calc(var(--margin) * -1);
-  overflow: visible;
-}
-
-/* Below the wide breakpoint the fold is scaled to fit, not chopped: the
-         idea is the fold, so it has to complete. */
-@media (max-width: 1079px) {
-  .fold {
-    width: 100%;
-    margin-right: 0;
-  }
+  justify-self: start;
+  min-width: 0;
 }
 
 .fold path {
@@ -236,23 +230,9 @@ a {
   stroke-linejoin: miter;
 }
 
-@media (min-width: 1080px) {
-  .plate {
-    display: grid;
-    grid-template-columns: auto minmax(16rem, 1fr);
-    align-items: center;
-    gap: clamp(4rem, 7vw, 8rem);
-    width: 100%;
-  }
-
-  .fold {
-    justify-self: stretch;
-  }
-}
-
 .horizon {
   flex: none;
-  height: 156px;
+  height: 120px;
   background: var(--deck);
 }
 
@@ -264,7 +244,7 @@ a {
 
 @media (min-width: 1080px) {
   .horizon {
-    height: 240px;
+    height: 168px;
   }
 }
 
@@ -368,10 +348,19 @@ a {
 
 .line {
   display: flex;
-  align-items: center;
-  gap: 0.35rem 1.25rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
   margin: 0;
+}
+
+@media (min-width: 960px) {
+  .line {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+  }
 }
 
 .line__cmd {

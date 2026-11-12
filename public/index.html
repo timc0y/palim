@@ -52,16 +52,8 @@
     </main>
 
     <div class="horizon" aria-hidden="true">
-      <svg viewBox="0 0 1440 240" preserveAspectRatio="xMidYMax slice">
+      <svg viewBox="0 0 1440 200" preserveAspectRatio="xMidYMax slice">
         <defs>
-          <pattern id="bits" width="8" height="8" patternUnits="userSpaceOnUse">
-            <rect width="8" height="8" fill="white" />
-            <rect width="4" height="4" fill="black" />
-            <rect x="4" y="4" width="4" height="4" fill="black" />
-          </pattern>
-          <mask id="refl" maskUnits="userSpaceOnUse" x="0" y="0" width="1440" height="240">
-            <rect width="1440" height="240" fill="url(#bits)" />
-          </mask>
           <pattern id="seam" width="16" height="32" patternUnits="userSpaceOnUse">
             <rect width="16" height="8" fill="#e8e5db" />
             <rect x="8" width="8" height="8" fill="#8e8a7e" />
@@ -73,79 +65,25 @@
             <rect y="24" width="8" height="8" fill="#2c2a26" />
           </pattern>
         </defs>
-
-        <rect width="1440" height="160" fill="#e8e5db" />
-        <rect y="160" width="1440" height="80" fill="#131311" />
-        <rect y="136" width="1440" height="32" fill="url(#seam)" />
-
-        <g mask="url(#refl)" shape-rendering="crispEdges">
-          <rect x="48" y="176" width="24" height="40" fill="#e4e0d4" />
-          <rect x="80" y="184" width="16" height="28" fill="#d4cfc3" />
-          <rect x="216" y="180" width="24" height="32" fill="#e4e0d4" />
-          <rect x="512" y="176" width="48" height="32" fill="#f7f4ec" />
-          <rect x="560" y="176" width="16" height="32" fill="#b7b2a6" />
-          <rect x="576" y="176" width="48" height="32" fill="#f3f0e6" />
-          <rect x="696" y="168" width="48" height="48" fill="#c5cef0" />
-          <rect x="712" y="168" width="8" height="16" fill="#f414df" />
-          <rect x="816" y="176" width="48" height="32" fill="#f7f4ec" />
-          <rect x="864" y="176" width="16" height="32" fill="#b7b2a6" />
-          <rect x="880" y="176" width="48" height="32" fill="#f3f0e6" />
-          <rect x="904" y="168" width="8" height="20" fill="#0b98eb" />
-          <rect x="1120" y="180" width="16" height="32" fill="#d4cfc3" />
-          <rect x="1144" y="172" width="24" height="44" fill="#e4e0d4" />
-          <rect x="1176" y="184" width="16" height="28" fill="#d4cfc3" />
-          <rect x="1288" y="184" width="24" height="28" fill="#e4e0d4" />
-        </g>
-
+        <rect width="1440" height="128" fill="#e8e5db" />
+        <rect y="128" width="1440" height="72" fill="#131311" />
+        <rect y="104" width="1440" height="32" fill="url(#seam)" />
         <g shape-rendering="crispEdges">
-          <rect x="48" y="64" width="24" height="96" fill="#1e1d1a" />
-          <rect x="48" y="64" width="8" height="96" fill="#121110" />
-          <rect x="64" y="72" width="8" height="80" fill="#e8e5db" />
+          <rect x="612" y="64" width="40" height="64" fill="#f7f4ec" />
+          <rect x="612" y="64" width="8" height="64" fill="#232220" />
+          <rect x="620" y="76" width="24" height="6" fill="#c4bdae" />
+          <rect x="620" y="90" width="18" height="6" fill="#c4bdae" />
+          <rect x="620" y="104" width="22" height="6" fill="#c4bdae" />
 
-          <rect x="80" y="96" width="16" height="64" fill="#5c574e" />
-          <rect x="80" y="96" width="8" height="64" fill="#2a2824" />
+          <rect x="684" y="32" width="48" height="96" fill="#263fa9" />
+          <rect x="684" y="32" width="8" height="96" fill="#1c2d80" />
+          <rect x="700" y="32" width="8" height="28" fill="#f414df" />
 
-          <rect x="216" y="80" width="24" height="80" fill="#2c2a26" />
-          <rect x="216" y="80" width="8" height="80" fill="#141312" />
-          <rect x="232" y="88" width="8" height="64" fill="#e8e5db" />
-
-          <rect x="512" y="96" width="48" height="64" fill="#f7f4ec" />
-          <rect x="560" y="96" width="16" height="64" fill="#232220" />
-          <rect x="576" y="96" width="48" height="64" fill="#efeae0" />
-          <rect x="520" y="108" width="32" height="8" fill="#c4bdae" />
-          <rect x="520" y="124" width="24" height="8" fill="#c4bdae" />
-          <rect x="520" y="140" width="28" height="8" fill="#c4bdae" />
-          <rect x="584" y="108" width="32" height="8" fill="#c9c2b4" />
-          <rect x="584" y="124" width="20" height="8" fill="#c9c2b4" />
-          <rect x="584" y="140" width="28" height="8" fill="#c9c2b4" />
-
-          <rect x="696" y="48" width="48" height="112" fill="#263fa9" />
-          <rect x="696" y="48" width="8" height="112" fill="#1c2d80" />
-          <rect x="736" y="56" width="8" height="96" fill="#dfe3f6" />
-          <rect x="712" y="48" width="8" height="32" fill="#f414df" />
-
-          <rect x="816" y="88" width="48" height="72" fill="#f7f4ec" />
-          <rect x="864" y="88" width="16" height="72" fill="#232220" />
-          <rect x="880" y="88" width="48" height="72" fill="#efeae0" />
-          <rect x="824" y="104" width="32" height="8" fill="#c4bdae" />
-          <rect x="824" y="120" width="24" height="8" fill="#c4bdae" />
-          <rect x="824" y="136" width="28" height="8" fill="#c4bdae" />
-          <rect x="888" y="104" width="32" height="8" fill="#c9c2b4" />
-          <rect x="888" y="120" width="20" height="8" fill="#c9c2b4" />
-          <rect x="888" y="136" width="24" height="8" fill="#c9c2b4" />
-          <rect x="904" y="64" width="8" height="40" fill="#0b98eb" />
-
-          <rect x="1120" y="72" width="16" height="88" fill="#2c2a26" />
-          <rect x="1120" y="72" width="8" height="88" fill="#141312" />
-          <rect x="1144" y="48" width="24" height="112" fill="#4e4a43" />
-          <rect x="1144" y="48" width="8" height="112" fill="#2a2824" />
-          <rect x="1160" y="56" width="8" height="96" fill="#e8e5db" />
-          <rect x="1176" y="88" width="16" height="72" fill="#1e1d1a" />
-          <rect x="1176" y="88" width="8" height="72" fill="#121110" />
-
-          <rect x="1288" y="96" width="24" height="64" fill="#3a3833" />
-          <rect x="1288" y="96" width="8" height="64" fill="#1e1d1a" />
-          <rect x="1304" y="104" width="8" height="48" fill="#e8e5db" />
+          <rect x="764" y="72" width="40" height="56" fill="#efeae0" />
+          <rect x="764" y="72" width="8" height="56" fill="#232220" />
+          <rect x="772" y="84" width="24" height="6" fill="#c9c2b4" />
+          <rect x="772" y="98" width="16" height="6" fill="#c9c2b4" />
+          <rect x="772" y="112" width="20" height="6" fill="#c9c2b4" />
         </g>
       </svg>
     </div>

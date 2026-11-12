@@ -12,7 +12,7 @@ One mono size carries the wordmark, commands, labels, keys and headings. One rea
 
 ## Landing
 
-No headline, tagline or feature list. The word, the fold, two install commands, a small copy key, and four keys: sample, studio, connect, source. Below 1080px the fold fits inside the viewport. Above that it bleeds off the right edge. A shelf of pixel books closes the page.
+No headline, tagline or feature list. The word and the fold share one line. Two install commands and a small copy key sit under them. Four keys: sample, studio, connect, source. Three pixel books close the page.
 
 ## Studio
 
