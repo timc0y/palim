@@ -476,9 +476,7 @@ $('connect-shortcut').addEventListener('click', (event) => {
 $('original').addEventListener('change', () => {
   const file = $('original').files[0];
   $('file-name').textContent = file?.name || 'Choose an EPUB or PDF';
-  $('file-info').textContent = file
-    ? `${(file.size / 1024).toFixed(1)} KiB · Original file`
-    : 'Your original stays unchanged · up to 20 MiB';
+  $('file-info').textContent = file ? `${(file.size / 1024).toFixed(1)} KiB` : 'Unchanged · 20 MiB';
 });
 const MANUSCRIPT_LIMIT = 50000;
 const manuscriptCount = $('manuscript-count');

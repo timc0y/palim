@@ -6,6 +6,6 @@ Use GitHub's private vulnerability reporting when enabled on this repository. Ot
 
 Reports should identify the affected revision, the smallest reproducible case using synthetic data, expected versus actual behaviour, and the trust boundary crossed. Do not send test mail to addresses you do not control or probe another operator's deployment without permission.
 
-Security controls are enforced in code: account ownership, constrained recipient selection, bounded inputs and archive metadata, explicit host allowlists, same-origin browser actions, maintained OAuth, secret-safe errors and atomic allowance claims. A language model is not a security boundary.
+Security controls are enforced in code: account ownership, constrained recipient selection, bounded inputs and archive metadata, public-HTTPS-only host-file imports with no provider-specific allowlist, same-origin browser actions, maintained OAuth, secret-safe errors and atomic allowance claims. A language model is not a security boundary.
 
 A source review or passing test suite is not a claim of external audit, safe production configuration, successful email delivery or device support. Deployment obligations are in docs/deployment.md.

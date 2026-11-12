@@ -7,7 +7,10 @@ const code = document.querySelector('.line__code');
 
 if (button && code) {
   button.addEventListener('click', async () => {
-    const text = code.textContent.trim();
+    // Both commands are needed: the second resolves the first's marketplace.
+    const text = [...document.querySelectorAll('.line__code')]
+      .map((node) => node.textContent.trim())
+      .join('\n');
     const label = button.textContent;
     try {
       await navigator.clipboard.writeText(text);

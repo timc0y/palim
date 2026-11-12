@@ -1,303 +1,51 @@
 # Verification record
 
-## The mark as the picture — 12 November 2026
-
-The landing page is now the version four independent design reviews each answered separately,
-in the direction the owner chose. Source is commit `b9dfd26` on `main`; the deployed Worker
-version is `94eca3d8-3306-4331-958a-eeac52cf6f0c` behind the `palim-timc0y.pages.dev` front
-door, whose current Pages deployment is `824a5bf1`.
-
-The hero is the mark. The stepped, folded-page stroke of the corner emblem is enlarged until it
-runs off the right edge and becomes the picture, so the small emblem and the giant one are the
-same object at two scales. The wordmark is IBM Plex Mono with a blinking block caret, the
-navigation is a row of hardware keys, and a pixel shelf of books with a dithered reflection closes
-the page. There is no headline, no tagline, no paragraph and no feature grid. One command line,
-`codex plugin add palim@palim`, carries a copy button.
-
-IBM Plex Mono is now self-hosted under `public/fonts/` with its OFL licence in
-`public/fonts/IBMPlexMono-OFL.txt`. The favicon, the Codex plugin icon and the workspace
-wordmark carry the same emblem.
-
-Local evidence: 89 of 89 tests pass, `npm run format:check` passes, and the dry-run bundle
-builds. Live Chromium at 1440x900, 390x844 and 320x800 shows zero horizontal overflow, no
-console errors and no failed requests; the page has seven visible links, one h1, a working skip
-link, no inline style attributes and no external requests, which the strict CSP requires. IBM
-Plex Mono loads on every width, the fold completes within the viewport at 390 and 320 pixels
-while bleeding off the right edge at 1440, and the copy button reports `copied`.
-
-Security boundaries are unchanged on the live origin: `/mcp` and `/api/account` return 401,
-`/app`, `/sample.epub` and the self-hosted font return 200, `/privacy.html` and `/sample.html`
-redirect to their canonical paths, and the CSP, `X-Frame-Options: DENY`, `nosniff`, `same-origin`
-referrer policy and permissions policy are intact. The published repository remains public and MIT.
-
-Not verified: physical devices, screen-reader output, and the illustrated-book promise on a real
-reader. No document, provider email or OAuth grant was created by this work.
-
-## Illustrated authoring work — 27 October 2026
-
-Deployed Worker version `25d30cd5-c1b6-4cfc-ac5f-064c25af1d78` is at 100% on the existing `palim-timc0y.pages.dev` front door, whose current Pages deployment is `278b3cf8-a62c-40c2-91e6-a478c87c9ad5`. The deployed working tree is uncommitted on base `15a1698b83048b5de49c979c1f71eb05f83addff`; the binary Git diff for `src`, `public`, Wrangler and package configuration, and the example/plugin build scripts has SHA-256 `a2c2fbdd4f8626069d6ff803a939c3acaa7b87c214e1926e642584ba13711b76`. This digest identifies that tracked diff, not a commit or a full artifact hash.
-
-The deployment command passed local checks before uploading. Live reads of `/`, `/app`, `/app.js`, `/style.css` and `/sample.epub` matched their local files byte for byte. An unauthenticated MCP request returned the OAuth challenge and its advertised metadata endpoint returned 200; `/api/account` returned 401. The existing authenticated Palim connection returned the updated `get_guide`, including the image-import and original-forwarding instructions. This session's available tool list did not expose `import_image`; a fresh client discovery and actual host-file handoff remain unverified. No document or provider email was sent during this deployment.
-
-Local, uncommitted changes add an MCP image import and workspace image upload for generated books, expand the agent's visual and evidence guidance, use a simpler EPUB text treatment, and preserve captions when a figure is repeated in a chapter. The import uses the existing public-only host-file path, account ownership, image limits and shared upload allowance. The separate original-document path and delivery rules remain unchanged.
-
-Local `npm run check` passed 89 tests before the workspace-only follow-up, including an MCP image import to generated EPUB with byte-identical image data and repeated captions, refusal of another account's image, scoped access, upload limits, and the existing EPUB/PDF forwarding and email-binding regressions. The browser upload route is also covered by an authenticated local service test. The first test run exposed a fixed-date fixture that expired before MCP used it; the fixture now uses the same current clock as MCP. These checks use synthetic data; external storage, imported host files and mail are test doubles except where a local binding test is explicitly named.
-
-The disposable direct-Worker browser proof used a local identity, local D1/R2 and captured mail. It uploaded an image, recovered identical bytes, copied its ID, checked the ID after reopening the workspace, and exercised the saved-recipient and original-file journeys. It also checked that connecting an agent preserves the chosen task, the selected task remains visible on hover, declining the example preserves a draft, and its figures and sources can be removed. The workspace and image panel were inspected in Chromium at 390 and 1440 pixels. The local dry-run build and format check passed. This is local evidence, not a hosted service or client-integration check. The UI detector reports spacing and design-token advisories; it is not a clean detector pass.
-
-The reference skill was studied without installing it; no files, fonts or code were reused. GitHub's repository metadata did not identify a license when checked. Client-specific file handoff, independent EPUBCheck, screen-reader behaviour, provider email, real Kindle import and physical devices remain unverified for these changes.
-
-## Creation allowance correction — 25 October 2026
-
-The earlier twenty-per-day change covered sending only. Live inspection confirmed the owner was still at two of two render admissions, despite sending being five of twenty. Uploads were four of six, retained artifacts totalled 443,282 bytes, shared render/upload usage was two/four of 160/500, and shared mail usage was six of 80 daily and six of 2,400 monthly. There is no aggregate storage-admission quota in this implementation. No operations were admitted during the reported 20:49–21:07 interval. Denials are not persisted and Worker observability is disabled, so an individual historical tool error cannot be recovered from those sources; the full render counter and unchanged hard-coded cap establish the available evidence.
-
-Migration 0007 moves the render allowance into the existing account policy owner, default two and bounded at twenty. The scoped owner update preserves both prior render admissions, delivery attempts, uploads and mail history. Other accounts retain two renders/three sends; shared budgets are unchanged. SQLite/service regression covers a real book creation after the increase, the twenty-render boundary under concurrent admission, other-account isolation and the shared 160-render boundary. All 86 local tests pass, including an actual MCP SDK create_book call that fails at two admissions, succeeds after the account increase, and leaves three admissions rather than resetting them. Full direct-Worker and Pages OAuth/browser proofs pass using disposable local identities/grants and captured mail. No mail is sent by this correction. Exact-source deployment and CI results are reported separately.
-
-## Account send allowance — 25 October 2026
-
-The owner approved raising only their account from ten to twenty document sends per UTC day. Migration 0006 widens the database constraint while preserving existing values and dependent records; the operator update targets the owner of the original delivery receipt. Live D1 checks before and after show five used attempts unchanged, five delivery records and six shared mail-ledger entries unchanged. Other accounts retain the default of three; no other accounts existed at this check. Shared daily/monthly budgets remain 80/2400. No counters, recipients, provider plan or email were changed.
-
-SQLite migration and service regressions cover retained values/records, the twenty-send boundary and other-account isolation. All 84 local tests, build, formatting, production dependency audit and EPUBCheck pass. Full direct-Worker and Pages OAuth/browser proofs also pass with disposable local identities/grants and captured mail only. Exact-source release results are reported separately.
-
-## Address-draft refresh regression — 25 October 2026
-
-The documentation-only follow-up [CI 40230874986](https://github.com/timc0y/palim/actions/runs/40230874986) exposed an intermittent browser failure: an account refresh after submission closed an address form the user had just opened. Refresh now opens setup automatically only when no addresses exist; otherwise it preserves the disclosure and typed draft. Explicit save/capacity handling remains unchanged. A deterministic regression changes the default address with the add-address form open and verifies both its open state and typed email/label survive. Full direct-Worker and Pages OAuth/browser proofs, all 83 unit/contract tests, build and formatting pass locally with disposable identities/grants and captured mail only. No production grant or real email was created. The earlier green CI below remains evidence for its exact source; it did not establish absence of this race.
-
-## GitHub publication and full CI — 25 October 2026
-
-All reviewed commits were pushed normally to `main`, verified remotely at `99dd0a0b01cf076dbc0f8117e5b5968a68214b78`. [Exact-source CI 40230624413](https://github.com/timc0y/palim/actions/runs/40230624413) completed successfully: formatting, 83 tests including the real local email-binding contract, Worker/sample build, zero-vulnerability production audit, independent EPUBCheck, full direct-Worker OAuth/browser proof and full Pages/service-binding OAuth/browser proof. Successful logs were inspected. [Verification artifact 12612836414](https://github.com/timc0y/palim/actions/runs/40230624413/artifacts/12612836414) includes the recorded source revision, publication, bundle and browser/runtime evidence. Test accounts/grants and email captures are disposable/local; no production identity/grant or real email was created by the tests.
-
-Production remains the verified cleanup source `dff50ff7e03068db7181e0f14d716afa87003e7c`, Worker `1812298e-fab0-4a33-a1c8-d13dcd38117b`, Pages `43b7ca44-e4ea-4f33-8ec1-e5565422e723`; provider metadata was refreshed after the push. Later changes affect test runners and evidence only, with no differences in application sources, public assets, Worker configuration or Pages code, so redeployment is unnecessary. The previously held grant-test/publication gate is resolved. Earlier held/unverified entries below describe their dated state, not the current release.
-
-## Full local OAuth regression — 25 October 2026
-
-The owner explicitly approved disposable local OAuth test accounts/grants and matching CI, resolving the earlier test-grant restriction. Full direct-Worker and Pages/browser runs now pass: real Better Auth with captured local mail, client registration, owner-bound consent, PKCE/token exchange, MCP tools/guide, EPUB creation, signed download integrity, unchanged original uploads, binary captured-attachment equality, private-preview CSP, account/destination isolation and session revocation. No production identity/grant or real email was created by these tests.
-
-The newly enabled full path exposed stale test expectations for guide capitalisation, user-facing guide wording and the removed duplicate HTML cover. Assertions now reflect the current contract; tool discovery and canonical guide equality remain checked, archive inspection explicitly requires PNG cover/no SVG/reflowable metadata, and the unpack directory is cleared before inspection to prevent stale-file evidence. Captured attachment bytes are compared directly with the original sample. The standalone native network runner uses the platform-selected workerd executable. These are test-runner changes; deployed application source remains `dff50ff7e03068db7181e0f14d716afa87003e7c` with the cleanup versions below, so no redeployment is required.
-
-## Owner-reported acceptance and cleanup — 25 October 2026
-
-Cleanup deployed source: `dff50ff7e03068db7181e0f14d716afa87003e7c`; Worker `1812298e-fab0-4a33-a1c8-d13dcd38117b`; Pages `43b7ca44-e4ea-4f33-8ec1-e5565422e723`. Provider metadata, live app/style/privacy/plugin asset bytes and the authenticated `get_guide` response match that source. Live checks retain unauthenticated/invalid-token refusal, wrong-origin refusal, canonical OAuth issuer, alternate-host refusal, strictly-public routing, private R2 and disabled Worker preview URLs. Sender verification remains enabled and stored mail previews remain disabled. Local evidence is in `artifacts/production-cleanup.json` and `artifacts/cleanup-*` captures. No cleanup mail was sent.
-
-After the binary-attachment correction, the parent submitted one expressly approved additional copy at 19:56:19 UTC. Provider transport reported recipient-server delivery at 19:56:20. The artifact/receipt hash matches the validated PNG-only EPUB; the owner subsequently said “This is good” in the Kindle-reading context. This establishes owner-reported readability for that hosted journey. Earlier owner reports established adjustable text for the same file sent personally. It is not independent physical-device instrumentation or a general Kindle/client compatibility guarantee. Earlier unverified and defective-message records below remain dated history.
-
-The bounded cleanup preserves stable MCP names and response contracts, binary attachments, PNG artwork/reflowable XHTML, authenticated public-only file imports, login, five private destinations, personal senders, per-account allowances and shared budgets. It removes unused cookie/secret helpers, an obsolete global send-limit constant and dead CSS; computes the document sender once; shortens the canonical guide/tool descriptions; and corrects stale allowlist, SVG and dependency facts. The workspace clears stale sign-in codes after successful requests, announces address saving once and uses distinct truthful receipt-state colours. Consent/privacy headings now match their purpose. Historical migrations, user records and private files are unchanged.
-
-Read-only code/security, docs/MCP and local Impeccable UI reviews found no remaining blocker within scope. Eighty-three tests include the real local email-binding contract; R2/mail remain doubles in ordinary service tests. Grant-free native Pages/browser proof exercises desktop/mobile, stale-code clearing with a synthetic request response, persisted receipt states, address/default selection, exact selected recipient, original-upload bytes and account isolation. A separate real-browser empty-form proof retains the Origin regression without identities, mail, client registration or grants. Local captures are synthetic internal evidence, not public user data. No real emails or new grants were created during cleanup. Full OAuth-grant proof and push/CI remain held; remote main was fetched and remained at the previously published revision, without concurrent commits to reconcile.
-
-## Binary attachment correction — 25 October 2026
-
-Deployed source is `1ea55a2db18f98f26bf64dc21f84f33a7509c797`, Worker `cdccc382-e67e-428d-ae18-81989c491be2`. The unchanged Pages front door remains `2783e992-534f-4f1e-867b-4a81eef8211c`. Deployment itself sent no email; a new real test requires separate approval.
-
-The owner reports that the same PNG-only EPUB reflows correctly when emailed personally, but the 19:44 Palim copy shows Base64-like text inside Kindle. A private exact comparison finds the reported excerpt inside the Base64 encoding of the unchanged stored candidate. No excerpt or private book content is published here. This identifies attachment data rather than a new authoring/reflow defect.
-
-Palim had supplied a Base64 string in the structured attachment field. Cloudflare's reference describes strings as Base64, while its attachment examples also demonstrate binary buffers. The installed real Miniflare/workerd email binding preserves string content as literal attachment text rather than decoding it. A new binding-level regression reproduces that difference using a synthetic PDF: the Base64-string attachment is stored as ASCII, while the binary attachment is byte-identical to the original. Earlier self-decoding tests validated Palim's own assumption and did not exercise this provider boundary.
-
-Attachments now supply copied `Uint8Array` bytes directly and are statically checked against Cloudflare's `EmailMessageBuilder`. The provider owns MIME transfer encoding. EPUB/PDF integrity, filename, MIME type, attachment disposition and conservative encoded-message limit remain enforced; artifacts and historical receipts are not rewritten. Eighty-three tests, formatting and dry-run build pass, including the real local binding contract, original EPUB/PDF forwarding and existing security/quota checks. The local capture wrapper serializes binary bytes as arrays only for synthetic test evidence. No remote email binding, new grants or real mail was used. Actual production wire MIME remains unavailable, and the correction has not been resent or verified on Kindle; the previous one-send approval is consumed.
-
-## Authenticated public file imports — 25 October 2026
-
-Source `66df028bb446e6b6cc91d66983e095d6fb8e4d16`, Worker `d54dc04d-6f94-4648-9cd4-084058af851d`, replaces provider-specific host lists with authenticated, quota-checked public HTTPS/443 imports. The application refuses credentials, IP literals (including normalized IPv4 and mapped IPv6), local hostnames, fragments and unsafe ports. It forwards no caller credentials. Streaming limits and actual EPUB/PDF inspection run before private storage; owner checks, send confirmation, account allowances and shared budgets are unchanged. No extra service, credentials or routing configuration was created.
-
-The native test found that the tested workerd runtime rejects `redirect: 'error'` before any request. Imports now use `manual` and refuse non-success responses before reading the body; redirects are never followed. Eighty-two tests, formatting and dry-run build pass, including redirects, declared and streamed oversize bodies, non-documents, disabled accounts and quota exhaustion. Unit network/email boundaries are test doubles.
-
-`scripts/file-network-proof.py` independently runs real workerd with explicit public-only egress and no identity, storage or mail bindings. It fetched the public sample with matching bytes/hash and blocked eight private targets, including a DNS hostname resolving to loopback, IPv4-mapped IPv6, link-local and unique-local addresses. Every denial has native `restrictPeers()` evidence, with zero connections to the local witness. This is native network evidence, not a live authenticated attachment/send test. The maintained runtime [filters resolved DNS addresses](https://github.com/cloudflare/workerd/blob/main/src/workerd/server/workerd.capnp#L847); the application does not implement a separate DNS-then-fetch check. Actual ChatGPT attachment import and provider/Kindle delivery remain to be exercised by the designated sender. No real mail or new OAuth grants were made here; full grant tests and push/CI remain held.
-
-## Denied host-file origin diagnostic — 25 October 2026
-
-Source `4e786bfe21e5b6c1ed42107d6bb114db330b3913`, Worker `ac39560f-c4e0-4d7f-a852-270fe6d945b7`, changes only the unsupported-host error to identify the URL origin. Seventy-seven tests, formatting and build pass. The real MCP regression uses credentials, a private path, signed query, fragment and file identifier; the error includes none of those values. The denied request performs no fetch, artifact creation, upload admission, delivery or mail-ledger write. `FILE_ORIGINS` remains empty; no host has been trusted or granted access. The existing deployment completed after a slow 191-second upload and was not duplicated. Actual host discovery requires a subsequent owner-authorized request from the affected client; no file/send probe was performed by this agent.
-
-## Account-only allowance and owner reflow report — 25 October 2026
-
-The owner reports that the PNG-only candidate opens with adjustable text size after their own email test. This is owner-reported Kindle reflow evidence; it does not establish Palim email delivery. The exact original provider recipient and envelope address match a currently saved owner-scoped address under a new ID, so the removed historical ID is not a recipient mismatch.
-
-Source `ea19c2854b0029f6d175b551daf07ce988611cb8` adds an operator-managed per-account allowance (migration 0005), default three and bounded at ten. Seventy-six unit/protocol/package tests and the dry-run build pass, including account isolation, retained attempts and existing shared-mail-budget checks. Only the owner-approved account was changed to ten; its existing three submissions were preserved, and all other accounts remain at three. No counter reset, global-budget increase, provider-plan change or grant occurred. Worker version is `cb7572ea-83b6-4127-b120-1b965416a1ac`; the unchanged Pages front door remains `2783e992-534f-4f1e-867b-4a81eef8211c`.
-
-The requested single Palim test remains unsent. The native host has no supported secure-file transfer, and the personal Mac workspace is signed out. The owner must complete normal workspace sign-in before the candidate can use authenticated upload; no inbox code was requested or read by the agent. No additional mail was sent. Full OAuth-grant tests and push/CI remain held.
-
-## Reflow investigation — 25 October 2026
-
-Deployed source: local commit `4bf1c37a6376168d139d5ad93ef00d17867bff0b`, Worker `649a0c15-98b2-4e7e-b164-c6a2631ca6e0`, Pages `2783e992-534f-4f1e-867b-4a81eef8211c`. Provider metadata and live byte comparisons match that source, including the sample HTML/EPUB and existing app/plugin assets. Live checks pass unauthenticated and invalid-token refusal, wrong-origin refusal, canonical OAuth issuer, alternate-host refusal, private R2 and disabled Worker preview URLs. The existing sender remains enabled with stored email previews disabled. The deployment did not send mail or create OAuth grants.
-
-The owner reports that the diagnostic EPUB imported when sent from their own inbox, but Amazon returned E016 and preserved its original layout. That is evidence of import with a reflow failure, not successful adjustable-text rendering. The actual diagnostic archive contains an SVG cover and chart, no fixed-layout metadata, no scripts/audio/video, and one table. Amazon's [Send-to-Kindle E016 guidance](https://www.amazon.co.uk/gp/help/customer/display.html?nodeId=T48rsVm3gY7KeGkKUk) explicitly recommends removing SVG images. EPUBCheck had accepted those images; EPUB conformance therefore did not establish Amazon compatibility.
-
-Generated covers and diagrams now use bounded PNG artwork from maintained resvg WASM with an offline OFL font. Text, headings, navigation and captions remain XHTML, and OPF explicitly declares reflowable layout. Images are processed sequentially and raster dimensions are bounded. Original uploads, retained artifacts, sender selection, mail payloads, ownership and budgets are unchanged. This removes an evidenced compatibility risk; Amazon reflow must still be tested independently.
-
-Seventy-five unit/protocol/package tests, formatting, zero-vulnerability production audit, dry-run Worker build and independent sample EPUBCheck passed. The generated sample contains no SVG. Native Pages/workerd publishing, unchanged upload and personal-sender captured-mail proof passed using synthetic local sessions; no OAuth registration/grants or live mail occurred. The migration CLI stalled after reporting all local migrations applied and completed after a targeted interrupt; the actual browser/runtime assertions then passed. A separate private copy of the actual diagnostic EPUB also contains no SVG and passes EPUBCheck; it was not uploaded, substituted or sent.
-
-The owner's Gmail test and Cloudflare's earlier sends are not a controlled same-byte provider comparison: Cloudflare submitted the earlier EPUB and an original PDF, not this revised diagnostic copy. The PDF's retained hash matches its receipt, opens unencrypted as 19 pages and renders; provider events show recipient-server delivery without transport errors. Neither event establishes Amazon import. The Palim sender has no receiving route or Reply-To, while the owner's inbox can receive Amazon notices. This is an observability difference, not proof that missing replies caused non-delivery. Actual transmitted wire MIME and Amazon authentication verdicts are unavailable. No new mail, receiving routes, DNS, credentials or grants were created for this investigation. Full OAuth-grant tests and push/CI remain held pending their separate approval.
-
-## Actual document inspection and cover compatibility — 25 October 2026
-
-Deployed source is local commit `660039c12a021fdbc786586b1e923c56337534df`, Worker `ddf3a129-28da-4dfc-901c-562efe703280`, Pages `a518e8ce-7714-41e1-aa13-cce5bddb9235`. Successful provider metadata and byte-identical live assets/sample establish this exact release. Seventy-five unit/protocol/package tests, grant-free native Pages/browser publishing proof, formatting and independent EPUBCheck passed; full OAuth-grant tests/push CI remain held. Existing auth/origin/private-storage checks still pass.
-
-A private diagnostic copy of the actual generated book removes only the duplicate cover file and its manifest/spine entries. Every other uncompressed file is byte-identical to the retained original; both original and diagnostic copy pass EPUBCheck. The copy is 84,875 bytes and is local-only, not silently substituted on the user's shelf or submitted. An end-to-end test requires explicit permission for one corrected-copy submission to the already owner-confirmed saved recipient, with the possibility of another library copy; Amazon outcome remains unverified.
-
-The owner confirms the recipient is correct; the earlier cropped-device comparison is not an established cause. The retained actual 16:25 document was read privately from R2 before expiry: 85,219 bytes, generated EPUB, SHA-256 identical to the delivery receipt. Independent EPUBCheck reports zero fatals/errors/warnings/infos. Reconstructing the attachment with the unchanged mail builder preserves the exact decoded bytes, application/epub+zip type, attachment disposition and ASCII .epub filename; the conservative encoded-message estimate is 149,388 bytes, below 5 MiB. This is source/byte reconstruction, not a capture of Cloudflare's original wire MIME. The archive is unencrypted, contains no scripts/remote images, and includes SVG and PNG assets. No private title, chapter text, recipient, alias, object key or message ID is published.
-
-A concrete compatibility issue was found in that actual file: OPF cover-image metadata plus a separate HTML cover page in the reading spine. Amazon's [internal-cover guidance](https://kdp.amazon.com/en_US/help/topic/G6GTK3T3NUHKLEFX) warns that this duplicate can cause conversion failure. Newly generated EPUBs now retain the declared cover asset without the duplicate HTML spine page. Original uploads and retained already-sent bytes are not rewritten. The new packaging regression passes with 75 tests and zero-error/warning EPUBCheck. This removes a documented incompatibility; it is not proof of this particular failed Amazon import. Amazon's [Send-to-Kindle error guidance](https://www.amazon.co.uk/gp/help/customer/display.html?nodeId=T48rsVm3gY7KeGkKUk) also describes SVG conversion limitations, not proof that this message was rejected.
-
-At 17:09, provider analytics still reports one final mail-server delivered event at 16:25:06, with exact To/envelope recipient matching the owner-confirmed destination and no failure detail. Sending domain is enabled; DKIM, DMARC and Cloudflare bounce-domain SPF/MX records are present. Analytics authentication fields do not establish Amazon's actual authentication verdict. Message previews are disabled, so historical raw MIME, DKIM headers, Return-Path and exact provider-serialized attachment cannot be retrieved. A follow-up display-name From comparison was rate-limited; its naive string mismatch is not evidence of an incorrect sender.
-
-The personal visible From domain has no MX/A/AAAA receiving route and the payload has no Reply-To. A possible Amazon conversion/error notification sent back to that address has no receiving mailbox; Cloudflare's cf-bounce SMTP handling is separate. No such Amazon notice was observed, so this is an observability gap, not an established cause. No new inbound routing, credentials, mail, resend or Amazon access was created. The smallest next diagnostic is owner-side submission of the same retained EPUB through Amazon's web uploader to obtain a conversion result/error; app-side mail-server delivery alone cannot supply that evidence. Full OAuth-grant tests/push CI remain held by the prior unanswered approval.
-
-## Workspace UX and latest delivery diagnosis — 25 October 2026
-
-Deployed source is local commit `6af17af690e615deceb229177e6d5dbdc07c0829`, Worker `b2484559-7d0f-4090-8520-a54912171104`, Pages `d1cfb7a1-0e7e-4ea4-be34-934c8b0ea7f3`. Provider metadata reports that exact successful revision. Live workspace, sample, privacy, style, script, fonts and package bytes match the local source. Canonical OAuth discovery, anonymous API/MCP refusal, invalid bearer refusal, hostile-origin refusal, blocked alternate Pages host and private R2 remain verified. The live empty browser login form retains the canonical Origin and returns invalid JSON without mail/grants. EPUBCheck reports zero errors or warnings.
-
-Internal synthetic-account captures include ux-amazon-setup-mobile.png, ux-address-error-mobile.png, ux-address-limit-mobile.png, ux-login-inbox-mobile.png, ux-create-result-mobile.png, ux-upload-result-mobile.png, ux-workspace-mobile.png, ux-workspace-desktop.png and ux-text-zoom-mobile.png under local artifacts. None is actual inbox/Amazon/Kindle acceptance. No new credential, recipient change, live email, resend or OAuth grant occurred. GitHub push/full CI remain held by the existing unanswered disposable-grant approval.
-
-The workspace keeps the existing graphite/ivory system. Kindle address is the only required destination input; name is optional. Exact personal sender copying has local success/failure feedback. Compact Amazon UK setup follows official Content and Devices → Preferences → Personal Document Settings navigation, with separate sender approval and destination-copy instructions. The supplied payment hash route is not represented as a direct Kindle setup link; Amazon's official UK help links to /mycd. Private Amazon settings were not visited or changed.
-
-The grant-free native Pages/browser proof passed invalid-address field feedback, optional-name defaults, five-address capacity, clipboard equality, keyboard skip navigation, preserved task inputs, create/download and byte-identical original upload, selected-recipient captured delivery, honest receipts, mobile/desktop overflow checks, 200% root text size and reduced motion. Actual phone/desktop screenshots were inspected. Seventy-four unit/protocol/package tests and formatting passed. The mechanical UI detector surfaced existing thin-rule container padding warnings and sidecar type/colour/radius advisories; no blocking error was reported. DESIGN.md remains authoritative; the optional Impeccable sidecar is stale and was not regenerated during this bounded task.
-
-A fresh read-only log check at 16:37:33 UTC found one document invoked at 16:25:04, recorded submitted at 16:25:07, with the exact Cloudflare message event reporting recipient-mail-server delivery at 16:25:06 and no failure details. Stored sender matches the current account sender and the user's approved-sender screenshot. The saved recipient does not match any of the four device addresses visible in that screenshot; those visible addresses include device-specific suffixes omitted from the saved recipient. Other devices may be off-screen, so this is a concrete mismatch to resolve, not proof of an invalid address or Amazon acceptance. The input/agent guide now require copying the complete Amazon-assigned address rather than reconstructing it. No address was changed and no resend was made.
-
-There were no later document attempts in that check. The only login attempt was at 13:51:50. Login dispatched bookkeeping records provider invocation, not delivery: no provider ID/result is retained for that path. Books go only to the selected Kindle destination, not additionally to the sign-in inbox. Amazon import/device display remain unverified. The user's screenshot was materialized and privately inspected with Library identity preserved; no private pixels, recipients or aliases are committed. Existing Wrangler access refreshed normally without a new login or expanded grant.
-
-## Personal sender and no Kindle code — 25 October 2026
-
-Live source is local commit `244747ecfa151c5617df00285ec6a364eade0903`, Worker `afe1c59d-f5a1-4445-aad5-9240dee3af82`, Pages `d3c2ff33-56bf-4171-98ba-4695622f700c`. Cloudflare production metadata reports that exact successful revision. Live app, guide-only package and sample/assets match local generated bytes; canonical OAuth discovery, anonymous API/MCP refusal, invalid bearer refusal, hostile-origin refusal, private R2 and blocked alternate Pages host all passed. The native live browser empty-form probe retains the canonical Origin and returns the expected invalid-JSON error without mail or grants.
-
-Production migration 0004 preserved aggregate counts for saved addresses/defaults and historical challenges/receipts, with no foreign-key errors. The personal sending domain remains enabled with email previews disabled. No new provider credential or resource was created. Package ZIP SHA-256 is `440ef0669f2225014d7282a52c16effd0a1ffd3777624d0ac538df6db7d4b293`. Screenshots `saved-readers-mobile.png`, `saved-readers-desktop.png`, `saved-reader-send-mobile.png` and `personal-sender-receipt-mobile.png` are local synthetic-account evidence, not real provider acceptance.
-
-The approved replacement removes Palim's verification-book/code workflow. Each account has a unique stable random personal sender on the existing onboarded domain, assigned atomically and never accepted from caller input. Login still uses the existing inbox OTP. Save up to five labelled Kindle addresses, choose a default or explicit recipient, then request document delivery. Amazon still requires approval of the exact personal sender; existing users must update the former shared address. A saved destination is not ownership or device-acceptance proof.
-
-Passed 74 unit/protocol/package tests and independent read-only security review. Obsolete challenge tests were replaced with personal-sender stability/concurrency/separation, no-code sending, retired-endpoint refusal, migration preservation and atomic owner/sender admission checks. The grant-free native HTTPS Pages/browser proof uses synthetic local session fixtures and captured mail: saves/default/selection send nothing, one requested document submits from the personal sender to the selected address, and repeats reuse that receipt. No real email or OAuth grants were created. Formatting, dry-run Worker build and EPUBCheck passed. Full native OAuth-grant tests and push/CI remain held by the existing unanswered approval; user-approved sender migration does not authorize that test.
-
-Read-only production investigation found one historical verification-book submission at 15:31:27 UTC on 25 October, with a provider message ID and no error. Cloudflare's matching event reports delivered at 15:31:28 UTC, with no rejection/bounce in the inspected events. This means recipient mail-server acceptance, not Amazon import or Kindle display; the reason for absent Kindle content is unestablished. Worker historical logging was disabled and email content previews remain disabled. A secondary analytics check hit the provider's rate limit and was not retried. No recipient, provider ID, code or email contents are published here. Historical challenge/receipt rows and saved addresses are retained by the additive migration.
-
-## Live save-first address list — 25 October 2026
-
-Deployed source is local commit `4adc528537f858d5b98319646434b6041d2c81b4`, Worker `7c0b6024-b61b-4154-8e80-14b6ee22c265`, Pages `c53b1d00-76d1-4b4a-aca3-3d5f93ad4142`. Cloudflare production metadata reports this exact successful revision, and live app/assets/package bytes match generated local files.
-
-Up to five labelled Kindle addresses save immediately without email. Defaults and explicit selection also send nothing. Pending addresses are clearly marked, and the final action directs users to the separate verification-book control rather than sending a document. One-time ownership proof remains required before delivery, and Amazon's approved-sender requirement is unchanged. Delivery refuses pending addresses both in service validation and atomic D1 admission; ownership, quotas, explicit send confirmation and default-intent idempotency remain intact.
-
-Passed 77 unit/protocol/package tests, formatting, dry-run build, EPUBCheck and independent security review. The grant-free native Pages/browser address proof used seeded synthetic local browser sessions, not a real inbox/OAuth login. It exercised saving two rows, default changes, selected recipient, refused pending send and foreign-owner default/removal refusal. It observed zero proof_mail, mail_attempts and challenges rows. Reviewed captures: saved-readers-mobile.png, saved-readers-desktop.png and saved-reader-send-mobile.png in local artifacts. Full OAuth tests/CI remain held; those captures are not authenticated ChatGPT acceptance.
-
-Migration 0003 preserves confirmed IDs/defaults and adds a nullable confirmation state. Its first Cloudflare request failed internally with code 7429; schema/migration inspection confirmed no change before one successful retry. Production schema and migration metadata were rechecked, with no foreign-key errors. Existing production destination count was zero; preservation of nonempty verified/default data was tested against SQLite fixtures. Deploy only code that understands pending destinations after this migration; an older version that assumes every saved row is verified is not a safe rollback once pending rows exist.
-
-No production credentials, OAuth grants or mail were created. Source and evidence are committed locally. GitHub push/full grant-creating CI remain held by the earlier automatic approval rejection; the new address-list request did not approve that test. The user's report that the ChatGPT plugin connected is recorded as user evidence, not an independent tool-use test.
-
-## Live origin fix and guide-only release — 25 October 2026
-
-Live deployed source is local commit `f6bfba9c728290756b7b45c85be02de4724e1593`, Worker `49fda6c2-97b5-4802-b51b-91f21b8af860`, Pages `5e47e67e-dbb8-4aa7-9e57-be864516c968`. Cloudflare production metadata reports the exact successful revision. App/sample/assets and the v0.3.0 MCP-only ZIP/checksum match generated local bytes. ZIP SHA-256 is `68ac62d47ac9964cd5ac5977f365ca82e8c92ea1d3f69d591672ff3ad2b94ff3`.
-
-The live reported ORIGIN error was reproduced with a normal empty browser form: no-referrer made Chromium send Origin:null despite Sec-Fetch-Site:same-origin, yielding the exact 403/message. Control HTML now defaults to same-origin referrer policy. The identical live empty-form reproducer sends the canonical Pages Origin and reaches expected invalid-input validation (400 INVALID_JSON), without an identity, email, client registration or grant. Null/foreign/cross-site requests remain refused. Explicit no-referrer on private previews/downloads is preserved; CSRF, consent owner proof and callback validation are unchanged.
-
-get_guide is a read-only MCP operation, and src/guide.ts is the single canonical workflow source shared by initialization and that tool. Existing create/send/receipt operations keep their names and enforcement; creating a draft works without a prior guide call. Installed skills and setup hooks were removed. Native read-only Codex inspection of a fresh v0.3.0 archive reports the palim MCP server, zero skills and installed=false. Current site and local docs use one connection/sign-in and guide-before-create/forward guidance; sample content and visual system are unchanged.
-
-Passed: 72 unit/protocol/package tests with mocked OAuth boundaries, formatting, dry-run bundle, EPUBCheck, the grant-free native Pages browser origin regression, independent security/docs reviews, live exact-byte checks, protected-origin/auth/privacy configuration and the original live empty-form regression. No real email or production grant was created.
-
-Full browser OAuth consent proof was denied by automatic approval review because even a disposable local grant conflicts with the explicit no-new-grants restriction. Approval for bounded local-only test grants was requested and remains pending. Full native OAuth tests and GitHub CI have not been run for this revision; GitHub push is held because the workflow would create those test grants. This deployed commit and evidence are committed locally for review. Do not claim authenticated ChatGPT acceptance, full CI success or remote source publication. Actual owner consent remains separate.
-
-## Previous single-install deployment — 25 October 2026
-
-Deployed source `e060349e0e15c4784ab6ae49f78df2cc84bf2e68` uses Worker `d9f5bbd2-a3d1-4db4-9a64-b8c7511158ec` and Pages `a4edfaa1-14a9-400e-acef-ff43031bb8e4`. Cloudflare reports this exact successful production source. The [plugin ZIP](https://palim-timc0y.pages.dev/palim-plugin.zip) and [checksum](https://palim-timc0y.pages.dev/palim-plugin.sha256) are live and byte-identical to generated output. ZIP SHA-256 is `730fece545a9243560ca744b3ba43d225a5dcbd1b5fefa92764e8c7e6c9c9ec3`. Landing/workspace copy now describes one connection or one complete bundle, with no separate skill installation.
-
-MCP initialization carries essential authoring, setup, safety, transfer, retention and receipt guidance. An official SDK client with no skill loaded receives it, creates a draft without mail and is refused unconfirmed delivery. The backend remains the existing authenticated service. Auth, recipient ownership, confirmation, mail budgets and retention enforcement were not replaced.
-
-[Exact-source CI 40205326028](https://github.com/timc0y/palim/actions/runs/40205326028) passed: formatting, strict TypeScript, 71 tests, dry-run build, zero-vulnerability production audit, independent EPUBCheck, and direct/native Pages browser proofs. Logs were inspected. [Artifact 12603662053](https://github.com/timc0y/palim/actions/runs/40205326028/artifacts/12603662053) contains the complete ZIP/checksum and source/runtime/browser evidence. Native proofs fetch the ZIP through actual response headers, inspect its complete components/checksum, and verify standalone MCP guidance. Mail remains a captured synthetic boundary.
-
-The installed Mac Codex CLI 0.164.0 was tested read-only through plugin/list with explicit repository cwd and plugin/read. Portable manifest discovery initially found skills but omitted its MCP server. The documented Codex compatibility layout corrected that real client mismatch. The source directory and a freshly extracted ZIP both resolve the palim MCP server and palim:palim / palim:setup skills. Both report installed=false; no personal catalog registration, plugin installation, OAuth client/grant or credentials were created. That client did not report the optional automatic-onboarding hook, so automatic setup execution is not claimed or required. The setup guidance is included, while MCP itself remains sufficient.
-
-Live HTTPS checks passed exact app/assets/bundle bytes, privacy URL, desktop/mobile signed-out rendering, keyboard focus, reduced motion, 200% zoom, refused anonymous API/MCP and invalid bearer access, wrong-origin login refusal, canonical OAuth issuer and blocked alternate Pages origins. Worker public/version URLs, private storage and sender preview settings remain unchanged. A read-only independent security review found no bundle/setup blocker.
-
-Actual ChatGPT custom-connection creation and Codex installation/OAuth use are pending at the owner consent step. The documented path is connect/install, browser sign-in and consent; no separate skill setup is needed. This task prohibited new grants and live email, so no fresh authenticated client acceptance is claimed. No public-directory submission occurred. Inbox, provider acceptance and physical Kindle gates remain open. Earlier sample pixels remain separately reviewed; EPUB XHTML captures in Chromium are not dedicated-reader/device evidence.
-
-## Previous reader polish — 25 October 2026
-
-Live sample: [palim-timc0y.pages.dev/sample.html](https://palim-timc0y.pages.dev/sample.html). Application source `ded93c162120407af96ff6ba22f087ffcc796455` is deployed as Worker `02456742-cc9d-47a1-9397-20c1825b8ec3` and Pages `b61e8180-6c67-4cd7-b32d-31f7afe6c957`. Cloudflare production metadata reports the exact source and success. Live HTML, CSS, EPUB, original exposure illustration, app and font bytes match local generated/committed files.
-
-Astra's concrete follow-up findings were addressed: public h1/h2/h3 hierarchy, Manrope web headings and restrained wordmark, readable chart labels and adjacent values, an original area/time exposure comparison in place of the software flowchart, one landing divider, and fixed ISO/Auto ISO disabled in the exercise. The unchanged example keeps its real chapter structure when created in the workspace. Existing authenticated image upload supplies the sample illustration; source assets stay out of the document shelf. No Nikon photographs were copied.
-
-[Exact-source CI 40200890906](https://github.com/timc0y/palim/actions/runs/40200890906) passed; its source, 69 tests, zero-vulnerability production audit, EPUBCheck without errors/warnings, and direct/native Pages browser logs were inspected. [Screenshot artifact 12601768926](https://github.com/timc0y/palim/actions/runs/40200890906/artifacts/12601768926) includes full sample desktop/mobile, landing, body/figure details, private preview, enlarged text, and packaged EPUB XHTML pages rendered in Chromium. Those last images are not evidence from a dedicated EPUB reader, Apple Books, Amazon import or Kindle hardware.
-
-Live Chromium confirmed loaded self-hosted Manrope, no skipped public heading level, readable first-screen prose, contents links and normal/200% mobile reflow. Public strict CSP remains unchanged. The private preview retains its sandbox and blocked scripts/network defaults; a narrow canonical /fonts/ allowance and anonymous CORS on only the exact public Manrope assets enable its web typography. An independent read-only security review found no blocker in that boundary or authenticated owned-image path. Runtime tests verify loaded private fonts and source-image ownership, using captured synthetic mail only. Independent Astra aesthetic acceptance of these exact final renders remains pending. No live email or Kindle send occurred.
-
-## Previous reading-sample refinement — 25 October 2026
-
-Live sample: [palim-timc0y.pages.dev/sample.html](https://palim-timc0y.pages.dev/sample.html). Deployed source is `f5a47f2997dbaaa399228f3892c5fc4d6e354947`, Worker `7c48665c-2274-4def-9174-208d920d40e7`, Pages `1e4af1e4-2ab2-423e-91f9-9702f2aa3817`. Cloudflare production metadata reports this exact source and success. Live landing, reader, stylesheet, EPUB, app assets and font bytes match generated/committed files. The previous deployment below is historical.
-
-The prior public sample was broken under its actual response policy: strict CSP blocked the inline stylesheet; Chromium measured a 1,200px cover and 1,208px document in a 390px viewport. The public sample now loads same-origin reader.css generated from the reader's shared style source. Global CSP is unchanged. Private previews retain their existing sandbox, no-script policy and allowed self-contained styles; their styling was not the same CSP defect.
-
-“One stop of light” replaces the generic product essay and arbitrary chart values with an original short photography guide, a worked exposure comparison, calculated light ratios, an exercise and a primary source. Landing excerpt, browser reader and downloadable EPUB share the edition. The browser omits the full cover and duplicate title page, uses one h1 and unique chapter/section anchors, and offers native contents navigation. The EPUB retains a responsive graphite cover and reflowable reading pages. No source photographs are reused.
-
-Local verification passed strict TypeScript and 69 tests, dry-run bundle, zero production audit vulnerabilities, EPUBCheck with zero errors/warnings and native Pages/browser journeys. Browser regressions exercise the real served public CSP, computed 18px/20px reading type, opening prose in the first viewport, unique heading/anchor structure, packaged EPUB cover/chapter XHTML opened in Chromium (not an EPUB-reader engine) and private generated previews. A fresh live 200% zoom check caught comparison-table overflow; cell wrapping was corrected and regression-tested. Live 390px and 1440px readers, contents links, dark preference, 200% mobile zoom and the unchanged public auth/origin/privacy boundaries passed. Opening prose begins at y=570px on the 844px phone viewport. No browser CSP errors remained.
-
-[Final exact-source CI](https://github.com/timc0y/palim/actions/runs/40199675627) owns the source identity, full public reader/landing desktop/mobile screenshots, body and figure captures, packaged EPUB XHTML reading-page renders in Chromium, private reader and enlarged-text view. Its terminal result and independent Astra aesthetic acceptance must be checked separately; local verification is not that verdict. All runtime mail uses synthetic capture. No live email or Kindle send occurred; inbox/provider/device and fresh intended-client gates remain open.
-
-## Previous cinematic deployment — 25 October 2026
-
-Live URL: [palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). Deployed application source is `fb45cd50a0999eba63d5f75abf5d9542f977423b`, Worker version `c9e411d3-331d-47ff-8c16-36e5e4284ee0`, Pages production deployment `7a98241c-00f6-4763-a1a8-d509d3a05304`. Main was fast-forwarded to the exact reviewed revision without changing concurrent work. Cloudflare reports successful Pages production at that commit; live homepage, workspace, CSS, JavaScript, selected folio artwork and Manrope font bytes match committed files.
-
-Astra's final rendered gate passed that exact revision using [screenshot artifact 12599473481](https://github.com/timc0y/palim/actions/runs/40195123287/artifacts/12599473481). The rebuild replaces the previous visual system with a graphite editorial stage, selected original folio artwork, Manrope typography, readable sample and one-task reading desk. Downloads lead result actions; recipient choices stay beside send actions, and technical metadata is disclosed on demand. Lumos-informed vanilla construction uses shared role tokens and bounded rem-based sizing; no framework migration occurred. Local UI skills and read-only construction research informed the implementation without copying private repository content.
-
-[Exact-source main CI 40195894829](https://github.com/timc0y/palim/actions/runs/40195894829) passed, as did [review-branch CI 40195123287](https://github.com/timc0y/palim/actions/runs/40195123287). Checks include strict TypeScript, 68 tests, dry-run bundle, production dependency audit, EPUBCheck, and direct/Pages native runtime and browser proofs. Disposable runtime mail is captured synthetically. Contextual recipient synchronization, exact captured target, state-preserving task switching, primary downloads and collapsed checksums passed. Rendered focus contrast measured 11.36:1 on dark surfaces and 6.32:1 on the light specimen; placeholder contrast measured 5.53:1.
-
-Fresh live Chromium desktop/mobile landing and signed-out login passed: early visibility of both tasks, canonical metadata, private workspace noindex, skip navigation, keyboard focus, 16px inputs, reduced motion and 200% mobile zoom without horizontal overflow. Live muted/action contrast measured 10.79:1 and 17.51:1. Anonymous account/MCP access and invalid bearer tokens returned 401; wrong-origin login returned 403 before mail; OAuth issuer matched the canonical origin. Alternate Pages deployment origins returned 400. Worker public/version URLs and R2 public access remain disabled; cleanup remains every 15 minutes; sender remains enabled with stored email previews disabled. Authentication, budgets, data bindings and migrations did not change in this redesign.
-
-No live email was requested. The earlier live synthetic session/privacy proof is identified separately below; it was not rerun using newly created signing credentials. Real inbox login, provider acceptance, Kindle import/device rendering and a fresh intended MCP-client connection remain open acceptance gates.
-
-## Previous deployed review corrections — 25 October 2026
-
-Live URL: [https://palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). That previous application source was `7fcf04a0a0d509fe789323c38eecfdb27ad63a4d`, Worker version `431c3b46-3771-4c9b-bf93-102b1bdbff92`, Pages production deployment `aa2c4d47-dcba-4031-9ff2-e80cdf96e3ee`. Cloudflare reports successful production deployment at that exact commit; live CSS and JavaScript bytes match the committed files.
-
-Astra accepted the earlier rendered direction with no blocking brand issue and requested two polish corrections. Shelf anchors/buttons now have at least 44px height/width, 14px text, 8px/12px padding and mobile wrapping. Invalid sign-in feedback now says “That code is invalid or expired. Try again or request a new code.” The native browser proof measures actual shelf controls with and without confirmed readers and checks the exact error text. No authentication, privacy or mail-budget source changed.
-
-[Exact-source CI run 40190769139](https://github.com/timc0y/palim/actions/runs/40190769139) passed. Downloaded SHA, 68 tests, zero-vulnerability production audit, zero-error/warning EPUBCheck and direct/Pages browser logs were inspected. [Updated screenshot artifact 12598126143](https://github.com/timc0y/palim/actions/runs/40190769139/artifacts/12598126143) adds `shelf-mobile.png`, `shelf-unconfigured-mobile.png`, `login-error-mobile.png`, `create-result-mobile.png` and `upload-result-mobile.png`. The coordinating reviewer can score the two fixes from these renders; no subsequent Astra verdict is claimed here.
-
-Live Chromium desktop/mobile, focus/skip navigation, reduced motion, 200% zoom and measured contrast checks passed again. Anonymous API/MCP, wrong-origin login and alternate preview origins remain refused. The earlier comprehensive live session/privacy proof remains separately identified below. No live email or Kindle send was requested; real inbox/provider/device and intended-client acceptance gates remain open.
-
-## Earlier deployed build — 25 October 2026
-
-Canonical live URL: [palim-timc0y.pages.dev](https://palim-timc0y.pages.dev). That earlier deployed application used source `10f42ed4df3d15bd676c588ede8c5de4756c0374`, Worker version `05de5469-d135-4977-8a34-c57681413586`, and Pages production deployment `21e1b90a-310f-4116-8fc6-a232025842bc`. Cloudflare's production metadata reports that exact commit and successful deployment. HTTPS responses for the homepage, workspace, CSS and JavaScript were byte-compared with the committed files and matched.
-
-[Exact-source CI run 40189856925](https://github.com/timc0y/palim/actions/runs/40189856925) passed. Its downloaded source identity, 68 tests, zero-vulnerability production audit, zero-error/warning EPUBCheck and direct/Pages native runtime logs were inspected. [Screenshot artifact 12597593943](https://github.com/timc0y/palim/actions/runs/40189856925/artifacts/12597593943) contains the final desktop/mobile landing/workspace, login/code/error, saved/pending addresses, synthetic receipt and 200% zoom views for independent UI review. Astra reviewed the actual `10f42ed` renders and accepted the overall ethereal, simple and professional direction with no blocking brand issue. It identified undersized shelf touch targets and technical invalid-code wording; the follow-up removes the height/padding override, enforces at least 44px targets and supplies plain-language code recovery. Browser acceptance checks both corrections and captures standalone create/upload results. The correction's new source and deployment must be identified separately.
-
-Production health/privacy tests were rerun on this final revision with temporary synthetic identities and confirmed-reader fixtures, all removed afterward. Live Chromium verified desktop/mobile rendering, both tasks before artwork/setup, keyboard skip navigation and focus, private-workspace noindex, 16px inputs, reduced motion and 200% mobile zoom without horizontal overflow. Actual rendered muted text contrast measured 5.49:1 against the canvas; white primary-action text measured 12.71:1 against its solid background. This is scoped browser evidence, not a full assistive-technology audit.
-
-A final provider inspection confirmed Worker public and version URLs disabled, R2 managed public access disabled, cleanup every 15 minutes, and enabled sender with email previews disabled. The alternate Pages preview hostname returns HTTP 400 through the canonical-origin guard. Dedicated AUTH_SECRET and SIGNING_SECRET remain in Cloudflare's secret store; the temporary mode-600 local upload file was removed. No unrelated resources or subscription were changed, and no live mail was requested.
-
-## Current integration — 25 October 2026
-
-The user approved Better Auth, Palim-only Cloudflare secrets, deployment to the personal `tims` account and a cooler ethereal redesign. The assigned canonical hostname is `https://palim-timc0y.pages.dev`. The initial Worker version `c2a41974-c1f8-4009-9646-f43d7a175b8e` deployed source `833d3fc71ae6f1281f7d8af916e31fd3acfc7818`. Pages published successfully after deployment-only correction `a5da954d1cd52814c0eeb8ccd3c1833031c36b1a`; its production hostname responds over HTTPS. The final refined build and its new versions are identified above.
-
-Better Auth 1.7.12 replaces the GitHub adapter and custom browser sessions. It owns native D1 email-code identity, encrypted five-minute OTPs, three attempts, seven-day secure host-only cookies and database rate limiting. The existing MCP OAuth consent/PKCE server remains separate. Up to five private labelled confirmed Kindle addresses can be saved, with explicit per-send selection and optional default.
-
-All 68 behavioral tests and strict TypeScript passed on the Mac with Node 22.23.3. Eight focused authentication/security regressions cover encrypted codes, replay/expiry/exhaustion/concurrent redemption, cookie attributes, logout, disabled accounts, origin and unused-endpoint refusal, pre-rotation resend admission, private addresses, frozen default intent and concurrent cross-channel deduplication. SQLite exercises the actual queries; storage/email are explicit test doubles at this level.
-
-The actual local HTTPS Pages-to-Worker service binding passed with native workerd, D1, private R2 and OAuth KV. Real Better Auth email-code signup/redemption established independent accounts. Only the external mail binding was replaced by a capture wrapper generated into a disposable local directory; no fixture route, flag or mail capture exists in product code. The proof covers secure cookies, encrypted OTP storage, replay refusal, consent, PKCE, MCP creation, download hashes, refused unconfirmed sending, account isolation, session revocation, wrong-origin and invalid-bearer refusal, browser creation, unchanged upload and mobile layouts. Browser proof also captures login errors, saved/pending addresses, synthetic submission receipts, reduced-motion and 200% mobile zoom. These are captured-mail checks, not Cloudflare or Kindle acceptance.
-
-Independent read-only security review identified and verified corrections for missing-secret fail-closed behavior and cross-channel duplicate delivery. Concurrent explicit/default requests now share one original receipt even after changing the default. No remaining critical defect was found in the reviewed auth, budget, destination and retry paths. This is agent review, not an external audit.
-
-Astra supplied the revised reading-atelier direction and inspected Mobbin references for hierarchy, login and address selection. Original CSS/SVG and self-hosted OFL Instrument Serif implement the visual system in DESIGN.md. The one-time UI detector identified small inherited text and a generic hero eyebrow; those were corrected. The additional local UI Skills Root, colour, typography, accessibility, metadata and interface-writing pass removed redundant labels/cards, added linked error/busy states and skip navigation, set private-workspace noindex, and replaced TTF with self-hosted WOFF2. Latest rendered screenshots and final reviewer disposition belong to the exact-source CI evidence, not the design proposal alone.
-
-## Live production checks
-
-The canonical `https://palim-timc0y.pages.dev` passed real HTTPS asset/font/sample requests, correct OAuth issuer, anonymous API/MCP refusal, invalid bearer refusal, wrong-origin login refusal and blocked unused auth endpoints. No live email was requested.
-
-The operator seeded two temporary ten-minute Better Auth sessions and synthetic saved-reader fixtures directly in the dedicated production D1 solely for scoped acceptance. No fixture route or bypass was deployed. Through the actual public Pages origin, account/file creation, private download SHA-256, no-store headers, refused foreign file deletion/sending, private reader listing, refused foreign reader default/deletion, owned default selection, disabled-account refusal, object deletion and logout revocation all passed. All temporary identities, sessions, readers and private objects were then removed and absence checked. This establishes live session and data boundaries, not email-code inbox delivery or real Kindle confirmation. No provider send was invoked.
-
-[Exact-source CI run 40189194527](https://github.com/timc0y/palim/actions/runs/40189194527) passed for `833d3fc71ae6f1281f7d8af916e31fd3acfc7818`; downloaded SHA, test, EPUBCheck and native/Pages logs were inspected. Screenshot artifact `12596832684` contains landing, email/code/error, empty/populated workspace, saved/pending addresses, synthetic receipt and mobile-zoom views. Newer source must pass its own CI.
-
-## Provider preparation
-
-Dedicated personal-account resources are D1 `palim`, private Standard R2 `palim-books`, OAuth KV `palim-oauth`, Worker `palim` and Pages `palim-timc0y`. Public R2 access is disabled with no custom bucket domains; the verified `palim-expiry` lifecycle removes objects after two days. The application denies ordinary artifact access after 24 hours and signed links after 15 minutes. Unrelated infrastructure was not reused or changed.
-
-The separately approved sender is `reading@palim.timc0y.com`. Cloudflare enabled the dedicated sending subdomain and its isolated MX, SPF, DKIM and DMARC records. Authoritative DNS was checked. A documented API GET verified `preview_enabled=false` and `enabled=true`. No real email was submitted. Account-specific sending quota and actual recipient acceptance still require live evidence; application ceilings are not a provider or monetary guarantee.
-
-The Worker disables public `workers.dev` and version URLs. Pages passes requests unchanged through a native service binding, preserving one browser/API/OAuth origin. Alternate preview hosts must fail the canonical-origin check. No new subscription was started.
-
-## Earlier verified source
-
-- Baseline `00c7d5c5a199189f94e1ac14172c36899cd6459e`: 62 tests, Node 22/26 TypeScript and local build, zero production audit vulnerabilities, checksum-pinned EPUBCheck 5.4.0 with zero fatals/errors/warnings/infos, and disposable native/browser proof. [CI run 40177778587](https://github.com/timc0y/palim/actions/runs/40177778587) passed; downloaded artifact identity and logs were inspected.
-- Pages front-door preparation `9961200bde0a83b9b4f5b31803535f700a1aae30`: [CI run 40186430843](https://github.com/timc0y/palim/actions/runs/40186430843) passed and artifacts were inspected. This used a seeded local identity and the former GitHub source; it did not establish production login or the later Better Auth implementation.
-
-## Remaining acceptance gates
-
-A real inbox login, Cloudflare provider message acceptance, recipient delivery, Amazon import, physical Kindle rendering and a fresh intended MCP-client connection are distinct unverified gates. No live test mail is authorized until its recipient, document and purpose are established. A successful captured email or provider receipt must never be described as Kindle acceptance.
-
-SVG EPUB conformance and browser preview do not establish Amazon conversion fidelity. Original-document inspection is bounded, not antivirus or proof of every EPUB/PDF feature. External host-file transfer remains deny-by-default until its exact origin and client behavior are verified.
-
-The Checks workflow records the exact source SHA, tests, build, production dependency audit, independent EPUBCheck and both direct/native Pages browser proof. Inspect that revision and its logs rather than treating this record as proof of later code. Source verification, deployed version, real email and physical-device evidence remain separate.
+What has actually been checked for the current release, and what has not.
+
+## What CI proves
+
+Every push runs [the Checks workflow](../.github/workflows/checks.yml): formatting, strict
+TypeScript and the behavioural contracts, a dry-run Worker bundle, a production dependency audit,
+an independent EPUBCheck validation of the generated sample, and two runtime proofs that start a
+real local Worker and a real Pages front door. The proofs use real Better Auth, real D1, a real
+OAuth PKCE exchange and captured synthetic mail. They create no provider email, no Amazon import
+and no physical Kindle state.
+
+## What the runtime proofs cover
+
+- Native assets, D1 identity, discovery and the authentication boundaries.
+- The complete single-install plugin ZIP, served through real response headers, with its
+  checksum verified.
+- Native consent, PKCE, an MCP `create_book`, the download hash, refusal without a destination,
+  and deletion.
+- Real, independent email-code accounts, so one account cannot read another's documents or saved
+  addresses, and logging out revokes the old browser session.
+- The Pages front door and the real Worker service binding, preserving the public OAuth origin,
+  cookies, bearer tokens, request bodies and private downloads, and refusing a wrong origin.
+- The rendered landing page, the public sample and the studio in Chromium: focus contrast, the
+  strict CSP, the first screen's prose, unique headings and anchors, packaged EPUB XHTML reflow,
+  mobile layout, and no horizontal overflow at 200% zoom.
+
+## What is not proven here
+
+- Amazon converting an imported EPUB, and the representation Amazon then stores.
+- Any file appearing in a Kindle library, on a device, or in a person's reading.
+- A provider actually accepting and delivering a document. The proofs capture mail locally.
+- A physical reader, a screen reader, or a client that has actually connected.
+
+Those remain operator observations. The service reports what it did — a submission, a receipt, a
+provider message id — and never a Kindle import or a device confirmation it cannot observe.
+
+## Reproducing the checks
+
+```sh
+npm ci
+npm run check
+npm run format:check
+npm run build
+python3 scripts/runtime-proof.py --browser
+python3 scripts/runtime-proof.py --pages --browser
+```
+
+The runtime proofs need a disposable local identity and capture mail locally. They never contact
+Amazon and never send provider email.

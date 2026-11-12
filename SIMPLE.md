@@ -5,7 +5,7 @@
 - Tim authorised the public MIT `timc0y/palim` repository and implementation on 25 October 2026. Palim is an agent publishing and unchanged-document delivery tool, not a Kindle client or repository crawler.
 - The source implements one Cloudflare Worker, D1, private R2, OAuth KV and Cloudflare Email, with a thin Pages service-binding front door for the user's selected `pages.dev` address. Dedicated personal-account resources and a Pages hostname are provisioned; current deployment evidence is recorded separately.
 - The existing agent owns research/authorship. A strict bounded manuscript is rendered without an additional model. Existing EPUB/PDF forwarding bypasses that renderer.
-- `docs/verification.md` owns executed checks and unverified provider/device boundaries. Local evidence must not be restated as a live release.
+- `docs/verification.md` owns the current proof boundary: what the checks cover, and what stays unverified. Local evidence must not be restated as a live release. Operator diaries stay out of the repository.
 
 ## Preserve
 
@@ -30,7 +30,7 @@
 - `src/login.ts` configures Better Auth on native D1; `src/auth.ts` exposes only sign-in code request/redemption and logout. `src/index.ts` and the maintained Cloudflare OAuth package own downstream MCP authorization. `src/mcp.ts` and `src/routes.ts` expose the same service rather than reimplement policy.
 - `pages/public/_worker.js` passes public requests unchanged to the Worker. `pages/wrangler.jsonc` owns that service binding; the Worker configuration owns the canonical Pages origin and all data, email, rate limiting and cleanup. The front door introduces no separate identity or browser API origin.
 - `src/guide.ts` owns the canonical agent guide, served through MCP initialization and the read-only `get_guide` tool. `plugins/palim/` owns the optional client connection/branding package without installed skills or setup hooks; `.agents/plugins/marketplace.json` exposes that one package. The packaging script produces its credential-free downloadable ZIP and can select a self-hosted endpoint. No separate skill install is required.
-- `docs/deployment.md` owns provider setup and acceptance. `docs/verification.md` owns proof. Change those owners instead of creating parallel status pages.
+- `docs/deployment.md` owns provider setup and acceptance. `docs/verification.md` owns the current proof boundary. Change those owners instead of creating another status page.
 
 ## Proof
 

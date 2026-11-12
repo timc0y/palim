@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Studio · Palim</title>
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#FAFAF7" />
+    <meta name="theme-color" content="#1a1916" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/style.css" />
     <script type="module" src="/app.js"></script>
@@ -21,7 +21,9 @@
         palim
       </a>
       <nav>
-        <a href="https://github.com/timc0y/palim">Open source ↗</a><span id="account-name"></span>
+        <a class="nav-source" href="https://github.com/timc0y/palim">source</a>
+        <a class="nav-privacy" href="/privacy.html">privacy</a>
+        <span id="account-name"></span>
         <form action="/auth/logout" method="post" id="logout" hidden>
           <button class="plain-button">Sign out</button>
         </form>
@@ -29,10 +31,7 @@
     </header>
     <main id="main-content" class="wrap workspace">
       <div class="workspace-heading">
-        <div>
-          <h1>Studio</h1>
-          <p>Create an EPUB, or send one you already have.</p>
-        </div>
+        <h1>studio</h1>
         <a id="connect-shortcut" href="#connect-agent" hidden>Connect your agent</a>
       </div>
       <nav class="job-choices" aria-label="Choose a task">
@@ -41,7 +40,7 @@
       </nav>
       <section id="signin" class="signin-panel" hidden>
         <h2>Sign in to Palim</h2>
-        <p>We’ll email a six-digit code to your inbox. Your Kindle address comes later.</p>
+        <p>A six-digit code. Your Kindle address comes later.</p>
         <form id="login-email-form">
           <label for="login-email">Your inbox email</label>
           <input
@@ -70,12 +69,11 @@
           <button id="change-login-email" type="button" class="plain-button">Change email</button>
           <button id="resend-login" type="button" class="plain-button">Request another code</button>
         </form>
-        <p class="quiet">The code expires after five minutes. Signing in sends nothing.</p>
+        <p class="quiet">Expires in five minutes. Nothing is sent.</p>
       </section>
       <div id="desk" class="desk" hidden>
         <div class="desk-main">
           <section class="panel task-panel" id="create-panel" aria-label="Create an EPUB">
-            <h2>Create an EPUB</h2>
             <form id="create-form">
               <label for="title">Book title</label
               ><input
@@ -123,8 +121,7 @@
                 placeholder="Write or paste the text you want to read."
               ></textarea>
               <p class="field-help">
-                Markdown headings, lists, code and tables work. For chapters and figures, use a
-                connected agent.
+                Markdown works here. Chapters and figures need a connected agent.
               </p>
               <p class="field-help" id="manuscript-count"></p>
               <p id="example-status" class="field-help" hidden>
@@ -141,13 +138,11 @@
             <div id="created" class="result" hidden></div>
           </section>
           <section class="panel task-panel" id="upload-panel" aria-label="Send an existing file">
-            <h2>Send an existing file</h2>
-            <p>Upload an EPUB or PDF. The original bytes stay unchanged.</p>
             <form id="upload-form">
               <label class="file-drop" for="original"
                 ><span class="upload-symbol" aria-hidden="true">↥</span
                 ><strong id="file-name">Choose an EPUB or PDF</strong
-                ><span id="file-info">Your original stays unchanged · up to 20 MiB</span
+                ><span id="file-info">Unchanged · 20 MiB</span
                 ><input
                   id="original"
                   type="file"
@@ -155,8 +150,7 @@
                   required
               /></label>
               <p class="field-help">
-                Upload first, then choose where to send. Email carries 5 MiB after encoding; larger
-                files stay downloadable.
+                Mail accepts 5 MiB after encoding. Larger files stay for download.
               </p>
               <button type="submit">Upload unchanged</button>
             </form>
@@ -257,7 +251,7 @@
               <code id="mcp-url"></code
               ><button id="copy-mcp" class="secondary">Copy MCP address</button>
               <p class="field-help">
-                <a href="https://github.com/timc0y/palim#connect-palim"
+                <a href="https://github.com/timc0y/palim#connect-an-agent"
                   >Connection and installation steps</a
                 >
                 · <a href="/palim-plugin.zip">Codex connection package</a>
@@ -291,9 +285,5 @@
         </aside>
       </div>
     </main>
-    <footer class="wrap footer compact">
-      <p>Made by <a href="https://timcoy.uk">Tim Coy</a>.</p>
-      <a href="/privacy.html">Privacy & limits</a>
-    </footer>
   </body>
 </html>

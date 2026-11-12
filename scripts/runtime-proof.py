@@ -169,7 +169,7 @@ try:
             expect(page.locator('#upload-panel')).to_be_visible()
             page.get_by_role('link',name='Create an EPUB',exact=True).click()
             page.get_by_role('link',name='Create an EPUB',exact=True).hover()
-            assert page.get_by_role('link',name='Create an EPUB',exact=True).evaluate('(e)=>getComputedStyle(e).backgroundColor') == 'rgb(255, 255, 255)'
+            assert page.get_by_role('link',name='Create an EPUB',exact=True).evaluate('(e)=>getComputedStyle(e).backgroundColor') == 'rgb(38, 63, 169)'
             for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
                 page.set_viewport_size({'width':width,'height':height})
                 assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')

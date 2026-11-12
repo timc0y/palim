@@ -12,7 +12,7 @@ The production versions are fixed in package.json and the committed lockfile. Th
 - `pele`: Mermaid parsing and SVG layout. MIT.
 - `zod`: input and boundary validation. MIT.
 
-Dependencies retain their own notices. The website self-hosts Manrope variable WOFF2, including its Latin-extended subset, from Google Fonts under the included SIL Open Font License (`public/fonts/Manrope-OFL.txt`); controls retain system-font fallbacks. Generated artwork uses embedded OFL Manrope Regular; reflowable book text remains XHTML. GitHub Actions downloads a checksum-pinned EPUBCheck distribution for validation, not for inclusion in the Worker.
+Dependencies retain their own notices. The website self-hosts Manrope variable WOFF2, including its Latin-extended subset, from Google Fonts under the included SIL Open Font License (`public/fonts/Manrope-OFL.txt`), and IBM Plex Mono for the technical voice (`public/fonts/IBMPlexMono-OFL.txt`). Controls retain system-font fallbacks. Generated artwork uses embedded OFL Manrope Regular; reflowable book text remains XHTML. GitHub Actions downloads a checksum-pinned EPUBCheck distribution for validation, not for inclusion in the Worker.
 
 `npm audit --omit=dev --audit-level=high` is a blocking CI check, not a substitute for source review or a guarantee against future vulnerabilities.
 

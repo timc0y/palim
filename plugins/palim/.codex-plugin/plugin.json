@@ -12,11 +12,11 @@
   "keywords": ["epub", "reading", "publishing", "mcp", "kindle"],
   "interface": {
     "displayName": "Palim",
-    "shortDescription": "Make room for reading.",
+    "shortDescription": "Turn a conversation into an illustrated EPUB.",
     "longDescription": "Connect once and sign in. The read-only get_guide tool explains creating illustrated EPUBs and forwarding originals safely. No installed skill is needed.",
     "developerName": "Tim Coy",
     "category": "Productivity",
-    "brandColor": "#11151B",
+    "brandColor": "#263FA9",
     "defaultPrompt": [
       "Make an illustrated guide to this concept.",
       "Send this EPUB to my reader unchanged."

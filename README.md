@@ -1,23 +1,32 @@
 # palim
 
-**Make room for reading.**
+Turn a conversation into an illustrated EPUB, or forward an existing EPUB or PDF to a Kindle
+address without changing a byte of it. No model runs inside the service.
 
 [![Checks](https://github.com/timc0y/palim/actions/workflows/checks.yml/badge.svg)](https://github.com/timc0y/palim/actions/workflows/checks.yml)
-[Open Palim](https://palim-timc0y.pages.dev) · [MIT](LICENSE) · [Deploy your own](docs/deployment.md) · [Verification](docs/verification.md) · [Connect Palim](#connect-palim)
 
-Turn conversations, code and complex ideas into illustrated EPUBs. Or send an existing EPUB/PDF to your reader **without changing its bytes**.
+[Studio](https://palim-timc0y.pages.dev/app) · [Sample](https://palim-timc0y.pages.dev/sample.html) ·
+[MIT](LICENSE) · [Connect an agent](#connect-an-agent)
 
-An independent open-source project by [Tim Coy](https://timcoy.uk). Not affiliated with Amazon or Kindle.
+Independent open-source software by [Tim Coy](https://timcoy.uk). Not affiliated with Amazon or
+Kindle.
 
 ## What Palim does
 
-- A bounded EPUB publisher: chapters, title/creator/language metadata, automatic cover, Mermaid diagrams, labelled bar charts, uploaded PNG/JPEG figures, source notes and table of contents.
-- A responsive reading workspace: create a draft, preview/download it, export the manuscript, upload an original, sign in by email code, save up to five labelled Kindle addresses without email, choose a default and inspect an honest delivery receipt.
-- Five MCP tools: `get_guide`, `import_image`, `create_book`, `send_document`, `get_delivery`.
-- Cloudflare Email submission with attachment hashes, registered destinations, atomic sending allowances and no blind retry after an uncertain outcome.
-- Private temporary files, expiring download links, isolated accounts and scheduled cleanup.
+- Publishes a bounded, illustrated EPUB from a manuscript: title, author, language, chapters,
+  Mermaid diagrams, labelled charts, uploaded PNG/JPEG figures, source notes and a table of contents.
+- Forwards an existing EPUB or PDF to a Kindle address with its bytes unchanged.
+- Keeps up to five labelled Kindle addresses and a personal sender per account. Saving an address
+  sends no mail.
+- Exposes five MCP tools so an agent can read the guide, create a book, import an image, send a
+  document and read a delivery receipt.
+- Keeps every file private and temporary: 24 hours for the file, 15 minutes for a download link.
 
-The owner has confirmed a readable Kindle copy through the hosted service. This is one observed journey, not a compatibility guarantee. [Verification](docs/verification.md) records the deployed source, tests and remaining limits.
+## Status
+
+The publisher, the unchanged-forwarding path and the MCP connection are exercised in CI. Amazon
+import and physical Kindle rendering are not. The [verification record](docs/verification.md)
+states what the checks cover.
 
 ## Try the publisher locally
 
@@ -29,41 +38,62 @@ npm run check
 npm run example
 ```
 
-The example produces `artifacts/palim-sample.epub`, a browser preview and an editable JSON manuscript. It requires no AI key, provider account or email sending. The sample chart shows calculated exposure ratios, not measured camera data.
+The example produces `artifacts/palim-sample.epub`, a browser preview and an editable JSON
+manuscript. It requires no AI key, provider account or email sending. The sample chart shows
+calculated exposure ratios, not measured camera data.
 
 ```sh
 npm run build    # generate public example files and bundle Worker without deployment
 npm run dev      # local Worker and website; sign-in needs dedicated secrets and an email boundary
 ```
 
-The local website is at `http://localhost:8787`. A usable authenticated hosted instance requires the [deployment setup](docs/deployment.md). There is no hidden test login in product code.
+The local website is at `http://localhost:8787`. A usable authenticated hosted instance requires
+the [deployment setup](docs/deployment.md).
 
-## Connect Palim
+## Connect an agent
 
-Connect once and sign in. Your agent reads `get_guide`, then creates a reading edition or forwards an original unchanged when asked. There is no skill to install. Creating/downloading needs no Kindle setup. Save up to five Kindle addresses immediately, with labels and a default. Approve the account's personal sender once in Amazon; Palim asks for no Kindle code. Sending remains a separate requested action.
+Connect once and sign in. Your agent reads `get_guide`, then creates a reading edition or forwards
+an original unchanged, when you ask.
+
+- There is no skill to install and no setup hook.
+- Creating and downloading need no Kindle setup.
+- Save up to five Kindle addresses with labels and a default; saving sends no mail.
+- Approve your account's exact personal sender once in Amazon. Palim asks for no Kindle code.
+- Sending is always a separate, requested action.
 
 ### ChatGPT
 
-1. Open [ChatGPT Plugins](https://chatgpt.com/plugins), select **+ → Add custom MCP server** and name it Palim.
-2. Enter `https://palim-timc0y.pages.dev/mcp`, choose OAuth, review the connection warning and select **Create as a plugin**.
-3. Complete Palim sign-in in the browser and approve consent. Start a new conversation with Palim enabled.
+1. Open [ChatGPT Plugins](https://chatgpt.com/plugins), select **+ → Add custom MCP server** and
+   name it Palim.
+2. Enter `https://palim-timc0y.pages.dev/mcp`, choose OAuth, review the connection warning and
+   select **Create as a plugin**.
+3. Complete Palim sign-in in the browser and approve consent. Start a new conversation with Palim
+   enabled.
 
-Availability and workspace policies depend on your account. This is a custom connection, not a public-directory listing. The server guide explains both workflows; mutation tools independently enforce authorization, ownership and sending safety. Do not paste inbox codes or tokens into chat.
+Availability and workspace policies depend on your account. This is a custom connection, not a
+public-directory listing. The server guide explains both workflows; mutation tools independently
+enforce authorization, ownership and sending safety. Do not paste inbox codes or tokens into chat.
 
 ### Codex
 
-Install the optional **single connection package**. Guidance comes from `get_guide` through MCP; there are no installed skills or setup hooks. With a current Codex client:
+With a current Codex client:
 
 ```sh
 codex plugin marketplace add timc0y/palim --ref main
 codex plugin add palim@palim
 ```
 
-The first command registers this repository's catalog; the second installs the single plugin. Complete the client's OAuth connection/sign-in when requested. Do not add a duplicate Palim connection. In supported desktop clients, open this repository's marketplace in the plugin browser and install Palim once. Client discovery and actual authenticated use are separate checks; see [verification](docs/verification.md).
+The first command registers this repository's marketplace; the second installs the single plugin
+from it. Complete the client's OAuth connection and sign-in when requested. Do not add a duplicate
+Palim connection. Client discovery and actual authenticated use are separate checks; see
+[verification](docs/verification.md).
 
-[Download the complete plugin ZIP](https://palim-timc0y.pages.dev/palim-plugin.zip) · [SHA-256](https://palim-timc0y.pages.dev/palim-plugin.sha256)
+[Download the complete plugin ZIP](https://palim-timc0y.pages.dev/palim-plugin.zip) ·
+[SHA-256](https://palim-timc0y.pages.dev/palim-plugin.sha256)
 
-The archive is an inspectable Codex compatibility package, not an invented one-click installer or a public-directory listing. Use a client that supports its package format. It contains no credentials. For a self-hosted deployment, generate the same bundle with your actual origin:
+The archive is an inspectable Codex compatibility package. Use a client that supports its package
+format. It contains no credentials. For a self-hosted deployment, generate the same bundle with
+your actual origin:
 
 ```sh
 npm run plugin -- https://your-real-palim-host
@@ -77,33 +107,26 @@ npm run plugin -- https://your-real-palim-host
 | `send_document` | Deliver an owned artifact or supported host file, unchanged.        |
 | `get_delivery`  | Read submission evidence without resending.                         |
 
-Examples:
-
-> Explain this architectural decision with a worked example and a small diagram. Make a reading edition, but do not send it yet.
-
-> Make an illustrated guide using this image. Explain the important details in the text, too, so they remain readable on a small screen.
-
-> Send this existing EPUB to my saved Kindle address. Do not change its title, cover or contents.
-
-> Did the previous submission finish? Read its receipt; do not send another copy.
-
 ## Original means original
 
-Forwarding never calls the publisher. The service inspects bounded metadata, stores the original bytes, checks their SHA-256 hash and attaches those same bytes. It does not repair, recompress, watermark, rewrite or change embedded metadata. The email attachment filename is sanitised to prevent header injection.
-
-Amazon may convert what it imports. Palim cannot control that representation, replace an old Kindle personal document in place, transfer highlights or read your library. Oversized originals stay downloadable; they are not silently made smaller.
+Forwarding never calls the publisher. The service inspects bounded metadata, stores the original
+bytes, verifies their SHA-256 hash and attaches those same bytes. It does not repair, recompress,
+watermark, rewrite or change embedded metadata. Amazon may convert what it imports; Palim cannot
+control that representation, replace an existing personal document, transfer highlights or read
+your library. See [architecture](docs/architecture.md).
 
 ## Limits worth knowing
 
-Uploads: 20 MiB. Cloudflare ordinary email: 5 MiB including encoding and headers, with a conservative admission calculation. Some valid uploads therefore cannot be emailed. Sources: at most 24 chapters and 12 figures, with bounded text, diagrams and decoded image dimensions.
+Uploads are 20 MiB; Cloudflare's ordinary email limit is 5 MiB including encoding and headers, so
+some valid uploads cannot be emailed. A book holds at most 24 chapters and 12 figures, with images
+of at most four million pixels and 8 MiB in total. Files expire after 24 hours and download links
+after 15 minutes. Accounts default to two renders, six uploads and three email submissions per UTC
+day, with shared ceilings on top.
 
-Images for generated books must be PNG or JPEG, at most four million pixels each and 8 MiB combined per book. A connected agent can import a host-provided file with `import_image`; host support for file inputs varies. The signed-in workspace can also upload an image and show its temporary asset ID for the agent. Both paths use the shared upload allowance.
-
-Private files expire after 24 hours; download links after 15 minutes. Accounts default to two renders, six uploads and three email submissions per UTC day. Shared quotas also apply. These controls are not a guarantee of a zero provider bill.
-
-The hosted service processes your manuscript/file. Cloudflare and Amazon process requested deliveries. There is no server-side writing model or repository crawler. See [privacy](public/privacy.html) and [deployment](docs/deployment.md).
-
-For visual choices, examples and accessible reading guidance, see [Writing a reading edition](docs/authoring.md).
+The hosted service processes your manuscript and Cloudflare and Amazon process requested
+deliveries. There is no server-side writing model and no repository crawler. The full statement,
+including retention and operator duties, is in
+[privacy and limits](https://palim-timc0y.pages.dev/privacy).
 
 ## Development
 
@@ -113,10 +136,24 @@ npm run format:check
 npm run build
 ```
 
-Tests use real SQLite for the application's D1 queries and explicit doubles for external R2/email operations. Separate runtime checks exercise local workerd, D1, R2, OAuth PKCE and MCP. CI validates the generated sample with a checksum-pinned EPUBCheck distribution.
+Tests use real SQLite for the application's D1 queries and explicit doubles for external R2/email
+operations. Separate runtime checks exercise local workerd, D1, R2, OAuth PKCE and MCP. CI
+validates the generated sample with a checksum-pinned EPUBCheck distribution.
 
-Implementation owners and limits are in [SIMPLE.md](SIMPLE.md) and [architecture](docs/architecture.md). Report vulnerabilities as described in [SECURITY.md](SECURITY.md).
+## Repository map
+
+- [`SIMPLE.md`](SIMPLE.md) — what the product is and must never do.
+- [`DESIGN.md`](DESIGN.md) — the visual system.
+- [`docs/architecture.md`](docs/architecture.md) — how it works.
+- [`docs/authoring.md`](docs/authoring.md) — how to write a reading edition.
+- [`docs/deployment.md`](docs/deployment.md) — running your own instance.
+- [`docs/verification.md`](docs/verification.md) — what has actually been checked.
+- [`THIRD_PARTY.md`](THIRD_PARTY.md) — third-party code, fonts and licences.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — local setup and the shape of a change.
+- [`SECURITY.md`](SECURITY.md) — how to report a vulnerability.
 
 ## Connection troubleshooting
 
-Use the canonical Pages address. If an old consent tab shows ORIGIN, reopen the connection flow instead of replaying that form. Never paste codes, cookies or tokens into an issue.
+Use the canonical Pages address. If a saved consent screen mentions ORIGIN, start the connection
+again from the client instead of replaying that form. Never paste codes, cookies or tokens into an
+issue.

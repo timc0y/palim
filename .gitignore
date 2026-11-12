@@ -17,3 +17,6 @@ public/example.json
 public/reader.css
 public/palim-plugin.zip
 public/palim-plugin.sha256
+
+# Local design-tool state, not part of the product.
+.impeccable/
