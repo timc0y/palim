@@ -12,7 +12,7 @@ IBM Plex Mono carries the wordmark, commands, labels and keys. Manrope carries t
 
 ## Landing
 
-No headline, tagline or feature list. The word, the fold, two install commands, and four keys: sample, studio, connect, source. Below 1080px the fold fits inside the viewport. Above that it bleeds off the right edge. A shelf of pixel books closes the page.
+No headline, tagline or feature list. The word, the fold, two install commands, a small copy key, and four keys: sample, studio, connect, source. Below 1080px the fold fits inside the viewport. Above that it bleeds off the right edge. A shelf of pixel books closes the page.
 
 ## Studio
 

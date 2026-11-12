@@ -361,7 +361,10 @@ a {
 
   .key,
   .key:hover,
-  .key:active {
+  .key:active,
+  .line__copy,
+  .line__copy:hover,
+  .line__copy:active {
     transition: none;
     transform: none;
   }
@@ -398,26 +401,34 @@ a {
 
 .line__copy {
   appearance: none;
-  border: 1px solid #b9b4a6;
-  border-radius: 3px;
-  background: transparent;
-  color: #6d685d;
+  border: 0;
+  border-radius: 5px;
+  background: var(--key);
+  color: var(--ink);
   font: inherit;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
   padding: 0.35rem 0.7rem;
   cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 2px 0 #3a3834;
   transition:
+    background-color 140ms,
     color 140ms,
-    border-color 140ms,
-    background-color 140ms;
+    transform 180ms var(--ease);
 }
 
 .line__copy:hover {
-  color: var(--paper);
-  background: var(--indigo);
-  border-color: var(--indigo);
+  background: #fffdf8;
+  transform: translateY(-1px);
+}
+
+.line__copy:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 0 #3a3834;
 }
 
 .line__copy:focus-visible {
@@ -426,7 +437,9 @@ a {
 }
 
 .line__copy[data-copied] {
-  color: var(--paper);
+  color: var(--key);
   background: var(--indigo);
-  border-color: var(--indigo);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 28%),
+    0 2px 0 var(--indigo-deep);
 }
