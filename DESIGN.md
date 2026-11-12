@@ -88,7 +88,12 @@ inline `style` attribute, and no script is inline.
 
 ## Composition and type
 
-One full-width graphite stage carries an upright modern sans headline, two literal actions and the selected sculptural folio artwork. There is no leaf mark, tilted book card, hoops, slogan divider or repeated philosophy band. A short second section presents text from the actual downloadable sample. The serif face belongs only to that reading specimen. Wordmark, product headings and controls use self-hosted OFL Manrope, with no third-party font request.
+The landing page is described above. This section covers the workspace and the public reader.
+
+The reading desk is one task at a time, in upright modern sans, with self-hosted OFL Manrope and
+no third-party font request. The public sample is a separate reading specimen in serif, and that
+serif belongs only to that specimen. The workspace wordmark carries the same emblem and monospace
+voice as the landing, so the product reads as one thing across surfaces.
 
 The reading desk shows one task panel at a time and preserves entered fields on switching. The active task leads; the temporary shelf follows. Saved recipient selection remains explicit, while address management and MCP sit in secondary disclosures. Sign-in uses the normal inbox; Kindle destinations require no Palim codes. Personal sender setup is separate from saved addresses. Actual expiry, target and provider-versus-device receipts stay visible.
 
@@ -102,15 +107,37 @@ This applies Timothy Ricks’ current [Lumos 1.0 tokens](https://lumosframework.
 
 ## Artwork and delivery
 
-The selected original artwork is preserved through Library materialization with its identity/version metadata. `public/images/palim-editorial-folio.jpg` is an optimized 314 KB derivative of the approved original. Its source provenance is embedded in the asset. Image dimensions reserve its aspect ratio and it receives hero fetch priority; text and controls remain HTML. The unused exploratory image is not shipped. No generated raster contains UI text.
+`public/images/palim-editorial-folio.jpg` is an optimized 314 KB derivative of an approved
+original, preserved with its identity/version metadata and embedded source provenance. The reading
+machine no longer uses it, so it ships unreferenced rather than deleted: the approved original and
+its provenance stay recoverable, and the file costs one asset in the bundle. The sample's
+`sample-exposure.png` is a real diagram in the generated EPUB and remains in use. No generated
+raster contains UI text.
 
 ## Review evidence
 
-Compare the current branch's desktop/mobile CI screenshots with the previously deployed screenshot artifact linked in docs/verification.md. A technical pass is not aesthetic approval. Parent/Astra rendered review precedes production promotion. Verify 390px and 1440px, intermediate widths, enlarged text, keyboard paths, safe original-file forwarding, task-state preservation and action-local errors. No live email is needed for these captured-mail proofs.
+The landing page was reviewed by three independent design reviews against the rendered page, not
+the source. Each one read the page in Chromium at desktop and mobile widths and applied the
+interface-craft method. The reviews were not advisory: they found that the position indicator
+lied, that the layout overflowed at 320px, that the screen cropped at 200% zoom, that the e-ink
+flash inverted a transparent layer instead of the glass, that the emblem read as a generic
+document icon, and that the screen content read as an analytics dashboard rather than a book. All
+of those are fixed, and the applied changes are recorded in docs/verification.md. A technical
+pass is not aesthetic approval, so a rendered review still precedes promotion.
 
-The deterministic UI scan was reviewed against the actual renders. Its full-bleed-stage and flex-height navigation padding findings describe intentional container ownership, and its specimen-font finding is the explicitly scoped reading excerpt. Display/privacy tracking was relaxed. Palette/transparency and type-role findings are not a claim of a clean detector report; the rendered review remains the aesthetic authority.
+For the workspace, compare the current branch's desktop/mobile CI screenshots with the previously
+deployed screenshot artifact linked in docs/verification.md. Verify 390px and 1440px, intermediate
+widths, enlarged text, keyboard paths, safe original-file forwarding, task-state preservation and
+action-local errors. No live email is needed for these captured-mail proofs.
 
-Astra accepted the cinematic landing, artwork and typography, then requested a bounded workspace hierarchy correction. Empty Create starts with title/manuscript; recipient selection lives beside file results and the shelf. Download EPUB is the primary result action, Preview is secondary, Kindle sending is a separate optional context, and checksums/source exports sit under Technical details. A single transient client selection synchronizes owned saved-address pickers; the existing backend still enforces ownership and explicit send safety. Dark header/hero focus uses ice, light surfaces use dark blue, and placeholders use the muted text role. Native browser checks measure the actual focused outline and placeholder colours, including the dark workspace nav.
+Astra accepted the earlier cinematic landing, artwork and typography, then requested a bounded
+workspace hierarchy correction. Empty Create starts with title/manuscript; recipient selection
+lives beside file results and the shelf. Download EPUB is the primary result action, Preview is
+secondary, Kindle sending is a separate optional context, and checksums/source exports sit under
+Technical details. A single transient client selection synchronizes owned saved-address pickers;
+the existing backend still enforces ownership and explicit send safety. Dark header focus uses
+ice, light surfaces use dark blue, and placeholders use the muted text role. Native browser checks
+measure the actual focused outline and placeholder colours, including the dark workspace nav.
 
 ## Reading sample refinement
 
