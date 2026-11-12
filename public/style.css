@@ -34,7 +34,12 @@
   --action: #11151b;
   --focus: #315d9c;
   --input-border: #828a96;
+  /* The brand, shared with the landing page: an IBM-blue mark, a monospace voice. */
+  --ibm: #1d49c8;
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --ibm: #1d49c8;
   font-family: var(--sans);
   font-size: 100%;
   color: var(--ink);
@@ -70,6 +75,9 @@
   --target-min: 2.75rem;
   --radius-control: 0.5rem;
   --radius-surface: 0.75rem;
+  /* The brand: an IBM-blue mark and a monospace voice, shared with the landing page. */
+  --ibm: #1d49c8;
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 * {
   box-sizing: border-box;
@@ -138,13 +146,33 @@ p {
   gap: var(--space-3);
   border-bottom: 1px solid var(--line);
 }
+/* The mark: an emblem plus the word, matching the landing page. */
 .wordmark {
-  font-family: var(--sans);
-  font-size: 2.125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 1.375rem;
   font-weight: 600;
-  letter-spacing: -0.07em;
+  letter-spacing: 0.18em;
   line-height: 1;
+  text-transform: uppercase;
   text-decoration: none;
+}
+
+.wordmark__emblem {
+  display: block;
+  width: 1.375rem;
+  height: 1.375rem;
+  flex: none;
+}
+
+.wordmark__emblem rect:first-child {
+  fill: var(--ibm);
+}
+
+.wordmark__emblem rect:not(:first-child) {
+  fill: var(--paper);
 }
 nav {
   display: flex;
@@ -473,7 +501,21 @@ button:hover {
   padding-block: var(--space-4) var(--space-5);
 }
 .workspace-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
   margin-bottom: var(--space-3);
+}
+.workspace-heading p {
+  color: var(--muted);
+  font-size: var(--text-label);
+  margin: 0.5rem 0 0;
+}
+.workspace-heading > a {
+  font-size: var(--text-label);
+  padding-block: 0.5rem;
 }
 .workspace-heading h1 {
   font-size: var(--text-app-title);
@@ -505,7 +547,7 @@ button:hover {
   color: var(--ink);
   box-shadow: 0 1px 4px #11151b0c;
 }
-.job-choices .button:hover {
+.job-choices .button:not([aria-current]):hover {
   background: #ffffff70;
 }
 #reader-choice {
@@ -617,6 +659,23 @@ textarea {
   font-size: var(--text-meta);
   min-height: var(--control-height);
   padding-block: 0.625rem;
+}
+.image-ids {
+  overflow-wrap: anywhere;
+  padding-inline-start: 1.25rem;
+}
+.image-ids li {
+  margin-block: var(--space-1);
+}
+.image-ids button {
+  display: inline-block;
+  margin-inline-start: var(--space-1);
+}
+.image-ids [role='status'] {
+  margin-inline-start: var(--space-1);
+}
+#image-form button {
+  margin-block-start: var(--space-1);
 }
 .field-row {
   display: grid;

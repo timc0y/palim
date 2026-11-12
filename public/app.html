@@ -13,7 +13,15 @@
   <body class="workspace-page">
     <a class="skip-link" href="#main-content">Skip to workspace</a>
     <header class="nav wrap">
-      <a class="wordmark" href="/">palim</a>
+      <a class="wordmark" href="/">
+        <svg class="wordmark__emblem" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="0" y="0" width="32" height="32" rx="3" />
+          <rect x="6" y="8" width="20" height="2.5" />
+          <rect x="6" y="14" width="20" height="2.5" />
+          <rect x="6" y="20" width="11" height="2.5" />
+        </svg>
+        palim
+      </a>
       <nav>
         <a href="https://github.com/timc0y/palim">Open source ↗</a><span id="account-name"></span>
         <form action="/auth/logout" method="post" id="logout" hidden>
@@ -23,7 +31,11 @@
     </header>
     <main id="main-content" class="wrap workspace">
       <div class="workspace-heading">
-        <h1>Reading desk</h1>
+        <div>
+          <h1>Reading desk</h1>
+          <p>Make a book or send one you already have.</p>
+        </div>
+        <a id="connect-shortcut" href="#connect-agent" hidden>Connect your agent</a>
       </div>
       <nav class="job-choices" aria-label="Choose a task">
         <a class="button" href="#create-form" aria-controls="create-panel">Create an EPUB</a
@@ -117,7 +129,14 @@
                 required
                 placeholder="Write or paste the text you want to read."
               ></textarea>
-              <p class="field-help">Markdown headings, lists, code and tables are supported.</p>
+              <p class="field-help">
+                Markdown headings, lists, code and tables are supported. For multiple chapters and
+                your own figures, use a connected agent.
+              </p>
+              <p id="example-status" class="field-help" hidden>
+                Example figures and sources are included while you edit.
+                <button type="button" class="plain-button" id="remove-example">Remove them</button>
+              </p>
               <div class="actions">
                 <button type="submit">Create EPUB <span aria-hidden="true">↗</span></button
                 ><button class="plain-button" type="button" id="example-button">
@@ -126,6 +145,26 @@
               </div>
             </form>
             <div id="created" class="result" hidden></div>
+            <details class="book-metadata">
+              <summary>Upload an image for your agent</summary>
+              <p class="field-help">
+                PNG or JPEG, up to 20 MiB and four million pixels. A book can use up to 8 MiB of
+                images. Uploads share your allowance and expire after 24 hours. Give the asset ID to
+                your connected agent.
+              </p>
+              <form id="image-form">
+                <label for="figure-image">Figure image</label>
+                <input
+                  id="figure-image"
+                  type="file"
+                  accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+                  required
+                />
+                <button type="submit">Upload image</button>
+              </form>
+              <p id="image-result" class="field-help" role="status" hidden></p>
+              <div id="image-assets"></div>
+            </details>
           </section>
           <section class="panel task-panel" id="upload-panel" aria-label="Send an existing file">
             <h2>Send an existing file</h2>
@@ -239,8 +278,8 @@
               </form>
             </details>
           </section>
-          <section class="panel connect-panel">
-            <details>
+          <section class="panel connect-panel" id="connect-agent">
+            <details id="connect-details">
               <summary>Connect your agent</summary>
               <p>
                 Connect once and sign in. Your agent uses the guide to create books or send existing

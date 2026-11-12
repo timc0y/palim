@@ -42,15 +42,57 @@ components:
     padding: '0.75rem 1.25rem'
 ---
 
-# Palim visual system — cinematic review branch
+# Palim visual system
 
 The user rejected the previous pale serif design on 25 October 2026. This replacement follows Astra’s selected cinematic editorial reading-studio brief. The current deployed source and acceptance remain in docs/verification.md. Product truth remains in SIMPLE.md.
+
+## The landing page — a reading machine (12 November 2026)
+
+The owner replaced the landing page with a new world and asked for it to be original, abstract and
+uncramped. The landing is now a single object: a retro e-reader on warm paper. `public/kindle.css`
+and `public/kindle.js` own it; `public/style.css` still owns the workspace and the reader.
+
+**Composition.** One full-width machine, centred on a warm paper field with a sparse punch-card dot
+grid and print grain. Top rail, stage, bottom rail. The device is the whole page: charcoal body,
+e-ink glass, a blank keyboard with two dark accent keys, page-turn buttons and a location bar.
+Nothing else competes. There is no headline, no body copy, no feature grid and no SEO block.
+
+**The screen.** Three abstract pages, changed only by the visitor: typeset prose, an open book
+spread, and a framed illustration plate. Rules are thin and square-ended so they read as print
+rather than a loading skeleton. Figures are book furniture, never dashboard charts, because the
+product publishes illustrated EPUBs. The location bar and the three position ticks are truthful:
+they follow the current page. A page change flashes the whole glass dark, as e-ink does.
+
+**Identity.** The mark is an original blue square holding a stepped, folded-page stroke; it rhymes
+with the plotter rule in the bottom rail. An earlier striped wordmark was rejected by the owner as
+copied from IBM's 8-bar logo and does not appear. Wordmarks use a system monospace stack, uppercase
+and widely tracked, so the brand reads as machine output. The workspace and privacy pages carry the
+same emblem and monospace voice, so the product is one thing.
+
+**Restraint with an entry point.** The owner asked for no cramped text. Navigation stays to four
+tracked mono labels, and exactly one — studio — is promoted to a filled button, because a landing
+page still has to give a visitor somewhere to start.
+
+**Honest motion.** Nothing advances on its own. Auto-cycling was removed: WCAG 2.2.2 requires a
+control for moving content, and the page has no room for one without adding the copy the owner
+asked to avoid. Page changes are button-driven. The pointer tilt and the refresh flash both stop
+under `prefers-reduced-motion`.
+
+**Robustness.** The glass is a size container, so its contents scale with the device instead of
+overflowing: 200% zoom on a short viewport still shows a whole page. The device is sized against
+its container, so there is no horizontal scroll at 320px. Focus is blue on paper and a light blue
+on the dark device.
+
+**CSP.** The page ships under `style-src 'self'`. Every varying measurement is a class, never an
+inline `style` attribute, and no script is inline.
 
 ## Composition and type
 
 One full-width graphite stage carries an upright modern sans headline, two literal actions and the selected sculptural folio artwork. There is no leaf mark, tilted book card, hoops, slogan divider or repeated philosophy band. A short second section presents text from the actual downloadable sample. The serif face belongs only to that reading specimen. Wordmark, product headings and controls use self-hosted OFL Manrope, with no third-party font request.
 
 The reading desk shows one task panel at a time and preserves entered fields on switching. The active task leads; the temporary shelf follows. Saved recipient selection remains explicit, while address management and MCP sit in secondary disclosures. Sign-in uses the normal inbox; Kindle destinations require no Palim codes. Personal sender setup is separate from saved addresses. Actual expiry, target and provider-versus-device receipts stay visible.
+
+The create panel also offers a secondary image upload for connected agents. It shows temporary image IDs, a copy action and expiry, with recent IDs restored from the account after a refresh; image assets do not become sendable documents on the shelf. The existing limits and shared upload allowance remain visible beside the control. A shortcut above the task panel opens the agent connection without changing the selected task. Loading the example asks before replacing entered text, and the panel identifies its attached figures and sources while they are in use.
 
 ## Shared implementation rules
 

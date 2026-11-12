@@ -3,136 +3,164 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Palim — Make room for reading.</title>
-    <meta
-      name="description"
-      content="Turn your ideas into illustrated EPUBs. Send an existing EPUB or PDF to Kindle unchanged. A small, independent publishing studio."
-    />
-    <link rel="canonical" href="https://palim-timc0y.pages.dev/" />
-    <meta name="theme-color" content="#11151B" />
-    <meta property="og:title" content="Palim — Make room for reading." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://palim-timc0y.pages.dev/" />
-    <meta
-      property="og:description"
-      content="Create an illustrated EPUB or send an existing book to Kindle, unchanged."
-    />
+    <title>palim</title>
+    <meta name="description" content="palim" />
+    <meta name="theme-color" content="#ece7d9" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/style.css" />
-    <link rel="preload" as="image" href="/images/palim-editorial-folio.jpg" />
+    <link rel="stylesheet" href="/kindle.css" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Manrope-Latin.woff2" crossorigin />
+    <script type="module" src="/kindle.js"></script>
   </head>
-  <body class="landing">
-    <a class="skip-link" href="#main-content">Skip to content</a>
-    <header class="landing-header">
-      <div class="nav shell">
-        <a class="wordmark" href="/" aria-label="Palim home">palim</a>
-        <nav aria-label="Main">
-          <a href="#edition">The reading edition</a>
-          <a href="https://github.com/timc0y/palim">Source <span aria-hidden="true">↗</span></a>
-          <a class="small-button" href="/app">Open the studio <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
-    </header>
-    <main id="main-content">
-      <section class="hero-stage">
-        <div class="shell hero-content">
-          <h1>Make room<br />for reading.</h1>
-          <p class="hero-note">
-            Turn your ideas into an illustrated EPUB.<br class="desktop-break" />
-            Or send an EPUB or PDF to Kindle, unchanged.
-          </p>
-          <div class="hero-actions">
-            <a class="button" href="/app#create-form"
-              >Create an edition <span aria-hidden="true">↗</span></a
-            >
-            <a class="button secondary" href="/app#upload-form"
-              >Send a file <span aria-hidden="true">↗</span></a
-            >
-          </div>
-        </div>
-        <img
-          class="page-light"
-          src="/images/palim-editorial-folio.jpg"
-          width="1672"
-          height="941"
-          alt=""
-          fetchpriority="high"
-        />
-        <div class="hero-bottom shell">
-          <span>Independent publishing, thoughtfully small.</span
-          ><span>Scroll to the reading edition <span aria-hidden="true">↓</span></span>
-        </div>
-      </section>
-      <section class="edition-section shell" id="edition" aria-labelledby="edition-title">
-        <div class="edition-intro">
-          <h2>A small book.<br />A useful idea.</h2>
-          <p>
-            Read “One stop of light”, a short field guide to photographic exposure. Three chapters,
-            two figures and one idea to try with your camera.
-          </p>
-          <a class="text-link" href="/sample.epub"
-            >Download the EPUB <span aria-hidden="true">↓</span></a
-          >
-        </div>
-        <article class="edition-excerpt" aria-label="Excerpt from One stop of light">
-          <div class="excerpt-meta"><span>One stop of light</span><span>Reading sample</span></div>
-          <h3>Make one deliberate change.</h3>
-          <p class="reading-text">
-            A cyclist passes through a patch of evening light. You want the rider sharp, but your
-            photograph is blurred. Making the whole image brighter will not solve that problem. You
-            need a shorter exposure.
-          </p>
-          <p class="reading-text">
-            The useful question is simple:
-            <strong>what must stay still, and what can change?</strong>
-          </p>
-          <div
-            class="exposure-example"
-            aria-label="Worked example: equivalent exposures with the same ISO"
-          >
-            <div><span>Starting point</span><strong>f/8 · 1/250 s</strong></div>
-            <div><span>Faster shutter</span><strong>f/5.6 · 1/500 s</strong></div>
-            <p>Half the time. A wider opening. The same ISO.</p>
-          </div>
-          <div class="excerpt-footer">
-            <span>From the reading edition</span
-            ><a href="/sample.html">Read the edition <span aria-hidden="true">↗</span></a>
-          </div>
-        </article>
-      </section>
-      <section class="boundaries shell" aria-label="How Palim handles your work">
-        <div>
-          <h2>New ideas, carefully made.</h2>
-          <p>
-            Your words become an EPUB. Your agent does the thinking; Palim assembles the reading
-            edition.
-          </p>
-        </div>
-        <div>
-          <h2>Your originals, unchanged.</h2>
-          <p>
-            Existing EPUBs and PDFs keep their original bytes. Uploading a file never sends it
-            automatically.
-          </p>
-        </div>
-        <div>
-          <h2>A temporary, private shelf.</h2>
-          <p>
-            Files expire after 24 hours. Email submission is recorded separately from Kindle
-            acceptance.
-          </p>
-        </div>
-      </section>
-    </main>
-    <footer class="footer shell">
-      <a class="wordmark" href="/">palim</a>
-      <p>Independent software by <a href="https://timcoy.uk">Tim Coy</a>.</p>
-      <nav aria-label="Footer">
-        <a href="https://github.com/timc0y/palim#connect-palim">Connect Palim</a>
-        <a href="/privacy.html">Privacy &amp; limits</a
-        ><a href="https://github.com/timc0y/palim">Open source ↗</a>
+  <body>
+    <a class="skip-link" href="#machine">Skip to the reading machine</a>
+
+    <header class="rail rail--top">
+      <h1 class="mark">
+        <a class="logo" href="/">
+          <svg class="logo__emblem" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="0" y="0" width="32" height="32" rx="3" />
+            <path class="logo__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
+          </svg>
+          <span class="logo__word">palim</span>
+        </a>
+      </h1>
+      <nav class="rail-nav" aria-label="Primary">
+        <a href="/sample.html">sample</a>
+        <a class="rail-nav__primary" href="/app">studio</a>
+        <a href="https://github.com/timc0y/palim#connect-palim">connect</a>
+        <a href="/privacy.html">privacy</a>
       </nav>
-      <small>Not affiliated with Amazon or Kindle.</small>
+    </header>
+
+    <main class="stage" id="machine">
+      <div class="machine">
+        <div class="machine__body">
+          <div class="machine__screen">
+            <div class="ink-status" aria-hidden="true">
+              <span class="ink-status__bars"><i></i><i></i><i></i></span>
+              <span class="ink-status__spacer"></span>
+              <span class="ink-status__wifi"></span>
+              <span class="ink-status__battery"></span>
+            </div>
+
+            <div class="ink-pages" data-pages>
+              <div class="ink-page is-current" data-page="0" aria-hidden="true">
+                <div class="ink-lines">
+                  <i class="head"></i>
+                  <i class="w-100"></i>
+                  <i class="w-96"></i>
+                  <i class="w-99"></i>
+                  <i class="w-93"></i>
+                  <i class="w-72"></i>
+                  <i class="gap"></i>
+                  <i class="w-97"></i>
+                  <i class="w-92"></i>
+                  <i class="w-98"></i>
+                  <i class="w-88"></i>
+                  <i class="w-71"></i>
+                  <i class="gap"></i>
+                  <i class="w-95"></i>
+                  <i class="w-90"></i>
+                  <i class="w-99"></i>
+                  <i class="w-84"></i>
+                  <i class="gap"></i>
+                  <i class="w-96"></i>
+                  <i class="w-78"></i>
+                </div>
+              </div>
+
+              <div class="ink-page" data-page="1" aria-hidden="true">
+                <svg class="ink-figure" viewBox="0 0 240 176" role="presentation">
+                  <path d="M10 14h76c14 0 22 6 22 16v132c0-10-8-16-22-16H10z" />
+                  <path d="M230 14h-76c-14 0-22 6-22 16v132c0-10 8-16 22-16h76z" />
+                  <path class="faint" d="M120 30v132" />
+                  <path class="solid" d="M26 42h54v4H26zM26 56h38v4H26zM26 70h48v4H26z" />
+                  <path class="solid" d="M152 42h54v4h-54zM152 56h34v4h-34zM152 70h46v4h-46z" />
+                  <rect x="26" y="90" width="54" height="52" />
+                  <path class="faint" d="M26 105h54M26 118h54M26 131h54" />
+                  <path class="faint" d="M152 90h54v52h-54zM152 105h54M152 118h54M152 131h54" />
+                </svg>
+                <div class="ink-caption">
+                  <i class="w-72"></i>
+                  <i class="w-48"></i>
+                </div>
+              </div>
+
+              <div class="ink-page" data-page="2" aria-hidden="true">
+                <svg class="ink-figure" viewBox="0 0 240 176" role="presentation">
+                  <rect x="12" y="10" width="216" height="156" />
+                  <path class="faint" d="M12 42h216M12 142h216" />
+                  <path d="M40 130l34-50 26 34 24-46 52 62z" />
+                  <circle cx="190" cy="66" r="17" />
+                  <path class="solid" d="M40 130h136v12H40z" />
+                  <path class="faint" d="M28 152h48M28 160h30" />
+                </svg>
+                <div class="ink-caption">
+                  <i class="w-84"></i>
+                  <i class="w-40"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="ink-progress" aria-hidden="true">
+              <span class="ink-progress__fill"></span>
+              <span class="ink-progress__mark"></span>
+            </div>
+          </div>
+
+          <div class="keyboard" aria-hidden="true">
+            <div class="keyboard__row">
+              <i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
+              ><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
+              ><i class="key"></i><i class="key"></i><i class="key"></i>
+            </div>
+            <div class="keyboard__row keyboard__row--inset">
+              <i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
+              ><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
+              ><i class="key"></i><i class="key"></i>
+            </div>
+            <div class="keyboard__row keyboard__row--inset">
+              <i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
+              ><i class="key"></i><i class="key"></i><i class="key"></i><i class="key"></i
+              ><i class="key"></i><i class="key key--wide"></i>
+            </div>
+            <div class="keyboard__row">
+              <i class="key key--blue"></i><i class="key key--half"></i
+              ><i class="key key--space"></i><i class="key key--half"></i
+              ><i class="key key--blue"></i>
+            </div>
+          </div>
+
+          <div class="machine__controls">
+            <button class="control" type="button" data-prev aria-label="Previous page">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M10 3 5 8l5 5" />
+              </svg>
+            </button>
+            <span class="machine__ticks" aria-hidden="true"> <i></i><i></i><i></i> </span>
+            <button class="control" type="button" data-next aria-label="Next page">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M6 3l5 5-5 5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <p class="visually-hidden">
+        An e-ink reading machine with a keyboard. The screen cycles through an abstract page of
+        text, a diagram and a chart. Use the page controls to move between them.
+      </p>
+    </main>
+
+    <footer class="rail rail--bottom">
+      <svg class="rule" viewBox="0 0 56 8" aria-hidden="true">
+        <path d="M0 4h14l3-3h12l3 3h8l3-3h13" />
+      </svg>
+      <p class="foot-tag">mit &middot; open source &middot; not affiliated with amazon</p>
+      <nav class="rail-nav" aria-label="Secondary">
+        <a href="/sample.epub">epub</a>
+        <a href="https://github.com/timc0y/palim">source</a>
+      </nav>
     </footer>
   </body>
 </html>
