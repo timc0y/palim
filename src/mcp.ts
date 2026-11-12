@@ -8,18 +8,18 @@ import { readBytes } from './http.js';
 import { agentGuide } from './guide.js';
 import type { Env } from './types.js';
 
+const HostFileSchema = z
+  .object({
+    download_url: z.url().max(8192),
+    file_id: z.string().min(1).max(256),
+    mime_type: z.string().max(160).optional(),
+    file_name: z.string().max(200).optional(),
+  })
+  .strict();
 export const ToolSendSchema = z
   .object({
     artifactId: z.uuid().optional(),
-    file: z
-      .object({
-        download_url: z.url().max(8192),
-        file_id: z.string().min(1).max(256),
-        mime_type: z.string().max(160).optional(),
-        file_name: z.string().max(200).optional(),
-      })
-      .strict()
-      .optional(),
+    file: HostFileSchema.optional(),
     resendOf: z.uuid().optional(),
     destinationId: z.uuid().optional(),
   })
@@ -94,6 +94,36 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
       },
     },
     async (input) => run('books:write', () => palim.create(owner, input)),
+  );
+  server.registerTool(
+    'import_image',
+    {
+      title: 'Import an image for a book',
+      description:
+        'Import a client-provided PNG or JPEG as a private temporary figure asset. Returns an owned artifactId for create_book. Uses the shared upload allowance; never sends mail.',
+      inputSchema: z.object({ file: HostFileSchema }).strict(),
+      _meta: {
+        'openai/fileParams': ['file'],
+        securitySchemes: [{ type: 'oauth2', scopes: ['books:write'] }],
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    async ({ file }) =>
+      run('books:write', () =>
+        palim.importHostFile(
+          owner,
+          {
+            download_url: file.download_url,
+            filename: file.file_name || 'image',
+          },
+          true,
+        ),
+      ),
   );
   server.registerTool(
     'send_document',

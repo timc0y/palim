@@ -13,7 +13,7 @@ An independent open-source project by [Tim Coy](https://timcoy.uk). Not affiliat
 
 - A bounded EPUB publisher: chapters, title/creator/language metadata, automatic cover, Mermaid diagrams, labelled bar charts, uploaded PNG/JPEG figures, source notes and table of contents.
 - A responsive reading workspace: create a draft, preview/download it, export the manuscript, upload an original, sign in by email code, save up to five labelled Kindle addresses without email, choose a default and inspect an honest delivery receipt.
-- Four MCP tools: `get_guide`, `create_book`, `send_document`, `get_delivery`.
+- Five MCP tools: `get_guide`, `import_image`, `create_book`, `send_document`, `get_delivery`.
 - Cloudflare Email submission with attachment hashes, registered destinations, atomic sending allowances and no blind retry after an uncertain outcome.
 - Private temporary files, expiring download links, isolated accounts and scheduled cleanup.
 
@@ -72,6 +72,7 @@ npm run plugin -- https://your-real-palim-host
 | Tool            | Responsibility                                                      |
 | --------------- | ------------------------------------------------------------------- |
 | `get_guide`     | Read the canonical authoring/import guide; no data changes or mail. |
+| `import_image`  | Import a client-provided PNG/JPEG for an illustrated book; no mail. |
 | `create_book`   | Publish the agent's supplied manuscript. A draft never sends email. |
 | `send_document` | Deliver an owned artifact or supported host file, unchanged.        |
 | `get_delivery`  | Read submission evidence without resending.                         |
@@ -79,6 +80,8 @@ npm run plugin -- https://your-real-palim-host
 Examples:
 
 > Explain this architectural decision with a worked example and a small diagram. Make a reading edition, but do not send it yet.
+
+> Make an illustrated guide using this image. Explain the important details in the text, too, so they remain readable on a small screen.
 
 > Send this existing EPUB to my saved Kindle address. Do not change its title, cover or contents.
 
@@ -94,9 +97,13 @@ Amazon may convert what it imports. Palim cannot control that representation, re
 
 Uploads: 20 MiB. Cloudflare ordinary email: 5 MiB including encoding and headers, with a conservative admission calculation. Some valid uploads therefore cannot be emailed. Sources: at most 24 chapters and 12 figures, with bounded text, diagrams and decoded image dimensions.
 
+Images for generated books must be PNG or JPEG, at most four million pixels each and 8 MiB combined per book. A connected agent can import a host-provided file with `import_image`; host support for file inputs varies. The signed-in workspace can also upload an image and show its temporary asset ID for the agent. Both paths use the shared upload allowance.
+
 Private files expire after 24 hours; download links after 15 minutes. Accounts default to two renders, six uploads and three email submissions per UTC day. Shared quotas also apply. These controls are not a guarantee of a zero provider bill.
 
 The hosted service processes your manuscript/file. Cloudflare and Amazon process requested deliveries. There is no server-side writing model or repository crawler. See [privacy](public/privacy.html) and [deployment](docs/deployment.md).
+
+For visual choices, examples and accessible reading guidance, see [Writing a reading edition](docs/authoring.md).
 
 ## Development
 

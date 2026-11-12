@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import JSZip from 'jszip';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
@@ -7,7 +9,7 @@ import { makeMcp, mcpFetch } from '../src/mcp.js';
 import { appFetch } from '../src/routes.js';
 import { readBytes, checkOrigin, secureHeaders } from '../src/http.js';
 import { fixture, simpleBook } from './helpers.js';
-test('official MCP client lists the guide and three publishing tools and creates a draft', async () => {
+test('official MCP client lists the guide and publishing tools and creates a draft', async () => {
   const f = await fixture();
   const server = makeMcp(f.env, 'alice', ['books:read', 'books:write', 'books:send']),
     client = new Client({ name: 'test-client', version: '1' });
@@ -23,6 +25,7 @@ test('official MCP client lists the guide and three publishing tools and creates
       'create_book',
       'get_delivery',
       'get_guide',
+      'import_image',
       'send_document',
     ]);
     const result = await client.callTool({ name: 'create_book', arguments: simpleBook });
@@ -121,6 +124,47 @@ test('browser mutations need the exact origin and a real session', async () => {
   );
   assert.equal(f.objects.size, 0);
 });
+test('authenticated workspace image upload produces an owned figure usable in a book', async () => {
+  const f = await fixture();
+  const cookie = await f.session();
+  const image = readFileSync(new URL('../public/images/sample-exposure.png', import.meta.url));
+  const response = await appFetch(
+    new Request('https://palim.example/api/files?kind=image', {
+      method: 'POST',
+      headers: { Cookie: cookie, Origin: f.env.ORIGIN, 'Content-Type': 'image/png' },
+      body: new Uint8Array(image).buffer,
+    }),
+    f.env,
+  );
+  assert.equal(response!.status, 201);
+  const asset = (await response!.json()) as { artifactId: string; kind: string };
+  assert.equal(asset.kind, 'image');
+  const created = await appFetch(
+    new Request('https://palim.example/api/books', {
+      method: 'POST',
+      headers: { Cookie: cookie, Origin: f.env.ORIGIN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...simpleBook,
+        chapters: [{ title: 'Image', markdown: '![Image](figure:image)' }],
+        figures: [
+          {
+            kind: 'image',
+            id: 'image',
+            assetId: asset.artifactId,
+            alt: 'A synthetic image',
+            caption: 'The image',
+          },
+        ],
+      }),
+    }),
+    f.env,
+  );
+  assert.equal(created!.status, 201);
+  const book = (await created!.json()) as { artifactId: string };
+  const zip = await JSZip.loadAsync(f.objects.get(`alice/${book.artifactId}`)!);
+  assert.deepEqual(await zip.file('EPUB/fig-image.png')!.async('nodebuffer'), image);
+  assert.equal(f.sent.length, 0);
+});
 test('authenticated browser route creates an artifact without sending', async () => {
   const f = await fixture();
   const cookie = await f.session();
@@ -178,20 +222,22 @@ test('ChatGPT file-input metadata declares exactly the required host fields', as
   await server.connect(a);
   await client.connect(b);
   try {
-    const tool = (await client.listTools()).tools.find((t) => t.name === 'send_document')!;
-    assert.deepEqual(tool._meta?.['openai/fileParams'], ['file']);
-    assert.equal(tool.annotations?.idempotentHint, false);
-    const file = tool.inputSchema.properties?.file as {
-      properties: Record<string, unknown>;
-      required: string[];
-    };
-    assert.deepEqual(Object.keys(file.properties).sort(), [
-      'download_url',
-      'file_id',
-      'file_name',
-      'mime_type',
-    ]);
-    assert.deepEqual([...file.required].sort(), ['download_url', 'file_id']);
+    for (const name of ['send_document', 'import_image']) {
+      const tool = (await client.listTools()).tools.find((t) => t.name === name)!;
+      assert.deepEqual(tool._meta?.['openai/fileParams'], ['file']);
+      assert.equal(tool.annotations?.idempotentHint, false);
+      const file = tool.inputSchema.properties?.file as {
+        properties: Record<string, unknown>;
+        required: string[];
+      };
+      assert.deepEqual(Object.keys(file.properties).sort(), [
+        'download_url',
+        'file_id',
+        'file_name',
+        'mime_type',
+      ]);
+      assert.deepEqual([...file.required].sort(), ['download_url', 'file_id']);
+    }
   } finally {
     await client.close();
     await server.close();

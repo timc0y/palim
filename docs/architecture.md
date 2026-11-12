@@ -6,6 +6,8 @@ Palim has two complete journeys. New books pass through a deterministic publishe
 
 The authoring agent supplies metadata, chapter Markdown, figure specifications, owned image handles and sources. Zod validates the whole bounded manuscript. Markdown-it renders escaped XHTML; Pele renders bounded Mermaid diagrams; the chart renderer uses only explicitly supplied numbers. Generated diagrams and covers are rasterized to PNG with resvg before EPUB packaging; text remains reflowable XHTML. JSZip packages the EPUB with a first, stored `mimetype`, OPF metadata, spine, navigation, stylesheet and embedded assets.
 
+An agent may import a host-provided PNG/JPEG through `import_image`, or the signed-in workspace may upload one and show its asset ID. Both use the existing image inspection, account ownership, expiration and shared upload admission. MCP file input support depends on the host; local contract tests do not prove a particular client supplies one. The image handle is usable only by its owner and while unexpired.
+
 The service stores the EPUB, canonical JSON source and script-free HTML preview under private owned R2 keys. D1 stores ownership, hashes, sizes and expiry. A short-lived HMAC URL gives access to one artifact part. Every access checks the account and current artifact expiry. The preview has its own sandboxed Content Security Policy.
 
 ## Unchanged forwarding

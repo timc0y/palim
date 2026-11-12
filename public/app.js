@@ -75,6 +75,7 @@ async function busy(element, work) {
   const states = {
     'create-form': 'Creating…',
     'upload-form': 'Uploading…',
+    'image-form': 'Uploading…',
     'destination-form': 'Saving address…',
     'login-email-form': 'Requesting code…',
     'login-code-form': 'Signing in…',
@@ -309,6 +310,39 @@ function showShelf(artifacts) {
     shelf.append(item);
   }
 }
+function showImageAssets(images) {
+  const imageAssets = $('image-assets');
+  imageAssets.replaceChildren();
+  if (!images.length) return;
+  const heading = document.createElement('p');
+  heading.className = 'field-help';
+  heading.textContent = 'Recent image IDs';
+  const list = document.createElement('ul');
+  list.className = 'field-help image-ids';
+  for (const image of images) {
+    const item = document.createElement('li');
+    const description = document.createElement('span');
+    description.textContent = `${image.artifactId} · expires ${new Date(image.expiresAt).toLocaleString()}`;
+    const status = document.createElement('span');
+    status.setAttribute('role', 'status');
+    const copy = button(
+      'Copy ID',
+      async () => {
+        try {
+          await navigator.clipboard.writeText(image.artifactId);
+          status.textContent = 'Copied.';
+        } catch {
+          throw new Error('Copy is unavailable. Select and copy the image ID.');
+        }
+      },
+      'plain-button',
+    );
+    copy.setAttribute('aria-label', `Copy image ID ${image.artifactId}`);
+    item.append(description, copy, status);
+    list.append(item);
+  }
+  imageAssets.append(heading, list);
+}
 async function refresh() {
   try {
     currentAccount = await api('/api/account');
@@ -316,6 +350,7 @@ async function refresh() {
     document.body.classList.remove('signed-out');
     $('signin').hidden = true;
     $('desk').hidden = false;
+    $('connect-shortcut').hidden = false;
     $('logout').hidden = false;
     $('account-name').textContent = currentAccount.name;
     $('sender-address').textContent = currentAccount.sender;
@@ -362,6 +397,7 @@ async function refresh() {
       list.append(row);
     }
     showShelf(currentAccount.artifacts.filter((artifact) => artifact.kind === 'document'));
+    showImageAssets(currentAccount.artifacts.filter((artifact) => artifact.kind === 'image'));
     syncReaderChoices();
     updateSendTargets();
   } catch (e) {
@@ -370,8 +406,13 @@ async function refresh() {
       document.body.classList.remove('signed-in');
       $('signin').hidden = false;
       $('desk').hidden = true;
+      $('connect-shortcut').hidden = true;
       $('logout').hidden = true;
       $('reader-choice').hidden = true;
+      $('image-result').hidden = true;
+      $('image-result').textContent = '';
+      $('image-assets').replaceChildren();
+      $('image-form').reset();
     } else notice(e.message, true);
   }
 }
@@ -391,14 +432,24 @@ for (const a of document.querySelectorAll('.job-choices a'))
     history.replaceState(null, '', a.hash);
     chooseTask(a.hash);
   });
-addEventListener('hashchange', () => chooseTask(location.hash));
-chooseTask(location.hash);
+addEventListener('hashchange', () => {
+  if (['#create-form', '#upload-form'].includes(location.hash)) chooseTask(location.hash);
+});
+chooseTask(location.hash === '#upload-form' ? '#upload-form' : '#create-form');
+$('connect-shortcut').addEventListener('click', () => {
+  $('connect-details').open = true;
+  $('connect-details').querySelector('summary').focus({ preventScroll: true });
+});
 $('original').addEventListener('change', () => {
   const file = $('original').files[0];
   $('file-name').textContent = file?.name || 'Choose an EPUB or PDF';
   $('file-info').textContent = file
     ? `${(file.size / 1024).toFixed(1)} KiB · Original file`
     : 'Your original stays unchanged · up to 20 MiB';
+});
+$('figure-image').addEventListener('change', () => {
+  $('image-result').hidden = true;
+  $('image-result').textContent = '';
 });
 $('create-form').addEventListener('submit', (event) => {
   event.preventDefault();
@@ -440,6 +491,11 @@ $('create-form').addEventListener('submit', (event) => {
 });
 $('example-button').addEventListener('click', (event) =>
   busy(event.currentTarget, async () => {
+    if (
+      ($('title').value.trim() || $('creator').value.trim() || $('manuscript').value.trim()) &&
+      !window.confirm('Replace your title, author and manuscript with the example?')
+    )
+      return;
     const response = await fetch('/example.json');
     if (!response.ok) throw new Error('The example could not be loaded.');
     example = await response.json();
@@ -448,11 +504,17 @@ $('example-button').addEventListener('click', (event) =>
     $('manuscript').value = example.chapters
       .map((c) => `# ${c.title}\n\n${c.markdown}`)
       .join('\n\n');
+    $('example-status').hidden = false;
     notice(
       'Loaded the illustrated example. You can edit its text; referenced figures and source notes stay attached.',
     );
   }),
 );
+$('remove-example').addEventListener('click', () => {
+  example = null;
+  $('example-status').hidden = true;
+  notice('Example figures and sources removed. Remove any figure: references from your text.');
+});
 $('upload-form').addEventListener('submit', (event) => {
   event.preventDefault();
   busy(event.submitter, async () => {
@@ -469,6 +531,28 @@ $('upload-form').addEventListener('submit', (event) => {
     showArtifact('uploaded', artifact);
     notice('The original is uploaded unchanged. Nothing has been sent.');
     await refresh();
+  });
+});
+$('image-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  busy(event.submitter, async () => {
+    const file = $('figure-image').files[0];
+    if (!file) throw new Error('Choose an image first.');
+    const artifact = await api('/api/files?kind=image', {
+      method: 'POST',
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    await refresh();
+    if ($('desk').hidden) return;
+    showImageAssets([
+      artifact,
+      ...currentAccount.artifacts.filter(
+        (item) => item.kind === 'image' && item.artifactId !== artifact.artifactId,
+      ),
+    ]);
+    $('image-result').textContent = 'Image uploaded. Nothing was sent.';
+    $('image-result').hidden = false;
   });
 });
 $('destination-form').addEventListener('submit', (event) => {

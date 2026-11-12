@@ -163,6 +163,18 @@ try:
             expect(page.locator('.skip-link')).to_be_focused()
             assert page.locator('.skip-link').evaluate('(e)=>getComputedStyle(e).clipPath') == 'none'
             page.locator('h1').click()
+            page.get_by_role('link',name='Send an existing file',exact=True).click()
+            page.locator('#connect-shortcut').click()
+            expect(page.locator('#connect-details')).to_have_attribute('open', '')
+            expect(page.locator('#upload-panel')).to_be_visible()
+            page.get_by_role('link',name='Create an EPUB',exact=True).click()
+            page.get_by_role('link',name='Create an EPUB',exact=True).hover()
+            assert page.get_by_role('link',name='Create an EPUB',exact=True).evaluate('(e)=>getComputedStyle(e).backgroundColor') == 'rgb(255, 255, 255)'
+            for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
+                page.set_viewport_size({'width':width,'height':height})
+                assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
+                page.screenshot(path=str(ARTIFACTS / f'authoring-workspace-{label}.png'), full_page=True)
+            page.set_viewport_size({'width':390,'height':844})
             # A normal email is valid HTML but not a Kindle destination: field-local API error.
             page.locator('#reader-label').fill('')
             page.locator('#kindle-email').fill('normal@example.invalid')
@@ -213,6 +225,42 @@ try:
             page.locator('#create-form button[type=submit]').click()
             page.locator('#created a.button').first.wait_for()
             page.locator('#created').screenshot(path=str(ARTIFACTS / 'ux-create-result-mobile.png'))
+            page.locator('#image-form').locator('..').locator('summary').click()
+            page.locator('#figure-image').set_input_files(str(ROOT / 'public/images/sample-exposure.png'))
+            page.locator('#image-form button[type=submit]').click()
+            expect(page.locator('#image-result')).to_contain_text('Image uploaded.')
+            image_id = re.search(r'([0-9a-f-]{36})', page.locator('#image-assets').inner_text()).group(1)
+            page.get_by_role('button',name='Copy image ID ' + image_id).click()
+            assert page.evaluate('navigator.clipboard.readText()') == image_id
+            expect(page.locator('#image-assets [role=status]')).to_have_text('Copied.')
+            image = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if a['artifactId'] == image_id)
+            image_url = urllib.parse.urlsplit(image['downloadUrl'])
+            assert request(image_url.path+'?'+image_url.query)[2] == (ROOT / 'public/images/sample-exposure.png').read_bytes()
+            assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 0
+            reloaded = context.new_page()
+            reloaded.goto(ORIGIN + '/app', wait_until='networkidle')
+            expect(reloaded.locator('#image-assets')).to_contain_text(image_id)
+            reloaded.locator('#title').fill('Keep this title')
+            reloaded.locator('#manuscript').fill('Keep this manuscript.')
+            reloaded.once('dialog', lambda dialog: dialog.dismiss())
+            reloaded.locator('#example-button').click()
+            expect(reloaded.locator('#title')).to_have_value('Keep this title')
+            expect(reloaded.locator('#manuscript')).to_have_value('Keep this manuscript.')
+            reloaded.once('dialog', lambda dialog: dialog.accept())
+            reloaded.locator('#example-button').click()
+            expect(reloaded.locator('#example-status')).to_be_visible()
+            expect(reloaded.locator('#title')).to_have_value('One stop of light')
+            reloaded.locator('#remove-example').click()
+            expect(reloaded.locator('#example-status')).to_be_hidden()
+            expect(reloaded.locator('#notice')).to_contain_text('Remove any figure: references')
+            reloaded.close()
+            for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
+                page.set_viewport_size({'width':width,'height':height})
+                assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
+                page.locator('#image-form').locator('..').screenshot(path=str(ARTIFACTS / f'image-upload-{label}.png'))
+            page.set_viewport_size({'width':390,'height':844})
+            page.locator('#figure-image').set_input_files({'name':'another.png','mimeType':'image/png','buffer':(ROOT / 'public/images/sample-exposure.png').read_bytes()})
+            expect(page.locator('#image-result')).to_be_hidden()
             page.get_by_role('link',name='Send an existing file',exact=True).click()
             original = b'%PDF-1.7\n% Synthetic original for local UX proof\n1 0 obj<</Type/Catalog>>endobj\n%%EOF'
             page.locator('#original').set_input_files({'name':'Original.pdf','mimeType':'application/pdf','buffer':original})
@@ -220,7 +268,7 @@ try:
             page.locator('#uploaded a.button').first.wait_for()
             expect(page.locator('#uploaded')).to_contain_text('Original file preserved')
             page.locator('#uploaded').screenshot(path=str(ARTIFACTS / 'ux-upload-result-mobile.png'))
-            uploaded = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if not a['generated'])
+            uploaded = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if not a['generated'] and a['kind'] == 'document')
             url = urllib.parse.urlsplit(uploaded['downloadUrl'])
             assert request(url.path+'?'+url.query)[2] == original
             page.get_by_role('link',name='Create an EPUB',exact=True).click()
@@ -397,7 +445,7 @@ try:
     assert ORIGIN + '/app' in json.loads(payload)['result']['instructions']
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}, auth)
     tools = json.loads(payload)['result']['tools']
-    assert sorted(t['name'] for t in tools) == ['create_book', 'get_delivery', 'get_guide', 'send_document']
+    assert sorted(t['name'] for t in tools) == ['create_book', 'get_delivery', 'get_guide', 'import_image', 'send_document']
     status, _, guide_payload = post('/mcp', {'jsonrpc': '2.0', 'id': 20, 'method': 'tools/call', 'params': {'name': 'get_guide', 'arguments': {}}}, auth)
     guide_result = json.loads(guide_payload)['result']
     assert status == 200 and not guide_result.get('isError')

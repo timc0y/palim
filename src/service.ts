@@ -324,7 +324,11 @@ export class Palim {
       warnings: built.warnings,
     };
   }
-  async importHostFile(owner: string, file: { download_url: string; filename: string }) {
+  async importHostFile(
+    owner: string,
+    file: { download_url: string; filename: string },
+    image = false,
+  ) {
     await this.store.user(owner);
     const url = publicFileUrl(file.download_url);
     await this.store.admit(owner, 'upload');
@@ -339,7 +343,7 @@ export class Palim {
       'FILE_UNAVAILABLE',
       'The host could not provide this file. Reattach it or upload it in Palim.',
     );
-    return this.saveUpload(owner, await readBytes(response, LIMITS.upload), file.filename);
+    return this.saveUpload(owner, await readBytes(response, LIMITS.upload), file.filename, image);
   }
   async send(owner: string, artifactId: string, resendOf?: string, destinationId?: string) {
     const user = await this.store.user(owner),
