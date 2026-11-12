@@ -1,37 +1,37 @@
 # Verification record
 
-## Landing page replacement — 12 November 2026
+## The mark as the picture — 12 November 2026
 
-The landing page is now a single abstract object: a retro e-reader on warm paper, with no body
-copy, no feature grid and no SEO block. The owner asked for a retro Kindle, a retro IBM
-sensibility and an original mark, and rejected a striped wordmark as a copy of IBM's 8-bar logo.
-Source is commit `4d62271` on `main`; the deployed Worker version is
-`f02667ee-1a19-47cc-a546-59042092ae8d` at 100% behind the `palim-timc0y.pages.dev` front door,
-whose current Pages deployment is `36196c63`.
+The landing page is now the version four independent design reviews each answered separately,
+in the direction the owner chose. Source is commit `b9dfd26` on `main`; the deployed Worker
+version is `94eca3d8-3306-4331-958a-eeac52cf6f0c` behind the `palim-timc0y.pages.dev` front
+door, whose current Pages deployment is `824a5bf1`.
 
-Three independent read-only reviews (Gemini 3.8 Flash, Muse 1.3, GPT-6.1 Sol) ran against the
-rendered page under the interface-craft method. Their findings were applied rather than dismissed:
-the position indicator was lying (eight dots for three pages, and a hard-coded third dot), the
-layout overflowed horizontally at 320px, the screen content collapsed at 200% zoom, the page
-auto-cycled with no pause control, the e-ink flash inverted a transparent layer instead of the
-glass, the emblem was a generic document icon, and the screen showed pie and bar charts that read
-as an analytics dashboard rather than a book. The charts are now book furniture: typeset prose, an
-open book spread and a framed illustration plate.
+The hero is the mark. The stepped, folded-page stroke of the corner emblem is enlarged until it
+runs off the right edge and becomes the picture, so the small emblem and the giant one are the
+same object at two scales. The wordmark is IBM Plex Mono with a blinking block caret, the
+navigation is a row of hardware keys, and a pixel shelf of books with a dithered reflection closes
+the page. There is no headline, no tagline, no paragraph and no feature grid. One command line,
+`codex plugin add palim@palim`, carries a copy button.
 
-Local checks: `npm run check` passed 89 tests, `npm run format:check` passed, and the strict CSP
-`style-src 'self'` forced every varying measurement to become a class rather than an inline
-attribute. Live Chromium at 1440x900, 390x844 and 320x800 showed no horizontal overflow, no console
-errors and no failed requests; the prose page stayed inside the glass at 200% zoom on a 640x360
-viewport. The tab order reaches the skip link, the wordmark, four navigation links, both page
-buttons and the footer, with a blue focus ring on paper and a light blue ring on the dark device.
-The page buttons change the page, the position tick and the location bar together. Reduced motion
-changes the page without the flash. Live `/` returned 200 with the expected security headers, and
-`/mcp` and `/api/account` still returned 401.
+IBM Plex Mono is now self-hosted under `public/fonts/` with its OFL licence in
+`public/fonts/IBMPlexMono-OFL.txt`. The favicon, the Codex plugin icon and the workspace
+wordmark carry the same emblem.
 
-Not verified: no screen-reader pass, no physical device, no client-integration or Amazon import
-evidence was produced for this change, and no document or provider email was sent. The hosted
-behaviour above is Chromium evidence on the real HTTPS origin. The published repository is
-`github.com/timc0y/palim`, public and MIT.
+Local evidence: 89 of 89 tests pass, `npm run format:check` passes, and the dry-run bundle
+builds. Live Chromium at 1440x900, 390x844 and 320x800 shows zero horizontal overflow, no
+console errors and no failed requests; the page has seven visible links, one h1, a working skip
+link, no inline style attributes and no external requests, which the strict CSP requires. IBM
+Plex Mono loads on every width, the fold completes within the viewport at 390 and 320 pixels
+while bleeding off the right edge at 1440, and the copy button reports `copied`.
+
+Security boundaries are unchanged on the live origin: `/mcp` and `/api/account` return 401,
+`/app`, `/sample.epub` and the self-hosted font return 200, `/privacy.html` and `/sample.html`
+redirect to their canonical paths, and the CSP, `X-Frame-Options: DENY`, `nosniff`, `same-origin`
+referrer policy and permissions policy are intact. The published repository remains public and MIT.
+
+Not verified: physical devices, screen-reader output, and the illustrated-book promise on a real
+reader. No document, provider email or OAuth grant was created by this work.
 
 ## Illustrated authoring work — 27 October 2026
 
