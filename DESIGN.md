@@ -16,4 +16,8 @@ No headline, tagline or feature list. The word, the fold, two install commands, 
 
 ## Studio
 
-One task at a time. The active task is the indigo key. Forms keep visible labels. Optional setup stays in a disclosure. An error sits beside the control that failed.
+One task at a time. Task keys are the landing keys: a paper face, a four-pixel lip, indigo for the task in progress. Forms keep visible labels. Optional setup stays in a disclosure. An error sits beside the control that failed.
+
+## Reading
+
+The sample is the same paper, ink and indigo. Its bar uses the mark. The generated cover is the ink side of that palette, with the fold and no extra label. Manrope stays the reading face.

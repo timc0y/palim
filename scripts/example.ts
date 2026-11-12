@@ -22,7 +22,7 @@ const publicPreview = book.preview
   .replace(`<style>${PREVIEW_CSS}</style>`, '<link rel="stylesheet" href="/reader.css"/>')
   .replace(
     '<a href="/app">Back to desk</a>',
-    '<a class="reader-wordmark" href="/">palim</a><a href="/sample.epub">Download EPUB</a>',
+    '<a class="reader-wordmark" href="/"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="3" fill="#263fa9"/><path d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" fill="none" stroke="#f6f4ee" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/></svg>palim</a><a href="/sample.epub">Download EPUB</a>',
   );
 await mkdir('artifacts', { recursive: true });
 await mkdir('public', { recursive: true });

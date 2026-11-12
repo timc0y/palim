@@ -32,15 +32,15 @@
     <main id="main-content" class="wrap workspace">
       <div class="workspace-heading">
         <h1>studio</h1>
-        <a id="connect-shortcut" href="#connect-agent" hidden>Connect your agent</a>
+        <a id="connect-shortcut" href="#connect-agent" hidden>connect</a>
       </div>
       <nav class="job-choices" aria-label="Choose a task">
         <a class="button" href="#create-panel">Create an EPUB</a
         ><a class="button secondary" href="#upload-panel">Send an existing file</a>
       </nav>
       <section id="signin" class="signin-panel" hidden>
-        <h2>Sign in to Palim</h2>
-        <p>A six-digit code. Your Kindle address comes later.</p>
+        <h2>Sign in</h2>
+        <p>A six-digit code. Your Kindle address comes after this.</p>
         <form id="login-email-form">
           <label for="login-email">Your inbox email</label>
           <input
@@ -50,7 +50,7 @@
             required
             placeholder="you@example.com"
           />
-          <button type="submit">Email me a sign-in code</button>
+          <button type="submit">Email a code</button>
         </form>
         <form id="login-code-form" hidden>
           <p id="login-sent" class="field-help"></p>
@@ -69,7 +69,7 @@
           <button id="change-login-email" type="button" class="plain-button">Change email</button>
           <button id="resend-login" type="button" class="plain-button">Request another code</button>
         </form>
-        <p class="quiet">Expires in five minutes. Nothing is sent.</p>
+        <p class="quiet">Expires in five minutes. No document is sent.</p>
       </section>
       <div id="desk" class="desk" hidden>
         <div class="desk-main">
@@ -130,7 +130,7 @@
               </p>
               <div class="actions">
                 <button type="submit">Create EPUB</button>
-                ><button class="plain-button" type="button" id="example-button">
+                <button class="plain-button" type="button" id="example-button">
                   Use the example
                 </button>
               </div>
