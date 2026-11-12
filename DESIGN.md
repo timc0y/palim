@@ -16,7 +16,7 @@ No headline, tagline or feature list. The word, the fold, two install commands, 
 
 ## Studio
 
-One task at a time. Task keys are the landing keys: a paper face, a four-pixel lip, indigo for the task in progress. Forms keep visible labels. Optional setup stays in a disclosure. An error sits beside the control that failed.
+One task at a time, on the paper. Task keys are the landing keys: a paper face, a four-pixel lip, indigo for the task in progress. The sign-in card is the one boxed surface. Forms keep visible labels. Optional setup stays in a disclosure. An error sits beside the control that failed.
 
 ## Reading
 
