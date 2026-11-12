@@ -12,7 +12,7 @@ One mono size carries the wordmark, commands, labels, keys and headings. One rea
 
 ## Landing
 
-No headline, tagline or feature list. The word is the picture. A small fold sits beside it. Two install commands and a copy key sit under the word. Four keys: sample, studio, connect, source. Three books stand on the ink.
+No headline, tagline or feature list. The word is the picture. The mark sits beside the caret. Two install commands and a copy key sit under the word. The books and the four keys share that left edge: sample, studio, connect, source.
 
 ## Studio
 

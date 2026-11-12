@@ -176,7 +176,7 @@ a {
 }
 
 .plate {
-  --hero: clamp(3.25rem, 16vw, 10.5rem);
+  --hero: clamp(3.5rem, 18vw, 11.5rem);
   display: flex;
   align-items: center;
   gap: clamp(0.85rem, 2.2vw, 2rem);
@@ -218,16 +218,15 @@ a {
 
 .fold {
   display: block;
-  flex: 0 1 auto;
-  width: min(42%, calc(var(--hero) * 0.4 * 544 / 210));
+  flex: none;
+  width: calc(var(--hero) * 0.46);
   height: auto;
-  min-width: 0;
 }
 
 .fold path {
   fill: none;
   stroke: var(--indigo);
-  stroke-width: 20;
+  stroke-width: 1.75;
   stroke-linecap: square;
   stroke-linejoin: miter;
 }
@@ -251,7 +250,7 @@ a {
 .deck {
   flex: none;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.7rem;
   padding: 0.35rem var(--margin) 1.35rem;
   background: var(--deck);
