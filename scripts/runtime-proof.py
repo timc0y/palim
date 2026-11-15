@@ -1,4 +1,5 @@
 """Disposable local workerd/D1/R2/OAuth proof; never deploys or sends real mail."""
+import argparse
 import base64
 import glob
 import hashlib
@@ -16,6 +17,14 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+
+parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+parser.add_argument('--pages', action='store_true', help='run through the local Pages service binding')
+parser.add_argument('--browser', action='store_true', help='also run browser acceptance checks')
+modes = parser.add_mutually_exclusive_group()
+modes.add_argument('--origin-only', action='store_true', help='run only the origin and form checks')
+modes.add_argument('--saved-addresses-only', action='store_true', help='run only saved-address checks')
+args = parser.parse_args()
 
 ROOT = Path(__file__).resolve().parents[1]
 WORK = ROOT / '.local' / ('runtime-proof-' + secrets.token_hex(5))
@@ -42,7 +51,7 @@ environment = dict(os.environ, WRANGLER_SEND_METRICS='false', CLOUDFLARE_CF_FETC
 log = (WORK / 'worker.log').open('w')
 subprocess.run(command + ['d1', 'migrations', 'apply', 'palim', '--local', '--config', str(config_path), '--persist-to', str(state)], cwd=WORK, env=environment, stdout=log, stderr=log, check=True)
 serve_cwd = WORK
-if '--pages' in sys.argv:
+if args.pages:
     pages_config = json.loads((ROOT / 'pages/wrangler.jsonc').read_text())
     pages_config['pages_build_output_dir'] = str(ROOT / 'pages/public')
     pages_config['services'][0]['service'] = CONFIG['name']
@@ -128,7 +137,7 @@ try:
             database = candidate
             break
         candidate.close()
-    if '--origin-only' in sys.argv:
+    if args.origin_only:
         # This safe regression branch exits before any login, registration or OAuth consent.
         from playwright.sync_api import sync_playwright
         with sync_playwright() as runner:
@@ -150,7 +159,7 @@ try:
         assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 0
         print('PASS: real browser form Origin and hostile-origin refusal; no accounts, email, client registration or OAuth grants created.')
         sys.exit(0)
-    if '--saved-addresses-only' in sys.argv:
+    if args.saved_addresses_only:
         # Isolated browser-session fixtures, never OAuth registration/consent or sign-in email.
         from playwright.sync_api import sync_playwright, expect
         def fixture_session(owner):
@@ -490,7 +499,7 @@ try:
     assert post('/mcp', {'jsonrpc': '2.0', 'id': 4, 'method': 'tools/list', 'params': {}}, {'Authorization': 'Bearer invalid', 'Accept': 'application/json'})[0] == 401
     print('Native consent, PKCE, MCP create, download hash, missing-destination refusal and deletion passed.')
 
-    if '--browser' in sys.argv:
+    if args.browser:
         from playwright.sync_api import sync_playwright, expect
         with sync_playwright() as browser_runner:
             browser = browser_runner.chromium.launch()
@@ -735,7 +744,7 @@ try:
             assert not errors, errors
             browser.close()
         print('Real Chromium navigation, mobile layout, illustrated preview, browser create and original-upload journeys passed.')
-    if '--pages' in sys.argv:
+    if args.pages:
         print('Pages front door and real Worker service binding preserved public OAuth origin, cookies, bearer tokens, request bodies, private downloads and wrong-origin refusal.')
     # Real independent login may not access another user's document or saved readers.
     cookies[:] = alice_cookie
@@ -746,7 +755,7 @@ try:
     assert post('/api/send', {'artifactId':private['artifactId']})[0] == 404
     assert request('/api/files/' + private['artifactId'], 'DELETE')[0] == 404
     assert json.loads(request('/api/account')[2])['destinations'] == []
-    if '--browser' in sys.argv:
+    if args.browser:
         assert post('/api/destinations/' + reader_ids[0] + '/default', {})[0] == 404
         assert request('/api/destinations/' + reader_ids[0], 'DELETE')[0] == 404
         assert post('/api/send', {'artifactId':private['artifactId'], 'destinationId':reader_ids[0]})[0] == 404

@@ -1,4 +1,5 @@
 """Isolated workerd public-network proof. No identity, OAuth, storage or email bindings."""
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -9,8 +10,13 @@ import time
 import urllib.parse
 import urllib.request
 
+parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+parser.parse_args()
+
 ROOT = Path(__file__).resolve().parents[1]
-WORK = Path(tempfile.mkdtemp(prefix='file-network-', dir=ROOT / '.local'))
+LOCAL = ROOT / '.local'
+LOCAL.mkdir(parents=True, exist_ok=True)
+WORK = Path(tempfile.mkdtemp(prefix='file-network-', dir=LOCAL))
 
 def free_port():
     with socket.socket() as s:

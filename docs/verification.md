@@ -45,6 +45,13 @@ All 89 tests passed. Rebuilding the example preserved the EPUB, preview HTML,
 reader CSS and manuscript JSON byte for byte. This cleanup is not a new deployed
 version; the live deployment above remains the release record.
 
+Both proof commands also validate arguments before creating fixtures or starting
+processes. In isolated directories without dependencies or configuration, `--help`
+exited successfully and unknown flags exited with status 2, creating no files.
+Conflicting runtime-only modes were also rejected. The network proof now creates
+its local working directory when needed. Native runtime and public-network
+proofs passed after the argument-parsing change.
+
 ## Interface checks
 
 The landing uses the MIT SPEC-01 hardware treatment and Apache-2.0 UI SDK
@@ -122,3 +129,13 @@ python3 scripts/runtime-proof.py --pages
 Add `--browser` to either runtime command for its isolated Chromium checks.
 Runtime proofs use disposable local identities and storage and captured mail;
 they do not contact Amazon or submit provider email.
+
+Use `python3 scripts/runtime-proof.py --help` to list the modes. `--origin-only`
+and `--saved-addresses-only` select separate browser checks and cannot be combined.
+Unknown flags are errors rather than a request to run the default proof.
+
+The optional `python3 scripts/file-network-proof.py` checks workerd's public-only
+outbound policy against a local private-network witness. Its positive check needs
+`public/sample.epub` from a build matching the hosted sample at the canonical
+Pages address. It performs public GETs but creates no identity, OAuth, storage or
+email bindings.
