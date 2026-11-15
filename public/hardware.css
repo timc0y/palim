@@ -1,0 +1,132 @@
+/* Hardware shell and keys adapted from SPEC-01 by Shu Ding (MIT).
+   https://github.com/shuding/spec-01 — licence in /spec-01-LICENSE.txt. */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/IBMPlexMono-Latin-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/IBMPlexMono-Latin-500.woff2') format('woff2');
+}
+:root {
+  --paper: #efefeb;
+  --ink: #242521;
+  --accent: #263fa9;
+  --accent-edge: #17256c;
+  color-scheme: light;
+  background: var(--paper);
+  color: var(--ink);
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --screen: #d8dbcd;
+  font-family: var(--mono);
+  font-synthesis: none;
+}
+
+.machine {
+  width: min(100%, 64rem);
+  min-width: 0;
+  padding: clamp(1rem, 3.2vw, 2.5rem);
+  border-radius: 1.75rem;
+  background: linear-gradient(180deg, #f5f5f2, #e7e7e2);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 rgb(0 0 0 / 5%),
+    0 0 0 1px rgb(0 0 0 / 13%),
+    0 5px 0 #d0d0c9,
+    0 5px 0 1px rgb(0 0 0 / 12%),
+    1px 8px 3px rgb(0 0 0 / 10%),
+    3px 14px 12px rgb(0 0 0 / 8%),
+    8px 32px 40px -6px rgb(0 0 0 / 15%);
+}
+
+[data-skin='hardware']
+  :where(.key, .workspace-page button:not(.plain-button), .workspace-page .button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 3.75rem;
+  padding: 0.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  color: var(--ink);
+  background: linear-gradient(180deg, #fcfcfa, #ececea);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 3px 0 #b3b3af,
+    0 5px 7px -3px rgb(0 0 0 / 30%);
+  font:
+    500 0.75rem/1.4 'IBM Plex Mono',
+    ui-monospace,
+    monospace;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    translate 60ms,
+    box-shadow 60ms;
+}
+[data-skin='hardware']
+  :where(.key, .workspace-page button:not(.plain-button), .workspace-page .button):hover {
+  background: #fff;
+}
+[data-skin='hardware']
+  :where(.key, .workspace-page button:not(.plain-button), .workspace-page .button):active {
+  translate: 0 2px;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 0 #b3b3af,
+    0 2px 3px -1px rgb(0 0 0 / 25%);
+}
+[data-skin='hardware']
+  :where(
+    .key--go,
+    .workspace-page button:not(.secondary, .plain-button),
+    .workspace-page .button:not(.secondary),
+    .workspace-page .job-choices [aria-current]
+  ) {
+  color: #fff;
+  background: linear-gradient(180deg, #3d55ba, var(--accent));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 30%),
+    0 3px 0 var(--accent-edge),
+    0 5px 7px -3px rgb(23 37 108 / 50%);
+}
+[data-skin='hardware']
+  :where(
+    .key--go,
+    .workspace-page button:not(.secondary, .plain-button),
+    .workspace-page .button:not(.secondary),
+    .workspace-page .job-choices [aria-current]
+  ):hover {
+  background: #314bc0;
+}
+[data-skin='hardware']
+  :where(
+    .key--go,
+    .workspace-page button:not(.secondary, .plain-button),
+    .workspace-page .button:not(.secondary),
+    .workspace-page .job-choices [aria-current]
+  ):active {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 30%),
+    0 1px 0 var(--accent-edge);
+}
+
+:where([data-skin='hardware']) :disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-skin='hardware']
+    :where(.key, .workspace-page button:not(.plain-button), .workspace-page .button) {
+    transition: none;
+  }
+}

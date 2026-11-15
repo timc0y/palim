@@ -15,8 +15,13 @@ public/sample.epub
 public/sample.html
 public/example.json
 public/reader.css
+public/landing.js
 public/palim-plugin.zip
 public/palim-plugin.sha256
 
 # Local design-tool state, not part of the product.
 .impeccable/
+
+# Local agent guidance; project contracts live in the public docs.
+/AGENTS.md
+/SIMPLE.md

@@ -142,15 +142,18 @@ validates the generated sample with a checksum-pinned EPUBCheck distribution.
 
 ## Repository map
 
-- [`SIMPLE.md`](SIMPLE.md) — what the product is and must never do.
-- [`DESIGN.md`](DESIGN.md) — the visual system.
-- [`docs/architecture.md`](docs/architecture.md) — how it works.
-- [`docs/authoring.md`](docs/authoring.md) — how to write a reading edition.
-- [`docs/deployment.md`](docs/deployment.md) — running your own instance.
-- [`docs/verification.md`](docs/verification.md) — what has actually been checked.
-- [`THIRD_PARTY.md`](THIRD_PARTY.md) — third-party code, fonts and licences.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — local setup and the shape of a change.
-- [`SECURITY.md`](SECURITY.md) — how to report a vulnerability.
+- `src/book.ts`, `figures.ts`, `archive.ts` — EPUB creation, artwork and original-file inspection.
+- `src/service.ts`, `store.ts`, `mail.ts` — publishing, ownership, allowances and delivery.
+- `src/index.ts`, `routes.ts`, `mcp.ts`, `auth.ts`, `login.ts` — HTTP, MCP and identity.
+- `public/` — landing, studio, styles and self-hosted assets.
+- `pages/` — the thin Pages front door; `migrations/` — the D1 schema.
+- `test/`, `scripts/`, `examples/` — behavioural checks, local runtime proofs and the sample book.
+- `plugins/palim/` — the optional connection package.
+
+[Architecture](docs/architecture.md) · [Authoring](docs/authoring.md) ·
+[Deployment](docs/deployment.md) · [Verification](docs/verification.md) ·
+[Design](DESIGN.md) · [Licences](THIRD_PARTY.md) · [Contributing](CONTRIBUTING.md) ·
+[Security](SECURITY.md)
 
 ## Connection troubleshooting
 

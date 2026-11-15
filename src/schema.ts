@@ -120,6 +120,3 @@ export const DestinationSchema = z
       ),
   })
   .strict();
-export function parseBook(value: unknown): Book {
-  return BookSchema.parse(value);
-}

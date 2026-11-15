@@ -1,23 +1,44 @@
 # Palim visual system
 
-One machine. The landing is the mark, enlarged until it is the picture. The studio uses the same ink, paper and indigo. Manrope is only for reading text.
+A retro e-reader: warm paper, quiet ink and indigo actions. The landing is almost
+wordless; the studio exposes one task at a time. Manrope is for reading.
 
-## Colour
+## Owners
 
-Paper `#e8e5db`, ink `#1a1916`, indigo `#263fa9`. The landing deck and the studio bar are ink. Keys are paper. The one primary key is indigo.
+`public/hardware.css` owns shared fonts, colours and hardware keys.
+`public/kindle.css` owns the landing; `public/studio.css` owns the studio.
+`public/style.css` serves privacy and OAuth consent. Keep changes with their owner.
 
-## Type
+## Colour and type
 
-One mono size carries the wordmark, commands, labels, keys and headings. One reading size carries the manuscript, the sample and privacy prose. Both faces are self-hosted. See `THIRD_PARTY.md`.
+The hardware palette is paper `#efefeb`, ink `#242521` and indigo `#263fa9`.
+IBM Plex Mono 400/500 carries the landing and studio. Reading pages and generated
+artwork use Manrope. Fonts are self-hosted; notices are in `THIRD_PARTY.md`.
 
 ## Landing
 
-No headline, tagline or feature list. The word is the picture. The mark sits beside the caret. Two install commands and a copy key sit under the word. The books and the four keys share that left edge: sample, studio, connect, source.
+A framed e-ink display holds the wordmark and a native connect disclosure. Sample,
+studio and source sit on the hardware keys below. Commands remain available
+without JavaScript; the enhanced copy control appears after its module loads.
 
 ## Studio
 
-One task at a time, on the paper. Task keys are the landing keys: a paper face, a four-pixel lip, indigo for the task in progress. The other actions use that same paper key. One indigo key commits the form. Optional setup uses one disclosure: a chevron, indigo while open, the same focus ring as the keys. The file slot and the address menu use that same marker. The sign-in card is the one boxed surface. Forms keep visible labels. An error sits beside the control that failed.
+Create and Upload are separate tasks; Settings holds addresses and account setup.
+Cards share gutters and corners, controls have a 44px minimum target, and errors
+stay beside the operation that failed. Labels remain visible.
+
+A file has three bands: title and status, transfer actions, then file information.
+The pencil returns to the retained editor. Download leads, Preview uses an icon,
+and More share options opens Kindle selection and explicit sending. File details
+sit behind the footer information icon. Optional book fields occupy the editor
+footer. Narrow layouts stack actions and enlarged text without overlap.
+
+Icon-only controls keep accessible names. Native dialogs provide dismissal and
+focus containment. Pending controls stay disabled until the operation settles;
+unknown delivery status never implies success or an automatic resend.
 
 ## Reading
 
-The sample is the same paper, ink and indigo. Its bar uses the mark. The generated cover is the ink side of that palette, with the fold and no extra label. Manrope stays the reading face.
+EPUB text remains reflowable XHTML with semantic headings, navigation and figure
+alternatives. Artwork is PNG. A preview is useful evidence of layout, not proof
+of Amazon conversion, Kindle delivery or physical-device readability.

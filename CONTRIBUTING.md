@@ -1,6 +1,6 @@
 # Contributing
 
-Read AGENTS.md and SIMPLE.md before changing behaviour. Use Node 22.16 or later, run `npm ci`, and use `npm run check`, `npm run format:check` and `npm run build` before proposing a change.
+Read [the architecture](docs/architecture.md) and [verification record](docs/verification.md) before changing behaviour. Use Node 22.16 or later, run `npm ci`, and use `npm run check`, `npm run format:check` and `npm run build` before proposing a change.
 
 Use synthetic books and addresses in tests. Never commit a real private book, token, reader address or provider response. Test doubles belong in test fixtures, not hidden production modes. Changes to forwarding must retain byte-identity tests. Changes to delivery must cover concurrent calls and an uncertain provider outcome. Changes to generated EPUB must pass the independent conformance fixture.
 

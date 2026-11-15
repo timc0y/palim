@@ -92,6 +92,22 @@ def contrast(foreground, background):
     lo,hi=sorted([light(foreground),light(background)])
     return (hi+.05)/(lo+.05)
 
+def backdrop_colors(locator):
+    # Transparent controls inherit the shell's painted gradient, not transparent black.
+    return locator.evaluate(r"""(element) => {
+      const opaque = color => color.startsWith('rgb(') || /,\s*1\)$/.test(color);
+      for (let node = element; node; node = node.parentElement) {
+        const style = getComputedStyle(node);
+        if (style.backgroundImage !== 'none') {
+          const colors = style.backgroundImage.match(/rgba?\([^)]+\)/g);
+          if (colors?.length && colors.every(opaque)) return colors;
+          throw new Error('Focus backdrop needs a rendered-image contrast check.');
+        }
+        if (opaque(style.backgroundColor)) return [style.backgroundColor];
+      }
+      throw new Error('No opaque focus backdrop found.');
+    }""")
+
 try:
     for attempt in range(80):
         if process.poll() is not None:
@@ -163,19 +179,22 @@ try:
             expect(page.locator('.skip-link')).to_be_focused()
             assert page.locator('.skip-link').evaluate('(e)=>getComputedStyle(e).clipPath') == 'none'
             page.locator('h1').click()
-            page.get_by_role('link',name='Send an existing file',exact=True).click()
-            page.locator('#connect-shortcut').click()
-            expect(page.locator('#connect-details')).to_have_attribute('open', '')
-            expect(page.locator('#upload-panel')).to_be_visible()
-            page.get_by_role('link',name='Create an EPUB',exact=True).click()
-            page.get_by_role('link',name='Create an EPUB',exact=True).hover()
-            assert page.get_by_role('link',name='Create an EPUB',exact=True).evaluate('(e)=>getComputedStyle(e).backgroundColor') == 'rgb(38, 63, 169)'
+            page.get_by_role('link',name='Upload',exact=True).click()
+            page.get_by_role('link',name='Settings',exact=True).click()
+            expect(page.locator('#agent-setup')).to_be_visible()
+            expect(page.locator('#workbench')).to_be_hidden()
+            page.get_by_role('link',name='Create',exact=True).click()
+            page.get_by_role('link',name='Create',exact=True).hover()
+            selected_task = page.get_by_role('link',name='Create',exact=True)
+            assert selected_task.evaluate('(e)=>getComputedStyle(e).color') == 'rgb(38, 63, 169)'
+            assert selected_task.evaluate('(e)=>getComputedStyle(e).textDecorationLine') == 'underline'
             for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
                 page.set_viewport_size({'width':width,'height':height})
                 assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
                 page.screenshot(path=str(ARTIFACTS / f'authoring-workspace-{label}.png'), full_page=True)
             page.set_viewport_size({'width':390,'height':844})
             # A normal email is valid HTML but not a Kindle destination: field-local API error.
+            page.get_by_role('link',name='Settings',exact=True).click()
             page.locator('#reader-label').fill('')
             page.locator('#kindle-email').fill('normal@example.invalid')
             page.locator('#destination-form button').click()
@@ -183,13 +202,13 @@ try:
             expect(page.locator('#destination-form .action-feedback')).to_contain_text('@kindle.com')
             page.locator('#destination-form').screenshot(path=str(ARTIFACTS / 'ux-address-error-mobile.png'))
             for label, address in [('Bedside','palim-address-fixture-bedside@kindle.com'), ('Travel','palim-address-fixture-travel@kindle.com')]:
-                page.locator('#setup-details').evaluate('(e)=>e.open=true')
+                page.get_by_role('link',name='Settings',exact=True).click()
                 page.locator('#reader-label').fill(label)
                 page.locator('#kindle-email').fill(address)
                 page.locator('#destination-form button').click()
                 expect(page.locator('#reader-list')).to_contain_text(label)
             expect(page.locator('#reader-list .reader-item')).to_have_count(2)
-            expect(page.locator('#destination-status')).to_contain_text('2 of 5 addresses saved')
+            expect(page.locator('#destination-status')).to_contain_text('2 / 5 saved')
             expect(page.locator('#confirm-form')).to_have_count(0)
             expect(page.get_by_role('button',name='Send verification book')).to_have_count(0)
             account = json.loads(request('/api/account')[2])
@@ -201,17 +220,15 @@ try:
             page.locator('#copy-sender').click()
             expect(page.locator('#copy-sender-status')).to_have_text('Copied.')
             assert page.evaluate('navigator.clipboard.readText()') == personal_sender
-            page.locator('.amazon-setup').evaluate('(e)=>e.open=true')
             page.locator('h1').click()
-            page.locator('.reader-panel').screenshot(path=str(ARTIFACTS / 'ux-amazon-setup-mobile.png'))
-            page.locator('.amazon-setup').evaluate('(e)=>e.open=false')
+            page.locator('.sender-panel').screenshot(path=str(ARTIFACTS / 'ux-amazon-setup-mobile.png'))
             rows = json.loads(request('/api/account')[2])['destinations']
             assert all('confirmed' not in row for row in rows)
             travel = next(row for row in rows if row['label'] == 'Travel')
-            page.locator('#setup-details').evaluate('(e)=>e.open=true')
+            page.get_by_role('link',name='Settings',exact=True).click()
             page.locator('#kindle-email').fill('draft@kindle.com')
-            page.locator('#reader-list .reader-item').filter(has_text='Travel').get_by_role('button',name='Make Travel Kindle the default address').click()
-            expect(page.locator('#setup-details')).to_have_attribute('open', '')
+            page.locator('#reader-list .reader-item').filter(has_text='Travel').get_by_role('button',name='Make Travel the default address').click()
+            expect(page.locator('#address-setup')).to_be_visible()
             expect(page.locator('#kindle-email')).to_have_value('draft@kindle.com')
             expect(page.locator('#reader-list .reader-item').filter(has_text='Travel')).to_contain_text('Default')
             assert json.loads(request('/api/account')[2])['defaultDestinationId'] == travel['id']
@@ -220,18 +237,19 @@ try:
                 assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
                 page.locator('.reader-panel').screenshot(path=str(ARTIFACTS / f'saved-readers-{label}.png'))
             page.set_viewport_size({'width':390,'height':844})
+            page.get_by_role('link',name='Create',exact=True).click()
             page.locator('#title').fill('Saved-address proof')
             page.locator('#manuscript').fill('A local synthetic draft. No email was requested.')
             page.locator('#create-form button[type=submit]').click()
             page.locator('#created a.button').first.wait_for()
             page.locator('#created').screenshot(path=str(ARTIFACTS / 'ux-create-result-mobile.png'))
-            page.locator('#image-form').locator('..').locator('summary').click()
+            page.get_by_role('link',name='Settings',exact=True).click()
             page.locator('#figure-image').set_input_files(str(ROOT / 'public/images/sample-exposure.png'))
             page.locator('#image-form button[type=submit]').click()
-            expect(page.locator('#image-result')).to_contain_text('Image uploaded.')
-            image_id = re.search(r'([0-9a-f-]{36})', page.locator('#image-assets').inner_text()).group(1)
-            page.get_by_role('button',name='Copy image ID ' + image_id).click()
-            assert page.evaluate('navigator.clipboard.readText()') == image_id
+            expect(page.locator('#image-result')).to_contain_text('Uploaded.')
+            page.locator('#image-assets button').first.click()
+            image_id = page.evaluate('navigator.clipboard.readText()')
+            assert re.fullmatch(r'[0-9a-f-]{36}', image_id)
             expect(page.locator('#image-assets [role=status]')).to_have_text('Copied.')
             image = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if a['artifactId'] == image_id)
             image_url = urllib.parse.urlsplit(image['downloadUrl'])
@@ -239,7 +257,10 @@ try:
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 0
             reloaded = context.new_page()
             reloaded.goto(ORIGIN + '/app', wait_until='networkidle')
-            expect(reloaded.locator('#image-assets')).to_contain_text(image_id)
+            reloaded.get_by_role('link',name='Settings',exact=True).click()
+            reloaded.locator('#image-assets button').first.click()
+            assert reloaded.evaluate('navigator.clipboard.readText()') == image_id
+            reloaded.get_by_role('link',name='Create',exact=True).click()
             reloaded.locator('#title').fill('Keep this title')
             reloaded.locator('#manuscript').fill('Keep this manuscript.')
             reloaded.once('dialog', lambda dialog: dialog.dismiss())
@@ -252,7 +273,7 @@ try:
             expect(reloaded.locator('#title')).to_have_value('One stop of light')
             reloaded.locator('#remove-example').click()
             expect(reloaded.locator('#example-status')).to_be_hidden()
-            expect(reloaded.locator('#notice')).to_contain_text('Remove any figure: references')
+            expect(reloaded.locator('#create-form .action-feedback')).to_contain_text('Delete any figure: references')
             reloaded.close()
             for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
                 page.set_viewport_size({'width':width,'height':height})
@@ -261,24 +282,26 @@ try:
             page.set_viewport_size({'width':390,'height':844})
             page.locator('#figure-image').set_input_files({'name':'another.png','mimeType':'image/png','buffer':(ROOT / 'public/images/sample-exposure.png').read_bytes()})
             expect(page.locator('#image-result')).to_be_hidden()
-            page.get_by_role('link',name='Send an existing file',exact=True).click()
+            page.get_by_role('link',name='Upload',exact=True).click()
             original = b'%PDF-1.7\n% Synthetic original for local UX proof\n1 0 obj<</Type/Catalog>>endobj\n%%EOF'
             page.locator('#original').set_input_files({'name':'Original.pdf','mimeType':'application/pdf','buffer':original})
             page.locator('#upload-form button[type=submit]').click()
             page.locator('#uploaded a.button').first.wait_for()
-            expect(page.locator('#uploaded')).to_contain_text('Original file preserved')
+            expect(page.locator('#uploaded .result-name')).to_have_value('Original.pdf')
             page.locator('#uploaded').screenshot(path=str(ARTIFACTS / 'ux-upload-result-mobile.png'))
             uploaded = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if not a['generated'] and a['kind'] == 'document')
             url = urllib.parse.urlsplit(uploaded['downloadUrl'])
             assert request(url.path+'?'+url.query)[2] == original
-            page.get_by_role('link',name='Create an EPUB',exact=True).click()
+            page.get_by_role('link',name='Create',exact=True).click()
             expect(page.locator('#title')).to_have_value('Saved-address proof')
-            page.locator('#created-reader').select_option(travel['id'])
-            expect(page.locator('#created .send-target')).to_contain_text(travel['email'])
-            expect(page.locator('#created .send-action')).to_have_text('Send to this Kindle')
+            page.locator('#created .share-trigger').click()
+            page.locator('#send-reader').select_option(travel['id'])
+            expect(page.locator('#share-content .send-target')).to_contain_text(travel['email'])
+            expect(page.locator('#share-content .send-target')).to_be_hidden()
+            expect(page.locator('#share-send')).to_have_text('Send')
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 0
             assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 0
-            page.locator('#created .send-action').click()
+            page.locator('#share-send').click()
             page.locator('#receipt-panel').wait_for(state='visible')
             expect(page.locator('#receipt')).to_contain_text(travel['email'])
             artifact = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if a['generated'])
@@ -325,14 +348,14 @@ try:
             assert post('/api/confirm', {'code':'0000000000'})[0] == 404
             # Optional name, first default, five-address limit, and useful capacity feedback.
             for i in range(3):
-                page.locator('#setup-details').evaluate('(e)=>e.open=true')
+                page.get_by_role('link',name='Settings',exact=True).click()
                 page.locator('#kindle-email').fill(f'extra-{i}@kindle.com')
                 page.locator('#reader-label').fill('')
                 page.locator('#destination-form button').click()
                 expect(page.locator('#reader-list .reader-item')).to_have_count(3+i)
             assert any(d['label']=='My Kindle' for d in json.loads(request('/api/account')[2])['destinations'])
             expect(page.locator('#destination-form')).to_be_hidden()
-            page.locator('#setup-details').evaluate('(e)=>e.open=true')
+            page.get_by_role('link',name='Settings',exact=True).click()
             expect(page.locator('#reader-limit')).to_be_visible()
             page.locator('.reader-panel').screenshot(path=str(ARTIFACTS / 'ux-address-limit-mobile.png'))
             for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
@@ -351,7 +374,7 @@ try:
             login_page.goto(ORIGIN+'/app',wait_until='networkidle')
             login_page.locator('#login-email').fill('reader@kindle.com')
             login_page.locator('#login-email-form button').click()
-            expect(login_page.locator('#login-email-form .action-feedback')).to_contain_text('normal inbox')
+            expect(login_page.locator('#login-email-form .action-feedback')).to_contain_text('inbox email')
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 1
             login_page.screenshot(path=str(ARTIFACTS / 'ux-login-inbox-mobile.png'),full_page=True)
             signed_out.close()
@@ -480,17 +503,17 @@ try:
             browser_page.keyboard.press('Tab')
             assert browser_page.locator('.bar .logo').evaluate('(e)=>e.matches(":focus-visible")')
             light_focus = browser_page.locator('.bar .logo').evaluate('(e)=>getComputedStyle(e).outlineColor')
-            light_bg = browser_page.locator('.bar').evaluate('(e)=>getComputedStyle(e).backgroundColor')
-            assert contrast(light_focus,light_bg) >= 3
+            light_contrast = min(contrast(light_focus,bg) for bg in backdrop_colors(browser_page.locator('.bar')))
+            assert light_contrast >= 3
             browser_page.locator('.bar').screenshot(path=str(ARTIFACTS / 'focus-light-bar.png'))
             browser_page.locator('.deck .key').first.focus()
             assert browser_page.locator('.deck .key').first.evaluate('(e)=>e.matches(":focus-visible")')
             dark_focus = browser_page.locator('.deck .key').first.evaluate('(e)=>getComputedStyle(e).outlineColor')
-            dark_bg = browser_page.locator('.deck').evaluate('(e)=>getComputedStyle(e).backgroundColor')
-            assert contrast(dark_focus,dark_bg) >= 3
-            browser_page.locator('.deck').screenshot(path=str(ARTIFACTS / 'focus-dark-deck.png'))
+            deck_contrast = min(contrast(dark_focus,bg) for bg in backdrop_colors(browser_page.locator('.deck')))
+            assert deck_contrast >= 3
+            browser_page.locator('.deck').screenshot(path=str(ARTIFACTS / 'focus-hardware-deck.png'))
             browser_page.locator('h1').click()
-            print(f'Rendered focus contrast: dark {contrast(dark_focus,dark_bg):.2f}:1, light {contrast(light_focus,light_bg):.2f}:1.')
+            print(f'Rendered focus contrast across shell gradient stops: keys {deck_contrast:.2f}:1, header {light_contrast:.2f}:1.')
             browser_page.screenshot(path=str(ARTIFACTS / 'landing-desktop.png'), full_page=True)
             browser_page.set_viewport_size({'width': 390, 'height': 844})
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
@@ -557,7 +580,7 @@ try:
             browser_code = re.search(r'code is (\d{6})', browser_mail['text']).group(1)
             browser_page.locator('#login-code').fill('111111' if browser_code == '000000' else '000000')
             browser_page.locator('#login-code-form button[type=submit]').click()
-            expect(browser_page.locator('#login-code-form .action-feedback.error')).to_have_text('That code is invalid or expired. Try again or request a new code.')
+            expect(browser_page.locator('#login-code-form .action-feedback.error')).to_have_text('Code invalid or expired. Request a new one.')
             browser_page.screenshot(path=str(ARTIFACTS / 'login-error-mobile.png'), full_page=True)
             browser_page.locator('#login-code').fill(browser_code)
             browser_page.locator('#login-code-form button[type=submit]').click()
@@ -577,10 +600,10 @@ try:
             browser_page.locator('.workspace-page > .nav .wordmark').focus()
             assert browser_page.locator('.workspace-page > .nav .wordmark').evaluate('(e)=>e.matches(":focus-visible")')
             workspace_focus = browser_page.locator('.workspace-page > .nav .wordmark').evaluate('(e)=>getComputedStyle(e).outlineColor')
-            workspace_bg = browser_page.locator('.workspace-page > .nav').evaluate('(e)=>getComputedStyle(e).backgroundColor')
-            assert contrast(workspace_focus,workspace_bg) >= 3
-            browser_page.locator('.workspace-page > .nav').screenshot(path=str(ARTIFACTS / 'focus-dark-workspace.png'))
-            print(f'Rendered workspace focus contrast: {contrast(workspace_focus,workspace_bg):.2f}:1.')
+            workspace_contrast = min(contrast(workspace_focus,bg) for bg in backdrop_colors(browser_page.locator('.workspace-page > .nav')))
+            assert workspace_contrast >= 3
+            browser_page.locator('.workspace-page > .nav').screenshot(path=str(ARTIFACTS / 'focus-workspace.png'))
+            print(f'Rendered workspace focus contrast across shell gradient stops: {workspace_contrast:.2f}:1.')
             browser_page.locator('h1').click()
             browser_page.locator('#example-button').click()
             expect(browser_page.locator('#title')).to_have_value('One stop of light')
@@ -593,9 +616,14 @@ try:
             expect(browser_page.locator('#title')).to_have_value('One stop of light')
             browser_page.locator('#create-form button[type=submit]').click()
             browser_page.locator('#created a', has_text='Download').wait_for()
-            expect(browser_page.locator('#created a.button').first).to_have_text('Download EPUB')
-            expect(browser_page.locator('#created .technical-details')).not_to_have_attribute('open', '')
-            expect(browser_page.locator('#created .hash')).to_be_hidden()
+            expect(browser_page.locator('#created a.button').first).to_have_text('Download')
+            expect(browser_page.locator('#create-editor')).to_be_hidden()
+            expect(browser_page.locator('#created .artifact-status')).to_have_text('Not sent')
+            expect(browser_page.locator('#share-dialog')).not_to_be_visible()
+            expect(browser_page.locator('#file-info-dialog')).not_to_be_visible()
+            browser_page.locator('#created .artifact-footer button').click()
+            expect(browser_page.locator('#file-info-dialog .hash')).to_be_visible()
+            browser_page.locator('#file-info-dialog .close-dialog').click()
             browser_page.locator('#created').screenshot(path=str(ARTIFACTS / 'create-result-mobile.png'))
             preview_url = browser_page.locator('#created a', has_text='Preview').get_attribute('href')
             preview_page = context.new_page()
@@ -635,31 +663,36 @@ try:
             database.execute('UPDATE users SET default_destination_id=? WHERE id=?', (reader_ids[0],owner))
             database.commit()
             # A fresh upload refreshes account settings while preserving the earlier created result.
+            browser_page.locator('#uploaded .result-header button').click()
             browser_page.locator('#upload-form button[type=submit]').click()
-            expect(browser_page.locator('#uploaded-reader option')).to_have_count(3)
+            browser_page.locator('#uploaded .share-trigger').click()
+            expect(browser_page.locator('#send-reader option')).to_have_count(3)
             expect(browser_page.locator('#shelf .shelf-item')).to_have_count(3)
-            browser_page.locator('#uploaded-reader').select_option(reader_ids[1])
-            expect(browser_page.locator('#uploaded-reader')).to_have_value(reader_ids[1])
-            expect(browser_page.locator('#created-reader')).to_have_value(reader_ids[1])
-            expect(browser_page.locator('#uploaded .send-target')).to_contain_text('travel@kindle.com')
-            browser_page.locator('#uploaded-reader').select_option(reader_ids[0])
-            expect(browser_page.locator('#uploaded .send-target')).to_contain_text('bedside@kindle.com')
+            browser_page.locator('#send-reader').select_option(reader_ids[1])
+            expect(browser_page.locator('#send-reader')).to_have_value(reader_ids[1])
+            expect(browser_page.locator('#share-content .send-target')).to_contain_text('travel@kindle.com')
+            expect(browser_page.locator('#share-content .send-target')).to_be_hidden()
+            browser_page.locator('#send-reader').select_option(reader_ids[0])
+            expect(browser_page.locator('#share-content .send-target')).to_contain_text('bedside@kindle.com')
+            browser_page.locator('#share-dialog .close-dialog').click()
             browser_page.locator('#uploaded').screenshot(path=str(ARTIFACTS / 'upload-result-confirmed-mobile.png'))
             for action in browser_page.locator('#shelf a, #shelf button').all():
                 bounds = action.bounding_box()
                 assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Saved shelf action too small'
             browser_page.locator('#shelf').screenshot(path=str(ARTIFACTS / 'shelf-mobile.png'))
-            browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
+            browser_page.get_by_role('link',name='Settings',exact=True).click()
             browser_page.locator('#kindle-email').fill('draft@kindle.com')
             browser_page.locator('#reader-label').fill('Draft address')
             browser_page.locator('#reader-list .reader-item').filter(has_text='Travel Kindle').get_by_role('button', name='Make Travel Kindle the default address').click()
             expect(browser_page.locator('#reader-list .reader-item').filter(has_text='Travel Kindle')).to_contain_text('Default')
-            expect(browser_page.locator('#setup-details')).to_have_attribute('open', '')
+            expect(browser_page.locator('#address-setup')).to_be_visible()
             expect(browser_page.locator('#kindle-email')).to_have_value('draft@kindle.com')
             expect(browser_page.locator('#reader-label')).to_have_value('Draft address')
             browser_page.screenshot(path=str(ARTIFACTS / 'destinations-mobile.png'), full_page=True)
-            browser_page.locator('#setup-details').evaluate('(el) => el.open = false')
-            browser_page.locator('#shelf .send-action').first.click()
+            browser_page.get_by_role('link',name='Settings',exact=True).click()
+            browser_page.get_by_role('link',name='Upload',exact=True).click()
+            browser_page.locator('#shelf .share-trigger').first.click()
+            browser_page.locator('#share-send').click()
             browser_page.locator('#receipt-panel').wait_for(state='visible')
             expect(browser_page.locator('#receipt')).to_contain_text('bedside@kindle.com')
             expect(browser_page.locator('#receipt')).to_contain_text('not confirmed')
@@ -667,7 +700,7 @@ try:
             assert captured['to'] == 'bedside@kindle.com'
             assert bytes(captured['attachments'][0]['content']) == (ROOT / 'public/sample.epub').read_bytes()
             browser_page.screenshot(path=str(ARTIFACTS / 'send-receipt-mobile.png'), full_page=True)
-            browser_page.locator('#setup-details').evaluate('(el) => el.open = true')
+            browser_page.get_by_role('link',name='Settings',exact=True).click()
             browser_page.locator('#reader-label').fill('New Kindle')
             browser_page.locator('#kindle-email').fill('pending@kindle.com')
             before_save_mail = database.execute('SELECT count(*) FROM proof_mail').fetchone()[0]
@@ -677,7 +710,8 @@ try:
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == before_save_mail
             expect(browser_page.locator('#confirm-form')).to_have_count(0)
             browser_page.screenshot(path=str(ARTIFACTS / 'saved-address-added-mobile.png'), full_page=True)
-            browser_page.locator('#setup-details').evaluate('(el) => el.open = false')
+            browser_page.get_by_role('link',name='Settings',exact=True).click()
+            browser_page.get_by_role('link',name='Upload',exact=True).click()
             browser_page.locator('h1').click()
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-mobile.png'), full_page=True)
             browser_page.set_viewport_size({'width': 1440, 'height': 1000})

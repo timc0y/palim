@@ -1,34 +1,44 @@
-/*
- * Palim landing — the connect command.
- * The page works without this file; it only adds the clipboard action.
- */
-const button = document.querySelector('[data-copy]');
-const code = document.querySelector('.line__code');
+/*! UI SDK by Vercel, Apache-2.0. See /ui-sdk-LICENSE.txt. */
+import '@ui-sdk/web/button';
 
-if (button && code) {
-  button.addEventListener('click', async () => {
-    // Both commands are needed: the second resolves the first's marketplace.
-    const text = [...document.querySelectorAll('.line__code')]
-      .map((node) => node.textContent.trim())
-      .join('\n');
-    const label = button.textContent;
-    try {
-      await navigator.clipboard.writeText(text);
-      button.textContent = 'copied';
-      button.setAttribute('data-copied', '');
-    } catch {
-      // Clipboard access can be refused. Select the command so it can be
-      // copied by hand, and say so.
-      const range = document.createRange();
-      range.selectNodeContents(code);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-      button.textContent = 'selected';
+const copy = document.querySelector('ui-button');
+const button = copy.querySelector('button');
+const commands = document.querySelector('.line__commands');
+const connect = document.querySelector('.connect');
+const status = document.querySelector('#copy-status');
+let reset;
+
+copy.addEventListener('action', (event) => {
+  event.detail.waitUntil(copyCommands());
+});
+
+async function copyCommands() {
+  window.clearTimeout(reset);
+  button.textContent = 'copying';
+  delete button.dataset.result;
+  status.textContent = '';
+  try {
+    await navigator.clipboard.writeText(commands.textContent.trim());
+    button.textContent = 'copied';
+    button.dataset.result = 'copied';
+    status.textContent = 'Both commands copied.';
+  } catch {
+    if (!connect.open) {
+      button.textContent = 'copy';
+      status.textContent = 'Copy unavailable. Open connect to copy the commands manually.';
+      return;
     }
-    window.setTimeout(() => {
-      button.textContent = label;
-      button.removeAttribute('data-copied');
-    }, 1800);
-  });
+    const range = document.createRange();
+    range.selectNodeContents(commands);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    button.textContent = 'selected';
+    button.dataset.result = 'selected';
+    status.textContent = 'Both commands selected. Copy them using your device.';
+  }
+  reset = window.setTimeout(() => {
+    button.textContent = 'copy';
+    delete button.dataset.result;
+  }, 2400);
 }

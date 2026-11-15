@@ -2,18 +2,16 @@ import { PalimError } from './errors.js';
 import { LIMITS } from './schema.js';
 import type { Artifact, Delivery, User, ReaderDestination } from './types.js';
 
+const USER_QUERY =
+  'SELECT u.*, d.email AS destination FROM users u LEFT JOIN reader_destinations d ON d.id=u.default_destination_id AND d.owner=u.id WHERE u.id=? AND u.disabled=0';
+
 export class Store {
   constructor(
     readonly db: D1Database,
     readonly now: () => number = () => Math.floor(Date.now() / 1000),
   ) {}
   async user(id: string): Promise<User> {
-    let user = await this.db
-      .prepare(
-        'SELECT u.*, d.email AS destination FROM users u LEFT JOIN reader_destinations d ON d.id=u.default_destination_id AND d.owner=u.id WHERE u.id=? AND u.disabled=0',
-      )
-      .bind(id)
-      .first<User>();
+    let user = await this.db.prepare(USER_QUERY).bind(id).first<User>();
     if (!user) throw new PalimError('SIGN_IN_REQUIRED', 'Sign in to Palim to continue.', 401);
     if (!user.sender_alias) {
       const alias = Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) =>
@@ -25,12 +23,7 @@ export class Store {
         )
         .bind(alias, id)
         .run();
-      user = await this.db
-        .prepare(
-          'SELECT u.*, d.email AS destination FROM users u LEFT JOIN reader_destinations d ON d.id=u.default_destination_id AND d.owner=u.id WHERE u.id=? AND u.disabled=0',
-        )
-        .bind(id)
-        .first<User>();
+      user = await this.db.prepare(USER_QUERY).bind(id).first<User>();
       if (!user?.sender_alias)
         throw new PalimError(
           'SENDER_UNAVAILABLE',

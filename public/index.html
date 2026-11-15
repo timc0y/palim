@@ -3,81 +3,64 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="csp-nonce" />
     <title>palim</title>
     <meta name="description" content="palim" />
-    <meta name="theme-color" content="#e8e5db" />
+    <meta name="theme-color" content="#efefeb" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/kindle.css" />
     <link
       rel="preload"
-      href="/fonts/IBMPlexMono-Latin-500.woff2"
+      href="/fonts/IBMPlexMono-Latin-400.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
-    <script type="module" src="/kindle.js"></script>
+    <script type="module" src="/landing.js"></script>
   </head>
   <body>
     <a class="skip" href="#page">Skip to content</a>
-
-    <header class="bar">
-      <a class="logo" href="/" aria-label="Home">
-        <svg class="logo__emblem" viewBox="0 0 32 32" aria-hidden="true">
-          <rect x="0" y="0" width="32" height="32" rx="3" />
-          <path class="logo__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
-        </svg>
-      </a>
-      <a class="privacy" href="/privacy.html">privacy</a>
-    </header>
-
-    <main class="page" id="page" tabindex="-1">
-      <div class="plate">
-        <h1 class="word">palim<span class="caret" aria-hidden="true"></span></h1>
-        <svg class="fold" viewBox="6 6 20 18" aria-hidden="true">
-          <path d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
-        </svg>
+    <main class="machine" id="page" tabindex="-1" data-skin="hardware">
+      <header class="bar">
+        <a class="logo" href="/" aria-label="Home">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
+          </svg>
+        </a>
+        <a class="privacy" href="/privacy.html">privacy</a>
+      </header>
+      <div class="bezel" data-kit="display-bezel">
+        <div class="plate" data-kit="display-screen">
+          <h1 class="word">palim<span class="caret" aria-hidden="true"></span></h1>
+          <details class="connect">
+            <summary>connect<span class="connect__indicator" aria-hidden="true"></span></summary>
+            <div class="line">
+              <pre
+                class="line__commands"
+                aria-label="Codex installation commands"
+              ><code>codex plugin marketplace add timc0y/palim --ref main
+codex plugin add palim@palim</code></pre>
+              <ui-button pending-announcement="Copying commands">
+                <button class="key line__copy" data-kit="button" type="button">copy</button>
+              </ui-button>
+            </div>
+            <a
+              class="connect__guide"
+              href="https://github.com/timc0y/palim#connect-an-agent"
+              rel="noreferrer"
+              >connection guide<span aria-hidden="true">↗</span></a
+            >
+          </details>
+        </div>
       </div>
-
-      <p class="line">
-        <span class="line__cmd">
-          <span class="line__prompt" aria-hidden="true">$</span>
-          <code class="line__code">codex plugin marketplace add timc0y/palim --ref main</code>
-        </span>
-        <span class="line__cmd">
-          <span class="line__prompt" aria-hidden="true">$</span>
-          <code class="line__code">codex plugin add palim@palim</code>
-        </span>
-        <button class="line__copy" type="button" data-copy>copy</button>
-      </p>
+      <p class="sr-only" id="copy-status" role="status"></p>
+      <nav class="deck" aria-label="Primary">
+        <a class="key" data-kit="button" href="/sample.html">sample</a>
+        <a class="key key--go" data-kit="button" data-tone="primary" href="/app">studio</a>
+        <a class="key" data-kit="button" href="https://github.com/timc0y/palim" rel="noreferrer"
+          >source</a
+        >
+      </nav>
     </main>
-
-    <div class="horizon" aria-hidden="true">
-      <svg viewBox="0 0 156 80">
-        <g shape-rendering="crispEdges">
-          <rect x="0" y="24" width="40" height="56" fill="#f7f4ec" />
-          <rect x="0" y="24" width="7" height="56" fill="#232220" />
-          <rect x="12" y="36" width="22" height="5" fill="#c4bdae" />
-          <rect x="12" y="48" width="16" height="5" fill="#c4bdae" />
-          <rect x="12" y="60" width="20" height="5" fill="#c4bdae" />
-          <rect x="52" y="0" width="48" height="80" fill="#263fa9" />
-          <rect x="52" y="0" width="8" height="80" fill="#1c2d80" />
-          <rect x="68" y="0" width="7" height="22" fill="#f414df" />
-          <rect x="112" y="32" width="40" height="48" fill="#efeae0" />
-          <rect x="112" y="32" width="7" height="48" fill="#232220" />
-          <rect x="124" y="44" width="22" height="5" fill="#c9c2b4" />
-          <rect x="124" y="56" width="14" height="5" fill="#c9c2b4" />
-          <rect x="124" y="68" width="18" height="5" fill="#c9c2b4" />
-        </g>
-      </svg>
-    </div>
-
-    <nav class="deck" aria-label="Primary">
-      <a class="key" href="/sample.html">sample</a>
-      <a class="key key--go" href="/app">studio</a>
-      <a class="key" href="https://github.com/timc0y/palim#connect-an-agent" rel="noreferrer"
-        >connect</a
-      >
-      <a class="key" href="https://github.com/timc0y/palim" rel="noreferrer">source</a>
-    </nav>
   </body>
 </html>
