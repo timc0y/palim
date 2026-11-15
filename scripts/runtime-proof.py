@@ -477,7 +477,7 @@ try:
     assert ORIGIN + '/app' in json.loads(payload)['result']['instructions']
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}, auth)
     tools = json.loads(payload)['result']['tools']
-    assert sorted(t['name'] for t in tools) == ['create_book', 'get_delivery', 'get_guide', 'import_image', 'list_destinations', 'send_document']
+    assert sorted(t['name'] for t in tools) == ['create_book', 'get_artifact', 'get_delivery', 'get_guide', 'import_image', 'list_destinations', 'send_document']
     status, _, guide_payload = post('/mcp', {'jsonrpc': '2.0', 'id': 20, 'method': 'tools/call', 'params': {'name': 'get_guide', 'arguments': {}}}, auth)
     guide_result = json.loads(guide_payload)['result']
     assert status == 200 and not guide_result.get('isError')
@@ -498,13 +498,23 @@ try:
     status, _, epub = request(download.path + '?' + download.query)
     assert status == 200 and hashlib.sha256(epub).hexdigest() == artifact['sha256']
     (ARTIFACTS / 'native-runtime-proof.epub').write_bytes(epub)
+    status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 22, 'method': 'tools/call', 'params': {'name': 'get_artifact', 'arguments': {'artifactId': artifact['artifactId']}}}, auth)
+    refreshed = json.loads(payload)['result']
+    assert status == 200 and not refreshed.get('isError'), refreshed
+    assert refreshed['structuredContent'] == json.loads(refreshed['content'][0]['text'])
+    for key in ['artifactId', 'sha256', 'bytes', 'expiresAt']:
+        assert refreshed['structuredContent'][key] == artifact[key]
+    assert refreshed['structuredContent']['linksExpireAt'] < artifact['expiresAt']
+    renewed_download = urllib.parse.urlsplit(refreshed['structuredContent']['downloadUrl'])
+    status, _, renewed_epub = request(renewed_download.path + '?' + renewed_download.query)
+    assert status == 200 and renewed_epub == epub
     status, _, payload = post('/api/send', {'artifactId': artifact['artifactId']})
     assert status == 400 and json.loads(payload)['code'] == 'DESTINATION_REQUIRED'
     status, _, _ = request('/api/files/' + artifact['artifactId'], 'DELETE')
     assert status == 200
     assert request(download.path + '?' + download.query)[0] == 404
     assert post('/mcp', {'jsonrpc': '2.0', 'id': 4, 'method': 'tools/list', 'params': {}}, {'Authorization': 'Bearer invalid', 'Accept': 'application/json'})[0] == 401
-    print('Native consent, PKCE, MCP create, download hash, missing-destination refusal and deletion passed.')
+    print('Native consent, PKCE, seven-tool discovery, MCP create, link refresh, download hash, missing-destination refusal and deletion passed.')
 
     if args.browser:
         from playwright.sync_api import sync_playwright, expect

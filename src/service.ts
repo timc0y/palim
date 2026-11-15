@@ -141,6 +141,7 @@ export class Palim {
     };
   }
   async artifactResult(a: Artifact) {
+    const linkExpiry = Math.min(a.expires_at, this.clock() + 900);
     const result = {
       artifactId: a.id,
       kind: a.kind,
@@ -151,14 +152,18 @@ export class Palim {
       generated: !!a.generated,
       emailEligible: a.kind === 'document' && canEmail(a.bytes),
       expiresAt: new Date(a.expires_at * 1000).toISOString(),
-      downloadUrl: await this.link(a, 'file'),
-      sourceUrl: a.generated ? await this.link(a, 'source') : null,
-      previewUrl: a.generated ? await this.link(a, 'preview') : null,
+      linksExpireAt: new Date(linkExpiry * 1000).toISOString(),
+      downloadUrl: await this.link(a, 'file', linkExpiry),
+      sourceUrl: a.generated ? await this.link(a, 'source', linkExpiry) : null,
+      previewUrl: a.generated ? await this.link(a, 'preview', linkExpiry) : null,
     };
     return result;
   }
-  async link(a: Artifact, part: 'file' | 'source' | 'preview'): Promise<string> {
-    const expires = Math.min(a.expires_at, this.clock() + 900);
+  private async link(
+    a: Artifact,
+    part: 'file' | 'source' | 'preview',
+    expires: number,
+  ): Promise<string> {
     const signature = await hmac(
       this.env.SIGNING_SECRET,
       `${a.owner}\n${a.id}\n${part}\n${expires}`,

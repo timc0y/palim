@@ -54,3 +54,8 @@ the reader. The browser preview pairs the actual cover with the title, uses
 Manrope for reading and hides the decorative cover when enlarged text needs the
 width. The sample illustration is rebuilt from its SVG source with the same
 rasterizer used for generated artwork.
+
+Charts have a bounded reading width so their raster labels do not dominate a
+wide page. The sample moves from a light-ratio chart to the aperture exchange,
+then a short field exercise. Brief blockquotes hold the principle to remember;
+the essential values remain in reflowable text beside the graphics.

@@ -79,7 +79,7 @@ test('MCP imports an owned image and creates an EPUB with repeated captions', as
     const epub = f.objects.get(`alice/${bookId}`)!;
     const zip = await JSZip.loadAsync(epub);
     const chapter = await zip.file('EPUB/chapter-1.xhtml')!.async('text');
-    assert.equal((chapter.match(/<figure>/g) ?? []).length, 2);
+    assert.equal((chapter.match(/<figure\b/g) ?? []).length, 2);
     assert.equal(
       (
         chapter.match(
@@ -202,6 +202,112 @@ test('MCP send_document and get_delivery preserve bytes and never double-send a 
     assert.equal(f.sent.length, 1);
   } finally {
     await c.close();
+  }
+});
+
+test('get_artifact refreshes expired links for the same bytes without rendering, uploading or sending', async (t) => {
+  const f = await fixture();
+  let now = Math.floor(Date.now() / 1000);
+  t.mock.method(Date, 'now', () => now * 1000);
+  f.setTime(now);
+  const c = await connect(f);
+  try {
+    const created = await c.client.callTool({ name: 'create_book', arguments: simpleBook });
+    const original = output(created);
+    const artifactId = original.artifactId as string;
+    const sha = original.sha256;
+    const expiresAt = original.expiresAt;
+    const operationsBefore = f.sql.prepare('SELECT count(*) n FROM operations').get()!.n;
+    const storedBytes = f.objects.get(`alice/${artifactId}`)!;
+
+    now += 901;
+    f.setTime(now);
+    const staleUrl = original.downloadUrl as string;
+    await assert.rejects(f.palim.download(new Request(staleUrl), artifactId, 'file'), /expired/);
+    const refreshed = output(
+      await c.client.callTool({ name: 'get_artifact', arguments: { artifactId } }),
+    );
+    assert.equal(refreshed.artifactId, artifactId);
+    assert.equal(refreshed.sha256, sha);
+    assert.equal(refreshed.expiresAt, expiresAt);
+    assert.equal(refreshed.bytes, original.bytes);
+    assert.ok(
+      Date.parse(refreshed.linksExpireAt as string) > Date.parse(original.linksExpireAt as string),
+    );
+    for (const key of ['downloadUrl', 'sourceUrl', 'previewUrl']) {
+      const url = refreshed[key];
+      if (typeof url === 'string')
+        assert.equal(
+          Number(new URL(url).searchParams.get('expires')),
+          Date.parse(refreshed.linksExpireAt as string) / 1000,
+        );
+    }
+    const downloaded = await f.palim.download(
+      new Request(refreshed.downloadUrl as string),
+      artifactId,
+      'file',
+    );
+    assert.equal(downloaded.status, 200);
+    assert.deepEqual(new Uint8Array(await downloaded.arrayBuffer()), storedBytes);
+    now = Date.parse(expiresAt as string) / 1000 - 1;
+    f.setTime(now);
+    const lastLinks = output(
+      await c.client.callTool({ name: 'get_artifact', arguments: { artifactId } }),
+    );
+    assert.equal(lastLinks.linksExpireAt, expiresAt);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM operations').get()!.n, operationsBefore);
+    assert.equal(f.sent.length, 0);
+  } finally {
+    await c.close();
+  }
+});
+
+test('get_artifact enforces read scope, account ownership, active account and artifact expiry', async () => {
+  const f = await fixture();
+  const now = Math.floor(Date.now() / 1000);
+  f.setTime(now);
+  const artifact = await f.palim.create('alice', simpleBook);
+  const owner = await connect(f);
+  const other = await connect(f, 'bob');
+  const readonly = await connect(f, 'alice', ['books:send']);
+  try {
+    const deniedScope = await readonly.client.callTool({
+      name: 'get_artifact',
+      arguments: { artifactId: artifact.artifactId },
+    });
+    assert.equal(deniedScope.isError, true);
+    assert.equal(output(deniedScope).code, 'SCOPE_REQUIRED');
+
+    const deniedOwner = await other.client.callTool({
+      name: 'get_artifact',
+      arguments: { artifactId: artifact.artifactId },
+    });
+    assert.equal(deniedOwner.isError, true);
+    assert.equal(output(deniedOwner).code, 'ARTIFACT_NOT_FOUND');
+
+    f.sql.prepare('UPDATE users SET disabled=1 WHERE id=?').run('alice');
+    const disabled = await owner.client.callTool({
+      name: 'get_artifact',
+      arguments: { artifactId: artifact.artifactId },
+    });
+    assert.equal(disabled.isError, true);
+    assert.equal(output(disabled).code, 'SIGN_IN_REQUIRED');
+    f.sql.prepare('UPDATE users SET disabled=0 WHERE id=?').run('alice');
+
+    f.sql
+      .prepare('UPDATE artifacts SET expires_at=? WHERE id=? AND owner=?')
+      .run(now - 1, artifact.artifactId, 'alice');
+    const expired = await owner.client.callTool({
+      name: 'get_artifact',
+      arguments: { artifactId: artifact.artifactId },
+    });
+    assert.equal(expired.isError, true);
+    assert.equal(output(expired).code, 'ARTIFACT_NOT_FOUND');
+    assert.equal(f.sent.length, 0);
+  } finally {
+    await owner.close();
+    await other.close();
+    await readonly.close();
   }
 });
 

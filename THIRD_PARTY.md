@@ -27,7 +27,8 @@ licence texts are kept next to the files.
   `public/fonts/` (`Manrope-Latin.woff2`, `Manrope-Extended.woff2`) with the licence at
   `public/fonts/Manrope-OFL.txt`. `src/reading-font.ts` embeds Manrope Regular at weight 400 from the
   [Google Fonts Manrope source](https://github.com/google/fonts/tree/main/ofl/manrope) for
-  generated artwork. Book text remains XHTML and does not embed it.
+  generated artwork. EPUB text remains XHTML and does not embed it. The standalone local
+  HTML preview embeds its reading fonts and includes their full licence notices.
 - **IBM Plex Mono** — the landing and studio face: wordmarks, controls, labels and metadata. The
   woff2 files are in `public/fonts/` (`IBMPlexMono-Latin-400.woff2`, `IBMPlexMono-Latin-500.woff2`) with the licence at
   `public/fonts/IBMPlexMono-OFL.txt`, from the [IBM Plex source](https://github.com/IBM/plex).

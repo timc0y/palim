@@ -125,7 +125,8 @@ export async function buildBook(
         `Use a defined figure:id reference, not a remote image: ${ref.slice(0, 100)}`,
       );
       used.add(image.id);
-      return `<img src="${image.filename}" alt="${e(image.alt)}"/>`;
+      const number = book.figures.findIndex((figure) => figure.id === image.id) + 1;
+      return `<figure class="figure-${image.kind}"><img src="${image.filename}" alt="${e(image.alt)}"/><figcaption><span class="figure-number">Figure ${number}.</span> ${e(image.caption)}</figcaption></figure>\n`;
     };
     let heading = 0;
     let headingBase = 1;
@@ -141,25 +142,28 @@ export async function buildBook(
       .filter((t) => t.type === 'heading_open')
       .map((t) => Number(t.tag.slice(1)));
     headingBase = levels.length ? Math.min(...levels) : 1;
-    for (const t of tokens) {
+    for (const [at, t] of tokens.entries()) {
       if (t.type === 'fence' && t.content.split('\n').some((l) => l.length > 90))
         warnings.push(
           `${chapter.title}: a code line exceeds 90 characters; check small-screen wrapping.`,
         );
       if (t.type === 'inline' && t.children?.some((c) => c.type === 'image')) {
-        const images = t.children.filter((c) => c.type === 'image');
-        for (const image of images) {
-          const f = rendered.get((image.attrGet('src') ?? '').replace(/^figure:/, ''));
-          if (f) image.content = f.alt;
-        }
+        invariant(
+          tokens[at - 1]?.type === 'paragraph_open' &&
+            tokens[at + 1]?.type === 'paragraph_close' &&
+            t.children.every(
+              (c) =>
+                ['image', 'softbreak', 'hardbreak'].includes(c.type) ||
+                (c.type === 'text' && !c.content.trim()),
+            ),
+          'FIGURE_PLACEMENT',
+          `${chapter.title}: put figure references in their own paragraph, separated from prose by a blank line.`,
+        );
+        tokens[at - 1]!.hidden = true;
+        tokens[at + 1]!.hidden = true;
       }
     }
-    let body = md.renderer.render(tokens, md.options, {});
-    for (const [figureIndex, figure] of [...rendered.values()].entries())
-      body = body.replaceAll(
-        `<p><img src="${figure.filename}" alt="${e(figure.alt)}"/></p>`,
-        `<figure><img src="${figure.filename}" alt="${e(figure.alt)}"/><figcaption><span class="figure-number">Figure ${figureIndex + 1}.</span> ${e(figure.caption)}</figcaption></figure>`,
-      );
+    const body = md.renderer.render(tokens, md.options, {});
     addPage(
       `chapter-${index + 1}`,
       chapter.title,

@@ -8,6 +8,7 @@ export interface Asset {
 }
 export interface RenderedFigure {
   id: string;
+  kind: Figure['kind'];
   filename: string;
   type: string;
   bytes: Uint8Array;
@@ -132,6 +133,7 @@ export function renderFigure(figure: Figure, assets: ReadonlyMap<string, Asset>)
   }
   return {
     id: figure.id,
+    kind: figure.kind,
     filename: `fig-${figure.id}.${ext}`,
     type,
     bytes,

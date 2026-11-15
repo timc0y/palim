@@ -23,6 +23,7 @@ test('official MCP client lists the guide and publishing tools and creates a dra
     const tools = await client.listTools();
     assert.deepEqual(tools.tools.map((t) => t.name).sort(), [
       'create_book',
+      'get_artifact',
       'get_delivery',
       'get_guide',
       'import_image',
@@ -52,6 +53,7 @@ test('official MCP client lists the guide and publishing tools and creates a dra
     assert.equal(guide.text, client.getInstructions());
     assert.match(guide.text, /Never call create_book to forward an original/);
     assert.match(guide.text, /list_destinations/);
+    assert.match(guide.text, /get_artifact/);
     assert.match(guide.text, /"chapters"/);
     const guideTool = tools.tools.find((tool) => tool.name === 'get_guide');
     assert.equal(guideTool?.annotations?.readOnlyHint, true);

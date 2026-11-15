@@ -14,11 +14,11 @@ Minimal valid create_book input:
 {"title":"A short guide","language":"en","chapters":[{"title":"Start","markdown":"A clear first page."}]}
 \`\`\`
 
-Use short sections, readable code and narrow tables. Keep warnings understandable without colour. Choose visuals that clarify the idea; never invent data or imply an illustration is evidence. Use mermaid for small relationships, bars for supported values with units and a source, or image for an owned PNG/JPEG asset. Figures need unique IDs, meaningful alt text and captions, and a standalone Markdown reference such as \`![description](figure:map)\`. Explain essential values in reflowable text as well. Dense images may not scale with the reader’s text size; check small-screen and monochrome readability.
+Use short sections, readable code and narrow tables. Keep warnings understandable without colour. Choose visuals that clarify the idea; never invent data or imply an illustration is evidence. Use mermaid for small relationships, bars for supported values with units and a source, or image for an owned PNG/JPEG asset. Figures need unique IDs, meaningful alt text and captions, and a figure-only Markdown paragraph, separated from prose by a blank line, such as \`![description](figure:map)\`. Explain essential values in reflowable text as well. Dense images may not scale with the reader’s text size; check small-screen and monochrome readability.
 
 For an authorized client image, call import_image with the actual file object, then use its returned artifactId as the figure assetId. Images must be PNG/JPEG, at most 20 MiB and four million pixels; distinct assets in a book total at most 8 MiB. Imports use the shared upload allowance and expire after 24 hours. Never invent a URL or put image bytes in the manuscript. Check warnings; preview is not proof of Kindle or screen-reader behaviour.
 
-Return the draft’s private download/preview, expiry and warnings. Drafts do not send email or require Kindle setup. Files expire after 24 hours and signed links after 15 minutes.
+Return the draft’s private download/preview, expiry and warnings. Drafts do not send email or require Kindle setup. Files expire after 24 hours; signed links expire after 15 minutes. If a signed link is stale but the artifact is still available, call get_artifact with its artifactId for fresh links. After the artifact expires, retrieve the original or recreate it only when appropriate. Link recovery never resends a document.
 
 ## Forward an existing EPUB/PDF
 

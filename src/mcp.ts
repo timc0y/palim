@@ -96,6 +96,31 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     async () => run('books:read', async () => agentGuide(env.ORIGIN)),
   );
   server.registerTool(
+    'get_artifact',
+    {
+      title: 'Refresh an artifact’s private links',
+      description:
+        'Get fresh download and preview links for one owned, unexpired artifact. Keeps its artifact ID, bytes and content unchanged; does not render, import or send. The linksExpireAt field is separate from the artifact’s 24-hour expiresAt.',
+      inputSchema: z
+        .object({
+          artifactId: z
+            .uuid()
+            .describe('The ID returned when the artifact was created or uploaded.'),
+        })
+        .strict(),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ artifactId }) =>
+      run('books:read', async () =>
+        palim.artifactResult(await palim.store.artifact(owner, artifactId)),
+      ),
+  );
+  server.registerTool(
     'create_book',
     {
       title: 'Create an illustrated EPUB',

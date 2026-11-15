@@ -13,6 +13,7 @@ img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
 .chapter-heading h1 { margin-bottom: 0; }
 .chapter-heading + p { font-size: 1.08em; }
 figure { margin: 1.8em 0; page-break-inside: avoid; break-inside: avoid; }
+.figure-bars img { width: 100%; max-width: 24em; }
 figcaption { font-size: .85em; line-height: 1.5; margin-top: .9em; }
 .figure-number { display: block; font-family: sans-serif; font-weight: bold; margin-bottom: .3em; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85em; border: 1px solid; padding: 1em; }

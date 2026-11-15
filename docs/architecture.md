@@ -10,7 +10,11 @@ An agent may import a host-provided PNG/JPEG through `import_image`, or the sign
 
 `src/book.ts` owns EPUB packaging; `src/book-styles.ts` owns the shared book and browser-preview styles. The sample script uses those same styles to produce the public reader stylesheet.
 
+Figure-only Markdown paragraphs render as semantic figures with captions and stable numbers, including consecutive references. References mixed into prose or headings are refused with a placement message instead of silently losing captions. The local sample HTML embeds its stylesheet, fonts and font licence notices so it opens independently; the hosted preview uses the public stylesheet and fonts.
+
 The service stores the EPUB, canonical JSON source and script-free HTML preview under private owned R2 keys. D1 stores ownership, hashes, sizes and expiry. A short-lived HMAC URL gives access to one artifact part. Every access checks the account and current artifact expiry. The preview has its own sandboxed Content Security Policy.
+
+`get_artifact` requires `books:read` and checks the active account, artifact ownership and file expiry. It returns fresh signed links to the existing bytes. All links in an artifact response share the reported `linksExpireAt`, bounded by the unchanged artifact `expiresAt`. Recovery neither extends retention nor renders, uploads or sends anything.
 
 ## Unchanged forwarding
 

@@ -134,6 +134,56 @@ test('unused and duplicate figures fail clearly', async () => {
   await assert.rejects(buildBook({ ...simpleBook, figures: [f] }), /not referenced/);
   assert.equal(BookSchema.safeParse({ ...simpleBook, figures: [f, f] }).success, false);
 });
+test('consecutive figure references retain semantic captions and stable numbers', async () => {
+  const figure = {
+    kind: 'bars',
+    id: 'bars',
+    alt: 'One value of three',
+    caption: 'The stated value',
+    source: 'Synthetic test data',
+    unit: 'Count',
+    data: [{ label: 'A', value: 3 }],
+  };
+  const book = await buildBook({
+    ...simpleBook,
+    chapters: [{ title: 'Figures', markdown: '![First](figure:bars)\n![Again](figure:bars)' }],
+    figures: [figure],
+  });
+  const zip = await JSZip.loadAsync(book.bytes);
+  const chapter = await zip.file('EPUB/chapter-1.xhtml')!.async('text');
+  const document = parseXml(chapter);
+  const figures = Array.from(document.getElementsByTagName('figure'));
+  assert.equal(figures.length, 2);
+  assert.ok(figures.every((node) => node.parentNode?.nodeName === 'section'));
+  assert.equal(document.getElementsByTagName('figcaption').length, 2);
+  assert.equal((chapter.match(/Figure 1\./g) || []).length, 2);
+  assert.doesNotMatch(chapter, /<p><figure/);
+});
+test('figures mixed with prose or headings explain how to fix placement', async () => {
+  for (const markdown of [
+    'Read this ![Chart](figure:bars) first.',
+    '## ![Chart](figure:bars)',
+    '![Chart](figure:bars)\nA paragraph without a blank line.',
+  ])
+    await assert.rejects(
+      buildBook({
+        ...simpleBook,
+        chapters: [{ title: 'Figures', markdown }],
+        figures: [
+          {
+            kind: 'bars',
+            id: 'bars',
+            alt: 'One value of three',
+            caption: 'A stated value',
+            source: 'Synthetic test data',
+            unit: 'Count',
+            data: [{ label: 'A', value: 3 }],
+          },
+        ],
+      }),
+      /put figure references in their own paragraph.*blank line/,
+    );
+});
 test('figure schema rejects missing alt, fabricated numeric types and unsafe identifiers', () => {
   for (const f of [
     {

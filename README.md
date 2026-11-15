@@ -18,8 +18,8 @@ Kindle.
 - Forwards an existing EPUB or PDF to a Kindle address with its bytes unchanged.
 - Keeps up to five labelled Kindle addresses and a personal sender per account. Saving an address
   sends no mail.
-- Exposes six MCP tools for the guide, book creation, image import, saved-recipient discovery,
-  document sending and delivery receipts.
+- Exposes seven MCP tools for the guide, book creation, image import, private-link recovery,
+  saved-recipient discovery, document sending and delivery receipts.
 - Keeps every file private and temporary: 24 hours for the file, 15 minutes for a download link.
 
 ## Status
@@ -41,9 +41,10 @@ npm run check
 npm run example
 ```
 
-The example produces `artifacts/palim-sample.epub`, a browser preview and an editable JSON
-manuscript. It requires no AI key, provider account or email sending. The sample chart shows
-calculated exposure ratios, not measured camera data.
+The example produces `artifacts/palim-sample.epub`, a self-contained HTML preview and an editable
+JSON manuscript. The HTML opens directly without a server or network. It requires no AI key,
+provider account or email sending. The sample chart shows calculated exposure ratios,
+not measured camera data.
 
 ```sh
 npm run build    # generate public example files and bundle Worker without deployment
@@ -105,6 +106,7 @@ npm run plugin -- https://your-real-palim-host
 | Tool                | Responsibility                                                                                                  |
 | ------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `get_guide`         | Read the canonical authoring/import guide; no data changes or mail.                                             |
+| `get_artifact`      | Refresh private links to an owned, unexpired file without recreating or sending it.                             |
 | `import_image`      | Import a client-provided PNG/JPEG for an illustrated book; no mail.                                             |
 | `create_book`       | Publish the agent's supplied manuscript. A draft never sends email.                                             |
 | `list_destinations` | Read owned Kindle labels, IDs and the default; omits the email field. Requires sending permission; never sends. |
@@ -115,6 +117,10 @@ Object results include structured data alongside the same JSON text for clients 
 Agents can choose a saved label with `list_destinations`, then pass its ID to `send_document`.
 Omitting the ID keeps the existing default-recipient behaviour. Use the studio to resolve
 missing or ambiguous setup; discovery never saves an address or sends a document.
+
+Use `get_artifact` when a private link expires. `linksExpireAt` identifies the shared expiry of
+the returned links; `expiresAt` is the file's original expiry. Refreshing links does not extend
+file retention or consume an upload, render or send.
 
 ## Original means original
 

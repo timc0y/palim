@@ -3,30 +3,23 @@
   "subtitle": "A field guide to shutter speed and exposure",
   "creator": "Palim",
   "language": "en",
-  "description": "Understand what changes when you halve the light, then try it with your own camera.",
+  "description": "Choose a shutter speed, understand the light you trade, and test the result in three frames.",
   "edition": "Field notes · 01",
   "chapters": [
     {
       "title": "Choose what moves",
-      "markdown": "A cyclist passes through a patch of evening light. You want the rider sharp, but your photograph is blurred. Making the whole image brighter will not solve that problem. You need a shorter exposure.\n\nThe useful question is simple: **what must stay still, and what can change?**\n\nA camera gives you two physical ways to control the light reaching its sensor: the size of the lens opening and the time the shutter is open. ISO affects the brightness of the recorded image; it does not open the lens or keep the shutter open longer.\n\n![An opening and an exposure time, compared](figure:light-path)\n\n## Think in halves and doubles\n\nA stop is a factor of two. Keeping the scene and aperture fixed, an exposure of 1/250 second admits twice as much light as 1/500 second. The shorter exposure gives a moving subject less time to travel across the frame.\n\nThat gives you a decision rather than a recipe: shorten the exposure to reduce motion blur, then decide how to compensate for the light you have given up."
+      "markdown": "A cyclist crosses a patch of evening light. You want a sharp rider against a quiet background. Start with the movement: how much blur belongs in this picture?\n\n**Shutter speed is exposure time.** At 1/500 second, the shutter is open for half as long as at 1/250. A moving subject has less time to travel across the image, so a shorter exposure can reduce motion blur. No single setting guarantees a sharp photograph.\n\n## Halve the time, halve the light\n\nKeep the scene and lens opening fixed. If 1/500 second admits one unit of light, 1/250 admits two and 1/125 admits four. These are calculated ratios, not camera measurements.\n\n![Light admitted at three shutter times](figure:shutter-times)\n\nThe bars describe light, not sharpness. Motion blur also depends on how the subject and camera move. Choose the effect you want first; then account for the light that choice gives up.\n\n> A faster shutter gives motion less time. It also gives light less time."
     },
     {
       "title": "Exchange one stop",
-      "markdown": "Suppose your meter suggests **f/8 at 1/250 second, ISO 200**. You choose 1/500 second for the moving rider. That halves the exposure time. Opening the lens from f/8 to f/5.6 adds approximately one stop of light, compensating for the shorter time.\n\n| Starting point | Faster shutter |\n| --- | --- |\n| f/8 aperture | f/5.6 aperture |\n| 1/250 s shutter | 1/500 s shutter |\n| ISO 200 | ISO 200 |\n\nThese are an illustrative pair of equivalent settings, not a prescription for every scene. The brightness can remain similar while the picture changes: the faster shutter reduces motion blur, and the wider opening can make less of the scene appear in focus.\n\n![Relative light at three shutter times](figure:shutter-times)\n\n## Keep the trade-off visible\n\nIf your lens cannot open further, increasing ISO may give a usable image brightness. It does not recover the light that never reached the sensor. The right compromise depends on the picture you are trying to make.\n\nA sharp rider against a soft background may be exactly right. A landscape with detail from foreground to distance asks for a different choice."
+      "markdown": "Your starting exposure is **f/8 at 1/250 second, ISO 200**. You choose 1/500 for the rider. The time halves: you have given up one stop of light.\n\nOpen the lens from f/8 to f/5.6 to gain approximately one stop in return. The smaller f-number means a larger opening. With the scene and ISO unchanged, these two settings can give a similar brightness.\n\n![An opening and exposure time, compared](figure:light-path)\n\n## Equal light, different picture\n\nThe exchange changes more than brightness. The faster shutter can reduce motion blur; the wider lens opening can make less of the scene appear in focus. Decide whether that trade suits your picture.\n\nIf the lens cannot open further, increasing ISO may give a useful image brightness. It does not put back the light lost by shortening the exposure.\n\n> One stop means twice as much light, or half as much. It does not mean the same photograph."
     },
     {
       "title": "Make three frames",
-      "markdown": "Choose a subject moving across your view: a person walking or leaves moving in the wind. Use a safe position and steady the camera. Keep the framing and available light as consistent as you can. Turn Auto ISO off and hold ISO at one value for all three frames; this lets you observe the aperture change without ISO changing as well.\n\n1. In shutter-priority mode, make a frame at 1/125 second.\n2. Make another at 1/250, then one at 1/500. Let the camera adjust the aperture; note if it reaches its limit.\n3. Compare the moving edges at the same magnification. Look for a change in motion blur before judging overall brightness.\n\n## Read the photograph, then the settings\n\nWhich frame expresses the movement you wanted? What did the camera change to make it? If the last frame is darker, did the lens run out of aperture?\n\nWrite down the answer in one sentence. That small observation is more useful than memorising a supposedly perfect setting.\n\n**Take this with you:** choose the effect first. Change one setting deliberately. Notice what the camera has to trade in return."
+      "markdown": "Find a subject moving across your view, such as leaves in the wind. Work from a safe, steady position and keep your framing and the light as consistent as possible.\n\nSelect shutter-priority mode. Turn Auto ISO off and keep ISO fixed: you want to see the camera change the aperture, without ISO changing too.\n\n1. Make a frame at **1/125 second**. Note the aperture the camera chooses.\n2. Repeat at **1/250**, then **1/500**. Note each aperture and any exposure warning.\n3. Compare the same moving edge in all three frames, at the same magnification.\n\n## Look before you judge\n\nChoose the frame that shows the movement you wanted. Then check what changed:\n\n- **Moving edges:** did the shorter exposure reduce the blur?\n- **Background:** did the changing aperture affect what appears in focus?\n- **Brightness:** if a frame is darker, did the lens reach its widest opening?\n\nIf the light changed or the subject moved differently, repeat the set before drawing a conclusion. This is an observation of your scene, not a universal camera setting.\n\nWrite one field note: “I chose ___ because ___. The camera changed ___.”\n\n> Choose the effect. Change one setting. Notice the trade."
     }
   ],
   "figures": [
-    {
-      "id": "light-path",
-      "kind": "image",
-      "assetId": "00000000-0000-4000-8000-000000000001",
-      "alt": "Two nominal equivalent exposures at fixed ISO: f/8 at 1/250 second, and a larger f/5.6 opening at 1/500 second. The opening area doubles as the exposure time halves.",
-      "caption": "One stop exchanged: approximately twice the opening area and half the exposure time give comparable exposure at fixed ISO and scene lighting."
-    },
     {
       "id": "shutter-times",
       "kind": "bars",
@@ -45,16 +38,23 @@
           "value": 4
         }
       ],
-      "source": "Calculated ratios with fixed aperture and constant scene lighting; not measured camera data.",
+      "source": "Calculated exposure-time ratios, using 1/500 second as one unit; not measured camera data.",
       "alt": "Relative light doubles from one at 1/500 second, to two at 1/250, to four at 1/125.",
-      "caption": "Each doubling of exposure time adds one stop. Read the ratios, not an absolute brightness."
+      "caption": "Each doubling of exposure time adds one stop. The aperture and scene lighting stay fixed."
+    },
+    {
+      "id": "light-path",
+      "kind": "image",
+      "assetId": "00000000-0000-4000-8000-000000000001",
+      "alt": "Two nominal equivalent exposures at fixed ISO: f/8 at 1/250 second, and a larger f/5.6 opening at 1/500 second. The opening area doubles as the exposure time halves.",
+      "caption": "One stop exchanged: the opening area approximately doubles while the exposure time halves. Scene lighting and ISO stay fixed."
     }
   ],
   "sources": [
     {
-      "title": "Nikon: A Basic Look at the Basics of Exposure",
+      "title": "Reed Hoffmann · A Basic Look at the Basics of Exposure",
       "url": "https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/a-basic-look-at-the-basics-of-exposure",
-      "note": "Background on lens opening, exposure time and stops. This edition uses original prose and worked examples; no source photographs are reproduced."
+      "note": "Published by Nikon. Background on aperture, shutter speed and stops. The text, diagrams, calculated ratios and exercise in this edition are original; no source photographs are reproduced."
     }
   ]
 }

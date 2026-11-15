@@ -61,16 +61,22 @@ selectable title page, numbered chapter openings and stable figure numbers.
 EPUB text remains reflowable, reader-sized and themeable; original uploads bypass
 these styles. The browser preview shows the actual generated cover, with the
 decorative thumbnail hidden when narrow or enlarged text needs the width.
-The sample uses a two-column exposure comparison and an illustration rebuilt
-from its SVG source through the maintained rasterizer.
+The sample is a 510-word field guide: choose movement, exchange a stop, then
+compare three frames. Its light-ratio chart precedes the aperture illustration,
+with essential values in reflowable prose. The illustration is rebuilt from its
+SVG source through the maintained rasterizer. Chart width is bounded on wide
+pages. The local HTML edition embeds CSS, fonts and licence notices and opens
+without a server or network.
 
 Source renders checked the sample and actual packaged XHTML at phone/desktop
 widths and 200% text at 320px. Tests exercise maximum-length cover metadata,
 chapter structure, figure numbering and original-image byte identity. These are
 browser-source checks; physical Kindle appearance is not established.
+Consecutive figure references now retain semantic figures and captions; prose
+or heading references produce a corrective placement error.
 
-The full local suite passed 94 tests, including the new public-font response
-checks. Native Worker and Pages proofs exercised six-tool discovery and matching
+The full local suite passed 98 tests, including the public-font response
+checks. Native Worker and Pages proofs exercised seven-tool discovery and matching
 structured/text results through OAuth and MCP. The browser proof also checks
 that both reading and mono fonts load inside the private preview's sandbox.
 Public WOFF2 assets allow anonymous font loading; other asset responses do not
@@ -83,6 +89,14 @@ sending permission and an active account and returns only owned labels/IDs,
 default and Settings URL. Scope, tenant isolation, disabled accounts, stale
 defaults, omitted email fields and no-mail discovery are exercised through the
 official SDK client. The consent explanation identifies label discovery.
+
+`get_artifact` refreshes links for an owned, unexpired file under `books:read`.
+SDK checks let an issued link expire, recover the same stored bytes/hash/ID,
+and confirm the original file expiry and operation counters remain unchanged.
+They also check scope, tenant, disabled-account and expired-artifact refusals,
+and cap the final links at the file's remaining lifetime. Native Worker and
+Pages proofs download the same EPUB after MCP link refresh. No recovery sends
+mail or recreates the book.
 
 These source changes do not replace the deployment recorded above.
 
