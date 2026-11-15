@@ -24,7 +24,7 @@ Kindle.
 
 ## Status
 
-The refreshed sample and MCP interface on `main` are not deployed yet. The hosted
+The refreshed sample, reading grid and MCP interface are deployed. The hosted
 instance serves the release identified in the [verification record](docs/verification.md).
 
 The publisher, the unchanged-forwarding path and the MCP connection are exercised in CI. Amazon

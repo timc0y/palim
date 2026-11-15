@@ -8,7 +8,7 @@ The authoring agent supplies metadata, chapter Markdown, figure specifications, 
 
 An agent may import a host-provided PNG/JPEG through `import_image`, or the signed-in workspace may upload one and show its asset ID. Both use the existing image inspection, account ownership, expiration and shared upload admission. MCP file input support depends on the host; local contract tests do not prove a particular client supplies one. The image handle is usable only by its owner and while unexpired.
 
-`src/book.ts` owns EPUB packaging; `src/book-styles.ts` owns the shared book and browser-preview styles. The sample script uses those same styles to produce the public reader stylesheet.
+`src/book.ts` owns the publisher. Its private chapter renderer handles Markdown, heading normalization, figure placement and warnings; the book builder assembles those pages and owned assets into the EPUB. A separate private composition produces the browser document. `src/book-styles.ts` owns book and browser-preview styles. The sample script uses those same styles to produce the public reader stylesheet.
 
 Figure-only Markdown paragraphs render as semantic figures with captions and stable numbers, including consecutive references. References mixed into prose or headings are refused with a placement message instead of silently losing captions. The local sample HTML embeds its stylesheet, fonts and font licence notices so it opens independently; the hosted preview uses the public stylesheet and fonts.
 

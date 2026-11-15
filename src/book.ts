@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import MarkdownIt from 'markdown-it';
 import { BookSchema, LIMITS, type Book } from './schema.js';
 import { escapeXml as e, xhtml, sha256, parseXml } from './xml.js';
-import { renderFigure, coverSvg, type Asset } from './figures.js';
+import { renderFigure, coverSvg, type Asset, type RenderedFigure } from './figures.js';
 import { invariant, PalimError } from './errors.js';
 import { canEmail, safeFilename } from './mail.js';
 import { rasterize } from './raster.js';
@@ -23,6 +23,121 @@ export interface BuiltBook {
   wordCount: number;
   emailEligible: boolean;
   warnings: string[];
+}
+
+function renderChapter(
+  chapter: Book['chapters'][number],
+  index: number,
+  rendered: ReadonlyMap<string, RenderedFigure>,
+) {
+  const usedFigures = new Set<string>();
+  const warnings: string[] = [];
+  const figureOrder = [...rendered.keys()];
+  const md = new MarkdownIt({ html: false, xhtmlOut: true, linkify: false, typographer: false });
+  md.validateLink = (href: string) => {
+    if (href.startsWith('figure:')) return true;
+    try {
+      const u = new URL(href);
+      return u.protocol === 'https:' && !u.username && !u.password;
+    } catch {
+      return false;
+    }
+  };
+  md.renderer.rules.image = (tokens, at) => {
+    const token = tokens[at]!;
+    const ref = token.attrGet('src') ?? '';
+    const image = rendered.get(ref.replace(/^figure:/, ''));
+    invariant(
+      ref.startsWith('figure:') && image,
+      'MISSING_FIGURE',
+      `Use a defined figure:id reference, not a remote image: ${ref.slice(0, 100)}`,
+    );
+    usedFigures.add(image.id);
+    const number = figureOrder.indexOf(image.id) + 1;
+    return [
+      `<figure class="figure-${image.kind}">`,
+      `<img src="${image.filename}" alt="${e(image.alt)}"/>`,
+      '<figcaption>',
+      `<span class="figure-number">Figure ${number}.</span> `,
+      `<span class="caption-text">${e(image.caption)}</span>`,
+      '</figcaption></figure>\n',
+    ].join('');
+  };
+  let heading = 0;
+  let headingBase = 1;
+  md.renderer.rules.heading_open = (tokens, at) => {
+    const level = Math.min(6, Number(tokens[at]!.tag.slice(1)) - headingBase + 2);
+    tokens[at]!.tag = `h${level}`;
+    return `<h${level} id="chapter-${index + 1}-section-${++heading}">`;
+  };
+  md.renderer.rules.heading_close = (tokens, at) =>
+    `</h${Math.min(6, Number(tokens[at]!.tag.slice(1)) - headingBase + 2)}>\n`;
+  const tokens = md.parse(chapter.markdown, {});
+  const levels = tokens.filter((t) => t.type === 'heading_open').map((t) => Number(t.tag.slice(1)));
+  headingBase = levels.length ? Math.min(...levels) : 1;
+  for (const [at, t] of tokens.entries()) {
+    if (t.type === 'fence' && t.content.split('\n').some((l) => l.length > 90))
+      warnings.push(
+        `${chapter.title}: a code line exceeds 90 characters; check small-screen wrapping.`,
+      );
+    if (t.type === 'inline' && t.children?.some((c) => c.type === 'image')) {
+      invariant(
+        tokens[at - 1]?.type === 'paragraph_open' &&
+          tokens[at + 1]?.type === 'paragraph_close' &&
+          t.children.every(
+            (c) =>
+              ['image', 'softbreak', 'hardbreak'].includes(c.type) ||
+              (c.type === 'text' && !c.content.trim()),
+          ),
+        'FIGURE_PLACEMENT',
+        `${chapter.title}: put figure references in their own paragraph, separated from prose by a blank line.`,
+      );
+      tokens[at - 1]!.hidden = true;
+      tokens[at + 1]!.hidden = true;
+    }
+  }
+  const body = md.renderer.render(tokens, md.options, {});
+  return {
+    html: [
+      `<section class="chapter" id="chapter-${index + 1}">`,
+      '<header class="chapter-heading">',
+      `<p class="chapter-number">Chapter ${index + 1}</p>`,
+      `<h1>${e(chapter.title)}</h1>`,
+      '</header>',
+      body,
+      '</section>',
+    ].join(''),
+    usedFigures,
+    warnings,
+  };
+}
+
+function readingPreview(book: Book, body: string): string {
+  const contents = book.chapters.map(
+    (chapter, index) => `<li><a href="#chapter-${index + 1}">${e(chapter.title)}</a></li>`,
+  );
+  if (book.sources.length)
+    contents.push('<li><a href="#sources">Sources and further reading</a></li>');
+  return [
+    '<!doctype html>',
+    `<html lang="${e(book.language)}">`,
+    '<head><meta charset="utf-8"/>',
+    '<meta name="viewport" content="width=device-width,initial-scale=1"/>',
+    `<title>${e(book.title)}</title>`,
+    `<style>${PREVIEW_CSS}</style>`,
+    '</head><body>',
+    '<div class="preview-tools"><a href="/app">Back to desk</a></div>',
+    '<header class="preview-header"><div class="preview-heading">',
+    `<p class="preview-meta">${e(book.edition || 'Reading edition')}${book.creator ? ` · ${e(book.creator)}` : ''}</p>`,
+    `<h1>${e(book.title)}</h1>`,
+    book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : '',
+    '</div></header>',
+    '<nav class="preview-contents" aria-label="Contents"><details><summary>Contents</summary><ol>',
+    contents.join(''),
+    '</ol></details></nav>',
+    `<main>${body}</main>`,
+    '</body></html>',
+  ].join('');
 }
 
 export async function buildBook(
@@ -63,7 +178,7 @@ export async function buildBook(
   ];
   const cover = await rasterize(coverSvg(book.title, book.subtitle, book.creator));
   file('EPUB/cover.png', cover, true);
-  const rendered = new Map<string, ReturnType<typeof renderFigure>>();
+  const rendered = new Map<string, RenderedFigure>();
   // Render sequentially to bound WASM image memory across a manuscript's figures.
   for (const f of book.figures) {
     const r = renderFigure(f, assets);
@@ -80,15 +195,15 @@ export async function buildBook(
     toc: { title: string; href: string }[] = [],
     preview: string[] = [],
     warnings: string[] = [];
-  const addPage = (id: string, title: string, body: string, inToc = true) => {
+  const addPage = (id: string, title: string, body: string) => {
     const href = `${id}.xhtml`;
     const xml = xhtml(title, book.language, body);
     parseXml(xml);
     file(`EPUB/${href}`, xml);
     manifest.push({ id, href, type: 'application/xhtml+xml', properties: '' });
     spine.push(id);
-    if (inToc) toc.push({ title, href });
-    if (id !== 'cover' && id !== 'title')
+    toc.push({ title, href });
+    if (id !== 'title')
       preview.push(
         body.replace(
           /<(\/?)h([1-5])(\s[^>]*)?>/g,
@@ -101,75 +216,27 @@ export async function buildBook(
   addPage(
     'title',
     book.title,
-    `<section class="title-page"><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}${book.creator ? `<p class="author">${e(book.creator)}</p>` : ''}${book.description ? `<p>${e(book.description)}</p>` : ''}<p class="source-note">${e(book.edition || 'Reading edition')} · ${modified.slice(0, 10)}</p>${book.sourceRevision ? `<p class="source-note">Source revision: ${e(book.sourceRevision)}</p>` : ''}</section>`,
+    [
+      '<section class="title-page">',
+      `<h1>${e(book.title)}</h1>`,
+      book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : '',
+      book.creator ? `<p class="author">${e(book.creator)}</p>` : '',
+      book.description ? `<p>${e(book.description)}</p>` : '',
+      `<p class="source-note">${e(book.edition || 'Reading edition')} · ${modified.slice(0, 10)}</p>`,
+      book.sourceRevision
+        ? `<p class="source-note">Source revision: ${e(book.sourceRevision)}</p>`
+        : '',
+      '</section>',
+    ].join(''),
   );
   const used = new Set<string>();
   for (const [index, chapter] of book.chapters.entries()) {
-    const md = new MarkdownIt({ html: false, xhtmlOut: true, linkify: false, typographer: false });
-    md.validateLink = (href: string) => {
-      if (href.startsWith('figure:')) return true;
-      try {
-        const u = new URL(href);
-        return u.protocol === 'https:' && !u.username && !u.password;
-      } catch {
-        return href.startsWith('figure:');
-      }
-    };
-    md.renderer.rules.image = (tokens, at) => {
-      const token = tokens[at]!;
-      const ref = token.attrGet('src') ?? '';
-      const image = rendered.get(ref.replace(/^figure:/, ''));
-      invariant(
-        ref.startsWith('figure:') && image,
-        'MISSING_FIGURE',
-        `Use a defined figure:id reference, not a remote image: ${ref.slice(0, 100)}`,
-      );
-      used.add(image.id);
-      const number = book.figures.findIndex((figure) => figure.id === image.id) + 1;
-      return `<figure class="figure-${image.kind}"><img src="${image.filename}" alt="${e(image.alt)}"/><figcaption><span class="figure-number">Figure ${number}.</span> <span class="caption-text">${e(image.caption)}</span></figcaption></figure>\n`;
-    };
-    let heading = 0;
-    let headingBase = 1;
-    md.renderer.rules.heading_open = (tokens, at) => {
-      const level = Math.min(6, Number(tokens[at]!.tag.slice(1)) - headingBase + 2);
-      tokens[at]!.tag = `h${level}`;
-      return `<h${level} id="chapter-${index + 1}-section-${++heading}">`;
-    };
-    md.renderer.rules.heading_close = (tokens, at) =>
-      `</h${Math.min(6, Number(tokens[at]!.tag.slice(1)) - headingBase + 2)}>\n`;
-    const tokens = md.parse(chapter.markdown, {});
-    const levels = tokens
-      .filter((t) => t.type === 'heading_open')
-      .map((t) => Number(t.tag.slice(1)));
-    headingBase = levels.length ? Math.min(...levels) : 1;
-    for (const [at, t] of tokens.entries()) {
-      if (t.type === 'fence' && t.content.split('\n').some((l) => l.length > 90))
-        warnings.push(
-          `${chapter.title}: a code line exceeds 90 characters; check small-screen wrapping.`,
-        );
-      if (t.type === 'inline' && t.children?.some((c) => c.type === 'image')) {
-        invariant(
-          tokens[at - 1]?.type === 'paragraph_open' &&
-            tokens[at + 1]?.type === 'paragraph_close' &&
-            t.children.every(
-              (c) =>
-                ['image', 'softbreak', 'hardbreak'].includes(c.type) ||
-                (c.type === 'text' && !c.content.trim()),
-            ),
-          'FIGURE_PLACEMENT',
-          `${chapter.title}: put figure references in their own paragraph, separated from prose by a blank line.`,
-        );
-        tokens[at - 1]!.hidden = true;
-        tokens[at + 1]!.hidden = true;
-      }
-    }
-    const body = md.renderer.render(tokens, md.options, {});
-    addPage(
-      `chapter-${index + 1}`,
-      chapter.title,
-      `<section class="chapter" id="chapter-${index + 1}"><header class="chapter-heading"><p class="chapter-number">Chapter ${index + 1}</p><h1>${e(chapter.title)}</h1></header>${body}</section>`,
-    );
+    const chapterPage = renderChapter(chapter, index, rendered);
+    addPage(`chapter-${index + 1}`, chapter.title, chapterPage.html);
+    for (const id of chapterPage.usedFigures) used.add(id);
+    warnings.push(...chapterPage.warnings);
   }
+
   for (const figure of book.figures)
     invariant(
       used.has(figure.id),
@@ -180,7 +247,15 @@ export async function buildBook(
     addPage(
       'sources',
       'Sources and further reading',
-      `<section class="source-section" id="sources"><h1>Sources and further reading</h1><ol>${book.sources.map((s) => `<li><p><a href="${e(s.url)}">${e(s.title)}</a>${s.note ? ` — ${e(s.note)}` : ''}</p></li>`).join('')}</ol></section>`,
+      [
+        '<section class="source-section" id="sources">',
+        '<h1>Sources and further reading</h1><ol>',
+        ...book.sources.map(
+          (entry) =>
+            `<li><p><a href="${e(entry.url)}">${e(entry.title)}</a>${entry.note ? ` — ${e(entry.note)}` : ''}</p></li>`,
+        ),
+        '</ol></section>',
+      ].join(''),
     );
   file(
     'EPUB/nav.xhtml',
@@ -192,7 +267,26 @@ export async function buildBook(
   );
   file(
     'EPUB/package.opf',
-    `<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="book-id">${identifier}</dc:identifier><dc:title>${e(book.title)}</dc:title><dc:language>${e(book.language)}</dc:language>${book.creator ? `<dc:creator>${e(book.creator)}</dc:creator>` : ''}${book.description ? `<dc:description>${e(book.description)}</dc:description>` : ''}<meta property="dcterms:modified">${modified}</meta><meta property="rendition:layout">reflowable</meta></metadata><manifest>${manifest.map((m) => `<item id="${m.id}" href="${m.href}" media-type="${m.type}"${m.properties ? ` properties="${m.properties}"` : ''}/>`).join('')}</manifest><spine>${spine.map((id) => `<itemref idref="${id}"/>`).join('')}</spine></package>`,
+    [
+      '<?xml version="1.0" encoding="utf-8"?>',
+      '<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id">',
+      '<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">',
+      `<dc:identifier id="book-id">${identifier}</dc:identifier>`,
+      `<dc:title>${e(book.title)}</dc:title>`,
+      `<dc:language>${e(book.language)}</dc:language>`,
+      book.creator ? `<dc:creator>${e(book.creator)}</dc:creator>` : '',
+      book.description ? `<dc:description>${e(book.description)}</dc:description>` : '',
+      `<meta property="dcterms:modified">${modified}</meta>`,
+      '<meta property="rendition:layout">reflowable</meta>',
+      '</metadata><manifest>',
+      ...manifest.map(
+        (item) =>
+          `<item id="${item.id}" href="${item.href}" media-type="${item.type}"${item.properties ? ` properties="${item.properties}"` : ''}/>`,
+      ),
+      '</manifest><spine>',
+      ...spine.map((id) => `<itemref idref="${id}"/>`),
+      '</spine></package>',
+    ].join(''),
   );
   const bytes = await zip.generateAsync({
     type: 'uint8array',
@@ -216,7 +310,7 @@ export async function buildBook(
   return {
     bytes,
     source,
-    preview: `<!doctype html><html lang="${e(book.language)}"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${e(book.title)}</title><style>${PREVIEW_CSS}</style></head><body><div class="preview-tools"><a href="/app">Back to desk</a></div><header class="preview-header"><div class="preview-heading"><p class="preview-meta">${e(book.edition || 'Reading edition')}${book.creator ? ` · ${e(book.creator)}` : ''}</p><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}</div></header><nav class="preview-contents" aria-label="Contents"><details><summary>Contents</summary><ol>${book.chapters.map((chapter, index) => `<li><a href="#chapter-${index + 1}">${e(chapter.title)}</a></li>`).join('')}${book.sources.length ? '<li><a href="#sources">Sources and further reading</a></li>' : ''}</ol></details></nav><main>${inlinePreview}</main></body></html>`,
+    preview: readingPreview(book, inlinePreview),
     filename: safeFilename(book.title, 'application/epub+zip'),
     hash: await sha256(bytes),
     wordCount: book.chapters.reduce(

@@ -4,57 +4,58 @@ What has actually been checked, and what remains unverified.
 
 ## Latest deployment
 
-On 15 November 2026, source commit `4e2c6dd717e975949c626a34f9b346b26d5f7399`
-was deployed to Worker `palim` in the `tims` account. Version
-`3c7d765c-4c32-41d0-9dc4-f40be2c10e31` serves the existing Pages front door at
-https://palim-timc0y.pages.dev. The previous version was
-`d17d77e9-63ca-4fea-ab5d-060ddc835690`, deployed on 14 November. No Pages
-redeployment, migration, secret, sending-domain or unrelated resource change
-was performed.
+On 15 November 2026 at 15:57 UTC, source commit
+`6d0874a8d9ae505f250059799112678e5018e379` was deployed to Worker `palim`
+in the `tims` account. Version `e04e7b15-1989-400b-b63c-9cfd8d3f53b0`
+serves 100% of traffic through the existing Pages front door at
+https://palim-timc0y.pages.dev. The version carries the tag `6d0874a`.
+The previous version was `3c7d765c-4c32-41d0-9dc4-f40be2c10e31`.
+No Pages redeployment, migration, secret, sending-domain or unrelated resource
+change was performed.
 
 Public GET checks matched all 26 public assets byte for byte against this
-release, including the landing, studio, fonts, licence files, sample and plugin
-ZIP. `/` and `/app` matched their source HTML. HTML retained strict
-`script-src 'self'` and `style-src 'self'` policies. Unauthenticated `/api/account`
-and `/mcp` returned `401`; the advertised protected-resource metadata at
-`/.well-known/oauth-protected-resource/mcp` identified the canonical Pages origin.
+release, including the landing, studio, fonts, licence files, updated sample,
+reader stylesheet and plugin ZIP. `/` and `/app` matched their source HTML.
+HTML retained strict `script-src 'self'` and `style-src 'self'` policies.
+Unauthenticated `/api/account` and `/mcp` returned `401`; the advertised
+protected-resource metadata at `/.well-known/oauth-protected-resource/mcp`
+identified the canonical Pages origin. The served sample EPUB SHA-256 is
+`173fade4c9cab0286aa7da6532a0f730592c76ed56c99fe3bf7a380fa14c1d7e`.
 
-These public checks did not sign in, send mail, import into Amazon or use a
-physical Kindle. Source-file parity is not an authenticated live journey.
+These public checks did not sign in, call an authenticated hosted MCP tool,
+send provider mail, import into Amazon or use a physical Kindle. Source-file
+parity is not an authenticated live journey.
 
 ## Release checks
 
-- `npm run check`: strict TypeScript and all 89 behavioural tests passed.
-- `npm run format:check` and `git diff --check` passed.
-- `npm run build`: the Worker, self-hosted landing module, sample EPUB/preview
-  and complete plugin ZIP built successfully without deployment.
-- `npm audit --omit=dev --audit-level=high`: no vulnerabilities reported after
-  updating the SDK's compatible transitive Hono packages to patched versions.
-- Native local Worker and Pages runtime proofs passed, using disposable D1,
-  private R2, Better Auth, OAuth PKCE, MCP and captured synthetic mail.
+- Deployment preflight, strict TypeScript and all 98 behavioural tests passed.
+- Formatting and `git diff --check` passed before deployment.
+- The deployment rebuilt the landing module, sample EPUB/preview, reader CSS,
+  plugin ZIP and Worker from the checked source.
+- [CI for the deployed source](https://github.com/timc0y/palim/actions/runs/43731423353)
+  passed the production dependency audit, independent EPUBCheck with no errors
+  or warnings, and both Worker and Pages Chromium journeys.
+- Native local proofs use disposable D1, private R2, Better Auth, OAuth PKCE,
+  MCP and captured synthetic mail. They establish local behaviour separately
+  from the hosted public checks above.
 
-The source cleanup removed an unused manuscript parser and consolidated the
-identical user/default-destination query. Public documentation now describes the
-current code and visual owners. Local agent instructions remain outside the
-published tree. Tests, migrations, operational scripts, licences and product
-contracts are retained.
+The proof commands validate arguments before creating fixtures or starting
+processes. In isolated directories without dependencies or configuration,
+`--help` exited successfully and unknown flags exited with status 2, creating
+no files. Conflicting runtime-only modes were rejected. The network proof creates
+its local working directory when needed; its public-network checks remain
+separate from deployment and authenticated client acceptance.
 
-A subsequent source-only cleanup separated book styles from EPUB packaging and
-enabled unused-code and browser-JavaScript syntax checks in `npm run check`.
-All 89 tests passed. Rebuilding the example preserved the EPUB, preview HTML,
-reader CSS and manuscript JSON byte for byte. This cleanup is not a new deployed
-version; the live deployment above remains the release record.
-
-Both proof commands also validate arguments before creating fixtures or starting
-processes. In isolated directories without dependencies or configuration, `--help`
-exited successfully and unknown flags exited with status 2, creating no files.
-Conflicting runtime-only modes were also rejected. The network proof now creates
-its local working directory when needed. Native runtime and public-network
-proofs passed after the argument-parsing change.
+A subsequent source-only cleanup separated chapter rendering from EPUB assembly
+inside `src/book.ts` and made the page markup readable in sections. Six fixed-clock
+publication cases retained identical EPUB/preview hashes, source, filenames, word
+counts and warnings; two invalid-figure cases retained the same refusal messages.
+All 26 public assets and the local HTML/JSON outputs remained byte-identical after
+rebuilding. The cleanup adds no file or dependency and has not been deployed.
 
 ## Interface checks
 
-### Sample and MCP improvements (not deployed)
+### Sample and MCP improvements
 
 The current source gives generated books a paper cover, bounded metadata layout,
 selectable title page, numbered chapter openings and stable figure numbers.
@@ -108,7 +109,7 @@ and cap the final links at the file's remaining lifetime. Native Worker and
 Pages proofs download the same EPUB after MCP link refresh. No recovery sends
 mail or recreates the book.
 
-These source changes do not replace the deployment recorded above.
+These changes are included in the deployment recorded above; the hosted checks cover public responses, while authenticated client and device evidence remain separate.
 
 ### Landing and studio
 
