@@ -93,6 +93,12 @@ def request(path, method='GET', body=None, content_type=None, headers=None):
 def post(path, value, headers=None):
     return request(path, 'POST', json.dumps(value).encode(), 'application/json', headers)
 
+def open_settings(page):
+    menu = page.locator('#settings-menu')
+    if not menu.evaluate('(e)=>e.open'):
+        menu.locator('summary').click()
+    page.get_by_role('link', name='Settings', exact=True).click()
+
 def contrast(foreground, background):
     def light(value):
         channels = [int(x)/255 for x in re.findall(r'\d+',value)[:3]]
@@ -189,7 +195,7 @@ try:
             assert page.locator('.skip-link').evaluate('(e)=>getComputedStyle(e).clipPath') == 'none'
             page.locator('h1').click()
             page.get_by_role('link',name='Upload',exact=True).click()
-            page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(page)
             expect(page.locator('#agent-setup')).to_be_visible()
             expect(page.locator('#workbench')).to_be_hidden()
             page.get_by_role('link',name='Create',exact=True).click()
@@ -203,7 +209,7 @@ try:
                 page.screenshot(path=str(ARTIFACTS / f'authoring-workspace-{label}.png'), full_page=True)
             page.set_viewport_size({'width':390,'height':844})
             # A normal email is valid HTML but not a Kindle destination: field-local API error.
-            page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(page)
             page.locator('#reader-label').fill('')
             page.locator('#kindle-email').fill('normal@example.invalid')
             page.locator('#destination-form button').click()
@@ -211,7 +217,7 @@ try:
             expect(page.locator('#destination-form .action-feedback')).to_contain_text('@kindle.com')
             page.locator('#destination-form').screenshot(path=str(ARTIFACTS / 'ux-address-error-mobile.png'))
             for label, address in [('Bedside','palim-address-fixture-bedside@kindle.com'), ('Travel','palim-address-fixture-travel@kindle.com')]:
-                page.get_by_role('link',name='Settings',exact=True).click()
+                open_settings(page)
                 page.locator('#reader-label').fill(label)
                 page.locator('#kindle-email').fill(address)
                 page.locator('#destination-form button').click()
@@ -234,7 +240,7 @@ try:
             rows = json.loads(request('/api/account')[2])['destinations']
             assert all('confirmed' not in row for row in rows)
             travel = next(row for row in rows if row['label'] == 'Travel')
-            page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(page)
             page.locator('#kindle-email').fill('draft@kindle.com')
             page.locator('#reader-list .reader-item').filter(has_text='Travel').get_by_role('button',name='Make Travel the default address').click()
             expect(page.locator('#address-setup')).to_be_visible()
@@ -252,7 +258,7 @@ try:
             page.locator('#create-form button[type=submit]').click()
             page.locator('#created a.button').first.wait_for()
             page.locator('#created').screenshot(path=str(ARTIFACTS / 'ux-create-result-mobile.png'))
-            page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(page)
             page.locator('#figure-image').set_input_files(str(ROOT / 'public/images/sample-exposure.png'))
             page.locator('#image-form button[type=submit]').click()
             expect(page.locator('#image-result')).to_contain_text('Uploaded.')
@@ -266,7 +272,7 @@ try:
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 0
             reloaded = context.new_page()
             reloaded.goto(ORIGIN + '/app', wait_until='networkidle')
-            reloaded.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(reloaded)
             reloaded.locator('#image-assets button').first.click()
             assert reloaded.evaluate('navigator.clipboard.readText()') == image_id
             reloaded.get_by_role('link',name='Create',exact=True).click()
@@ -357,14 +363,14 @@ try:
             assert post('/api/confirm', {'code':'0000000000'})[0] == 404
             # Optional name, first default, five-address limit, and useful capacity feedback.
             for i in range(3):
-                page.get_by_role('link',name='Settings',exact=True).click()
+                open_settings(page)
                 page.locator('#kindle-email').fill(f'extra-{i}@kindle.com')
                 page.locator('#reader-label').fill('')
                 page.locator('#destination-form button').click()
                 expect(page.locator('#reader-list .reader-item')).to_have_count(3+i)
             assert any(d['label']=='My Kindle' for d in json.loads(request('/api/account')[2])['destinations'])
             expect(page.locator('#destination-form')).to_be_hidden()
-            page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(page)
             expect(page.locator('#reader-limit')).to_be_visible()
             page.locator('.reader-panel').screenshot(path=str(ARTIFACTS / 'ux-address-limit-mobile.png'))
             for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
@@ -598,6 +604,24 @@ try:
             print('Public sample strict CSP, first-screen prose, unique headings/anchors and packaged EPUB XHTML reflow in Chromium passed (not an EPUB-reader engine).')
             browser_page.goto(ORIGIN + '/app', wait_until='networkidle')
             browser_page.locator('#signin').wait_for(state='visible')
+            settings_menu = browser_page.locator('#settings-menu')
+            settings_toggle = settings_menu.locator('summary')
+            settings_toggle.focus()
+            settings_toggle.press('Enter')
+            expect(settings_menu.get_by_role('link', name='Privacy', exact=True)).to_be_visible()
+            expect(settings_menu.get_by_role('link', name='Settings', exact=True)).to_be_hidden()
+            assert settings_menu.get_by_role('link', name='Privacy', exact=True).get_attribute('href') == '/privacy.html'
+            settings_toggle.press('Escape')
+            assert not settings_menu.evaluate('(e)=>e.open')
+            expect(settings_toggle).to_be_focused()
+            settings_toggle.click()
+            browser_page.locator('h1').click()
+            assert not settings_menu.evaluate('(e)=>e.open')
+            settings_toggle.click()
+            settings_menu.get_by_role('link', name='Privacy', exact=True).click()
+            expect(browser_page).to_have_url(ORIGIN + '/privacy.html')
+            browser_page.get_by_role('link', name='studio', exact=True).click()
+            browser_page.locator('#signin').wait_for(state='visible')
             placeholder = browser_page.locator('#login-email').evaluate('(e)=>getComputedStyle(e,"::placeholder").color')
             field_bg = browser_page.locator('#login-email').evaluate('(e)=>getComputedStyle(e).backgroundColor')
             assert contrast(placeholder,field_bg) >= 4.5
@@ -635,6 +659,11 @@ try:
             assert workspace_contrast >= 3
             browser_page.locator('.workspace-page > .nav').screenshot(path=str(ARTIFACTS / 'focus-workspace.png'))
             print(f'Rendered workspace focus contrast across shell gradient stops: {workspace_contrast:.2f}:1.')
+            open_settings(browser_page)
+            expect(browser_page.locator('#studio-settings')).to_be_visible()
+            expect(browser_page.locator('#studio-title')).to_be_focused()
+            assert not browser_page.locator('#settings-menu').evaluate('(e)=>e.open')
+            browser_page.get_by_role('link', name='Create', exact=True).click()
             browser_page.locator('h1').click()
             browser_page.locator('#example-button').click()
             expect(browser_page.locator('#title')).to_have_value('One stop of light')
@@ -712,7 +741,7 @@ try:
                 bounds = action.bounding_box()
                 assert bounds['height'] >= 44 and bounds['width'] >= 44, 'Saved shelf action too small'
             browser_page.locator('#shelf').screenshot(path=str(ARTIFACTS / 'shelf-mobile.png'))
-            browser_page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(browser_page)
             browser_page.locator('#kindle-email').fill('draft@kindle.com')
             browser_page.locator('#reader-label').fill('Draft address')
             browser_page.locator('#reader-list .reader-item').filter(has_text='Travel Kindle').get_by_role('button', name='Make Travel Kindle the default address').click()
@@ -721,7 +750,7 @@ try:
             expect(browser_page.locator('#kindle-email')).to_have_value('draft@kindle.com')
             expect(browser_page.locator('#reader-label')).to_have_value('Draft address')
             browser_page.screenshot(path=str(ARTIFACTS / 'destinations-mobile.png'), full_page=True)
-            browser_page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(browser_page)
             browser_page.get_by_role('link',name='Upload',exact=True).click()
             browser_page.locator('#shelf .share-trigger').first.click()
             browser_page.locator('#share-send').click()
@@ -732,7 +761,7 @@ try:
             assert captured['to'] == 'bedside@kindle.com'
             assert bytes(captured['attachments'][0]['content']) == (ROOT / 'public/sample.epub').read_bytes()
             browser_page.screenshot(path=str(ARTIFACTS / 'send-receipt-mobile.png'), full_page=True)
-            browser_page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(browser_page)
             browser_page.locator('#reader-label').fill('New Kindle')
             browser_page.locator('#kindle-email').fill('pending@kindle.com')
             before_save_mail = database.execute('SELECT count(*) FROM proof_mail').fetchone()[0]
@@ -742,7 +771,7 @@ try:
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == before_save_mail
             expect(browser_page.locator('#confirm-form')).to_have_count(0)
             browser_page.screenshot(path=str(ARTIFACTS / 'saved-address-added-mobile.png'), full_page=True)
-            browser_page.get_by_role('link',name='Settings',exact=True).click()
+            open_settings(browser_page)
             browser_page.get_by_role('link',name='Upload',exact=True).click()
             browser_page.locator('h1').click()
             browser_page.screenshot(path=str(ARTIFACTS / 'workspace-mobile.png'), full_page=True)

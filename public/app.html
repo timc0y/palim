@@ -26,10 +26,20 @@
         </svg>
         palim
       </a>
-      <nav class="nav-links" aria-label="Account and privacy">
-        <a class="settings-link" data-studio-view href="#studio-settings">Settings</a
-        ><a class="nav-privacy" href="/privacy.html">privacy</a>
-      </nav>
+      <details class="settings-menu" id="settings-menu">
+        <summary aria-label="Settings" title="Settings">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="m10 3-.7 2.2-1.6 1-2.3-.4-2 3.4L5 11v2l-1.6 1.8 2 3.4 2.3-.4 1.6 1L10 21h4l.7-2.2 1.6-1 2.3.4 2-3.4L19 13v-2l1.6-1.8-2-3.4-2.3.4-1.6-1L14 3Z"
+            />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </summary>
+        <nav class="settings-menu-links" aria-label="Settings">
+          <a class="settings-link" data-studio-view href="#studio-settings">Settings</a>
+          <a href="/privacy.html">Privacy</a>
+        </nav>
+      </details>
     </header>
     <main id="main-content" class="wrap workspace">
       <div class="workspace-heading">

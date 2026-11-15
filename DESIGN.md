@@ -30,6 +30,11 @@ Create and Upload are separate tasks; Settings holds addresses and account setup
 Cards share gutters and corners, controls have a 44px minimum target, and errors
 stay beside the operation that failed. Labels remain visible.
 
+A single settings cog opens a native disclosure containing Settings and Privacy.
+Privacy remains available while signed out. Escape returns focus to the cog;
+outside clicks close the disclosure. Selecting Settings closes it and focuses
+the page heading. The icon and links retain 44px targets.
+
 A file has three bands: title and status, transfer actions, then file information.
 The pencil returns to the retained editor. Download leads, Preview uses an icon,
 and More share options opens Kindle selection and explicit sending. File details

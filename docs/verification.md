@@ -4,17 +4,17 @@ What has actually been checked, and what remains unverified.
 
 ## Latest deployment
 
-On 15 November 2026 at 15:57 UTC, source commit
-`6d0874a8d9ae505f250059799112678e5018e379` was deployed to Worker `palim`
-in the `tims` account. Version `e04e7b15-1989-400b-b63c-9cfd8d3f53b0`
+On 15 November 2026 at 16:28 UTC, source commit
+`50ce9d0083ddc684da1a549f13bddc47a0bf426b` was deployed to Worker `palim`
+in the `tims` account. Version `3846894a-b549-43d9-820f-1a858abbfccc`
 serves 100% of traffic through the existing Pages front door at
-https://palim-timc0y.pages.dev. The version carries the tag `6d0874a`.
-The previous version was `3c7d765c-4c32-41d0-9dc4-f40be2c10e31`.
+https://palim-timc0y.pages.dev. The version carries the tag `50ce9d0`.
+The previous version was `e04e7b15-1989-400b-b63c-9cfd8d3f53b0`.
 No Pages redeployment, migration, secret, sending-domain or unrelated resource
 change was performed.
 
 Public GET checks matched all 26 public assets byte for byte against this
-release, including the landing, studio, fonts, licence files, updated sample,
+release, including the landing, studio HTML/script, fonts, licence files, sample,
 reader stylesheet and plugin ZIP. `/` and `/app` matched their source HTML.
 HTML retained strict `script-src 'self'` and `style-src 'self'` policies.
 Unauthenticated `/api/account` and `/mcp` returned `401`; the advertised
@@ -32,7 +32,7 @@ parity is not an authenticated live journey.
 - Formatting and `git diff --check` passed before deployment.
 - The deployment rebuilt the landing module, sample EPUB/preview, reader CSS,
   plugin ZIP and Worker from the checked source.
-- [CI for the deployed source](https://github.com/timc0y/palim/actions/runs/43731423353)
+- [CI for the deployed source](https://github.com/timc0y/palim/actions/runs/43735211369)
   passed the production dependency audit, independent EPUBCheck with no errors
   or warnings, and both Worker and Pages Chromium journeys.
 - Native local proofs use disposable D1, private R2, Better Auth, OAuth PKCE,
@@ -46,12 +46,13 @@ no files. Conflicting runtime-only modes were rejected. The network proof create
 its local working directory when needed; its public-network checks remain
 separate from deployment and authenticated client acceptance.
 
-A subsequent source-only cleanup separated chapter rendering from EPUB assembly
-inside `src/book.ts` and made the page markup readable in sections. Six fixed-clock
+The publisher cleanup separates chapter rendering from EPUB assembly
+inside `src/book.ts` and presents the page markup in readable sections. Six fixed-clock
 publication cases retained identical EPUB/preview hashes, source, filenames, word
 counts and warnings; two invalid-figure cases retained the same refusal messages.
 All 26 public assets and the local HTML/JSON outputs remained byte-identical after
-rebuilding. The cleanup adds no file or dependency and has not been deployed.
+rebuilding that publisher change. The cleanup adds no file or dependency and is
+included in this deployment.
 
 The studio cleanup similarly separates account refresh, saved-address rendering
 and signed-out cleanup within `public/app.js`. Before/after handler runs produced
@@ -60,7 +61,7 @@ expiry checkpoints. Separate synthetic checks covered five-address capacity,
 default changes without replacing a valid selection, removal fallback, account
 fetch errors and retaining an unfinished draft after session expiry. These are
 source checks with mocked responses, not hosted account or mail evidence. This
-cleanup has not been deployed.
+cleanup is included in this deployment.
 
 ## Interface checks
 
@@ -156,6 +157,14 @@ outcomes, image clipboard recovery, pending-save navigation, form locks and
 loading states. The final handler proof passed after the spacing changes.
 These checks did not take control of the user's browser. Physical keyboard,
 clipboard and assistive-technology behaviour remain separate checks.
+
+The settings-cog source change replaces the header's two text links with one
+labelled native disclosure. Source checks covered 390px and 728px layouts and
+200% text at 320px, with the menu fitting the viewport. Handler checks exercised
+Settings navigation and heading focus, Escape and outside-click dismissal,
+signed-out Privacy access and draft retention. The Chromium acceptance script
+also checks keyboard opening and the actual Privacy-and-return journey. This
+change is not included in the deployment recorded above.
 
 ## CI and runtime coverage
 

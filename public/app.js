@@ -134,6 +134,17 @@ $('edit-title').addEventListener('click', () => {
 $('options-icon').append(icon('info'));
 for (const close of document.querySelectorAll('.close-dialog')) close.append(icon('close'));
 $('share-send').prepend(icon('send'));
+const settingsMenu = $('settings-menu');
+settingsMenu.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && settingsMenu.open) {
+    event.preventDefault();
+    settingsMenu.open = false;
+    settingsMenu.querySelector('summary').focus();
+  }
+});
+document.addEventListener('click', (event) => {
+  if (settingsMenu.open && !settingsMenu.contains(event.target)) settingsMenu.open = false;
+});
 function button(label, callback, style = 'secondary') {
   const b = document.createElement('button');
   b.type = 'button';
@@ -681,6 +692,10 @@ for (const a of document.querySelectorAll('a[data-studio-view]'))
   a.addEventListener('click', (event) => {
     event.preventDefault();
     navigateStudio(a.hash);
+    if (settingsMenu.contains(a)) {
+      settingsMenu.open = false;
+      $('studio-title').focus();
+    }
   });
 addEventListener('hashchange', () => {
   if (['#create-panel', '#upload-panel', '#studio-settings'].includes(location.hash))
