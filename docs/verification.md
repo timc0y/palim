@@ -53,6 +53,15 @@ counts and warnings; two invalid-figure cases retained the same refusal messages
 All 26 public assets and the local HTML/JSON outputs remained byte-identical after
 rebuilding. The cleanup adds no file or dependency and has not been deployed.
 
+The studio cleanup similarly separates account refresh, saved-address rendering
+and signed-out cleanup within `public/app.js`. Before/after handler runs produced
+identical DOM, input and focus-state fingerprints at six create/upload/share and
+expiry checkpoints. Separate synthetic checks covered five-address capacity,
+default changes without replacing a valid selection, removal fallback, account
+fetch errors and retaining an unfinished draft after session expiry. These are
+source checks with mocked responses, not hosted account or mail evidence. This
+cleanup has not been deployed.
+
 ## Interface checks
 
 ### Sample and MCP improvements

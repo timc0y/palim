@@ -555,99 +555,107 @@ function showImageAssets(images) {
   }
   imageAssets.append(list);
 }
-async function refresh() {
-  try {
-    currentAccount = await api('/api/account');
-    document.body.classList.add('signed-in');
-    document.body.classList.remove('signed-out');
-    $('signin').hidden = true;
-    $('desk').hidden = false;
-    $('logout').hidden = false;
-    $('account-name').textContent = currentAccount.name;
-    $('sender-address').textContent = currentAccount.sender;
-    if (!currentAccount.destinations.some((d) => d.id === selectedReaderId))
-      selectedReaderId = currentAccount.defaultDestinationId || '';
-    $('destination-status').textContent = currentAccount.destinations.length
-      ? `${currentAccount.destinations.length} / 5 saved`
-      : 'No addresses yet.';
-    const limits = currentAccount.limits;
-    $('allowance').textContent = limits
-      ? `${limits.renders} books · ${limits.uploads} uploads · ${limits.sends} emails / day. Files expire after ${limits.retentionHours}h.`
-      : '';
-    const full = currentAccount.destinations.length >= 5;
-    $('destination-form').hidden = full;
-    $('reader-limit').hidden = !full;
-    const list = $('reader-list');
-    list.replaceChildren();
-    for (const d of currentAccount.destinations) {
-      const row = document.createElement('div');
-      row.className = 'reader-item';
-      const name = document.createElement('strong');
-      name.textContent = d.label;
-      const address = document.createElement('p');
-      address.textContent = d.email + (d.isDefault ? ' · Default' : '');
-      row.append(name, address);
-      if (!d.isDefault) {
-        const makeDefault = button(
-          'Make default',
-          async () => {
-            await post(`/api/destinations/${d.id}/default`, {});
-            await refresh();
-          },
-          'plain-button',
-        );
-        makeDefault.setAttribute('aria-label', `Make ${d.label} the default address`);
-        row.append(makeDefault);
-      }
-      const removeAddress = button(
-        'Remove',
+function showReaders(destinations) {
+  $('destination-status').textContent = destinations.length
+    ? `${destinations.length} / 5 saved`
+    : 'No addresses yet.';
+  const full = destinations.length >= 5;
+  $('destination-form').hidden = full;
+  $('reader-limit').hidden = !full;
+  const list = $('reader-list');
+  list.replaceChildren();
+  for (const d of destinations) {
+    const row = document.createElement('div');
+    row.className = 'reader-item';
+    const name = document.createElement('strong');
+    name.textContent = d.label;
+    const address = document.createElement('p');
+    address.textContent = d.email + (d.isDefault ? ' · Default' : '');
+    row.append(name, address);
+    if (!d.isDefault) {
+      const makeDefault = button(
+        'Make default',
         async () => {
-          await api(`/api/destinations/${d.id}`, { method: 'DELETE' });
+          await post(`/api/destinations/${d.id}/default`, {});
           await refresh();
         },
         'plain-button',
       );
-      removeAddress.setAttribute('aria-label', `Remove ${d.label}`);
-      row.append(removeAddress);
-      list.append(row);
+      makeDefault.setAttribute('aria-label', `Make ${d.label} the default address`);
+      row.append(makeDefault);
     }
-    showShelf(currentAccount.artifacts.filter((artifact) => artifact.kind === 'document'));
-    showImageAssets(currentAccount.artifacts.filter((artifact) => artifact.kind === 'image'));
-    syncReaderChoices();
-    updateSendTargets();
-  } catch (e) {
-    if (e.status === 401) {
-      document.body.classList.add('signed-out');
-      document.body.classList.remove('signed-in');
-      $('signin').hidden = false;
-      $('desk').hidden = true;
-      $('logout').hidden = true;
-      $('image-result').hidden = true;
-      $('image-result').textContent = '';
-      $('image-assets').replaceChildren();
-      $('image-form').reset();
-      // Clear the previous account's private files and addresses from the page.
-      for (const id of ['created', 'uploaded', 'shelf', 'reader-list']) {
-        $(id).replaceChildren();
-        $(id).hidden = true;
-        delete $(id).dataset.artifactId;
-      }
-      $('receipt').replaceChildren();
-      $('receipt-panel').hidden = true;
-      $('share-dialog').close();
-      $('file-info-dialog').close();
-      $('share-filename').textContent = '';
-      $('file-info-content').replaceChildren();
-      shareContext = null;
-      $('send-reader').replaceChildren();
-      $('destination-status').textContent = '';
-      $('sender-address').textContent = '';
-      $('account-name').textContent = '';
-      currentAccount = null;
-      selectedReaderId = '';
-      receiptId = null;
-      setSetupReturn(null);
-    } else feedback($('desk'), e.message, true);
+    const removeAddress = button(
+      'Remove',
+      async () => {
+        await api(`/api/destinations/${d.id}`, { method: 'DELETE' });
+        await refresh();
+      },
+      'plain-button',
+    );
+    removeAddress.setAttribute('aria-label', `Remove ${d.label}`);
+    row.append(removeAddress);
+    list.append(row);
+  }
+}
+function showAccount(account) {
+  currentAccount = account;
+  document.body.classList.add('signed-in');
+  document.body.classList.remove('signed-out');
+  $('signin').hidden = true;
+  $('desk').hidden = false;
+  $('logout').hidden = false;
+  $('account-name').textContent = account.name;
+  $('sender-address').textContent = account.sender;
+  if (!account.destinations.some((d) => d.id === selectedReaderId))
+    selectedReaderId = account.defaultDestinationId || '';
+  const limits = account.limits;
+  $('allowance').textContent = limits
+    ? `${limits.renders} books · ${limits.uploads} uploads · ${limits.sends} emails / day. Files expire after ${limits.retentionHours}h.`
+    : '';
+  showReaders(account.destinations);
+  showShelf(account.artifacts.filter((artifact) => artifact.kind === 'document'));
+  showImageAssets(account.artifacts.filter((artifact) => artifact.kind === 'image'));
+  syncReaderChoices();
+  updateSendTargets();
+}
+function showSignedOut() {
+  document.body.classList.add('signed-out');
+  document.body.classList.remove('signed-in');
+  $('signin').hidden = false;
+  $('desk').hidden = true;
+  $('logout').hidden = true;
+  $('image-result').hidden = true;
+  $('image-result').textContent = '';
+  $('image-assets').replaceChildren();
+  $('image-form').reset();
+  // Clear the previous account's private files and addresses from the page.
+  for (const id of ['created', 'uploaded', 'shelf', 'reader-list']) {
+    $(id).replaceChildren();
+    $(id).hidden = true;
+    delete $(id).dataset.artifactId;
+  }
+  $('receipt').replaceChildren();
+  $('receipt-panel').hidden = true;
+  $('share-dialog').close();
+  $('file-info-dialog').close();
+  $('share-filename').textContent = '';
+  $('file-info-content').replaceChildren();
+  shareContext = null;
+  $('send-reader').replaceChildren();
+  $('destination-status').textContent = '';
+  $('sender-address').textContent = '';
+  $('account-name').textContent = '';
+  currentAccount = null;
+  selectedReaderId = '';
+  receiptId = null;
+  setSetupReturn(null);
+}
+async function refresh() {
+  try {
+    showAccount(await api('/api/account'));
+  } catch (error) {
+    if (error.status === 401) showSignedOut();
+    else feedback($('desk'), error.message, true);
   }
 }
 function chooseTask(hash) {
