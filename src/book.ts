@@ -126,7 +126,7 @@ export async function buildBook(
       );
       used.add(image.id);
       const number = book.figures.findIndex((figure) => figure.id === image.id) + 1;
-      return `<figure class="figure-${image.kind}"><img src="${image.filename}" alt="${e(image.alt)}"/><figcaption><span class="figure-number">Figure ${number}.</span> ${e(image.caption)}</figcaption></figure>\n`;
+      return `<figure class="figure-${image.kind}"><img src="${image.filename}" alt="${e(image.alt)}"/><figcaption><span class="figure-number">Figure ${number}.</span> <span class="caption-text">${e(image.caption)}</span></figcaption></figure>\n`;
     };
     let heading = 0;
     let headingBase = 1;
@@ -180,7 +180,7 @@ export async function buildBook(
     addPage(
       'sources',
       'Sources and further reading',
-      `<section id="sources"><h1>Sources and further reading</h1><ol>${book.sources.map((s) => `<li><p><a href="${e(s.url)}">${e(s.title)}</a>${s.note ? ` — ${e(s.note)}` : ''}</p></li>`).join('')}</ol></section>`,
+      `<section class="source-section" id="sources"><h1>Sources and further reading</h1><ol>${book.sources.map((s) => `<li><p><a href="${e(s.url)}">${e(s.title)}</a>${s.note ? ` — ${e(s.note)}` : ''}</p></li>`).join('')}</ol></section>`,
     );
   file(
     'EPUB/nav.xhtml',
@@ -216,7 +216,7 @@ export async function buildBook(
   return {
     bytes,
     source,
-    preview: `<!doctype html><html lang="${e(book.language)}"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${e(book.title)}</title><style>${PREVIEW_CSS}</style></head><body><div class="preview-tools"><a href="/app">Back to desk</a></div><header class="preview-header"><div class="preview-heading"><p class="preview-meta">${e(book.edition || 'Reading edition')}</p><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}${book.creator ? `<p class="preview-meta">${e(book.creator)}</p>` : ''}</div><img class="preview-cover" src="${dataUrl('image/png', cover)}" alt="" width="1200" height="1600"/></header><nav class="preview-contents" aria-label="Contents"><details><summary>In this edition</summary><ol>${book.chapters.map((chapter, index) => `<li><a href="#chapter-${index + 1}">${e(chapter.title)}</a></li>`).join('')}${book.sources.length ? '<li><a href="#sources">Sources and further reading</a></li>' : ''}</ol></details></nav><main>${inlinePreview}</main></body></html>`,
+    preview: `<!doctype html><html lang="${e(book.language)}"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${e(book.title)}</title><style>${PREVIEW_CSS}</style></head><body><div class="preview-tools"><a href="/app">Back to desk</a></div><header class="preview-header"><div class="preview-heading"><p class="preview-meta">${e(book.edition || 'Reading edition')}${book.creator ? ` · ${e(book.creator)}` : ''}</p><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}</div></header><nav class="preview-contents" aria-label="Contents"><details><summary>Contents</summary><ol>${book.chapters.map((chapter, index) => `<li><a href="#chapter-${index + 1}">${e(chapter.title)}</a></li>`).join('')}${book.sources.length ? '<li><a href="#sources">Sources and further reading</a></li>' : ''}</ol></details></nav><main>${inlinePreview}</main></body></html>`,
     filename: safeFilename(book.title, 'application/epub+zip'),
     hash: await sha256(bytes),
     wordCount: book.chapters.reduce(

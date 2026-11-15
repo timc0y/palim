@@ -556,6 +556,11 @@ try:
                 assert sample_page.locator('main h3').count() >= 3
                 assert sample_page.evaluate("[...document.fonts].some(f=>f.family==='Manrope' && f.status==='loaded')")
                 assert sample_page.locator('body').evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)') >= 18
+                assert sample_page.evaluate("""() => {
+                    const left = document.querySelector('.preview-heading').getBoundingClientRect().left;
+                    return [...document.querySelectorAll('main > section > p, main > section > h3, figure > img, .caption-text')]
+                        .every(e => Math.abs(e.getBoundingClientRect().left - left) <= 1);
+                }""")
                 assert not sample_page.evaluate('document.documentElement.scrollWidth > innerWidth')
                 assert sample_page.locator('main section > p').first.bounding_box()['y'] < height - 80
                 assert sample_page.evaluate('new Set([...document.querySelectorAll("[id]")].map(e=>e.id)).size === document.querySelectorAll("[id]").length')
@@ -665,10 +670,10 @@ try:
             assert preview_page.locator('body').evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)') >= 18
             preview_page.screenshot(path=str(ARTIFACTS / 'private-reader-mobile.png'), full_page=True)
             assert not preview_page.evaluate('document.documentElement.scrollWidth > innerWidth')
-            chart = preview_page.locator('figure img').nth(1)
+            chart = preview_page.locator('.figure-bars img')
             assert chart.bounding_box()['width'] / 560 * 30 >= 14
-            preview_page.locator('figure').nth(1).screenshot(path=str(ARTIFACTS / 'chart-mobile.png'))
-            preview_page.locator('figure').nth(0).screenshot(path=str(ARTIFACTS / 'diagram-mobile.png'))
+            preview_page.locator('.figure-bars').screenshot(path=str(ARTIFACTS / 'chart-mobile.png'))
+            preview_page.locator('.figure-image').screenshot(path=str(ARTIFACTS / 'diagram-mobile.png'))
             preview_page.close()
             browser_page.locator('.job-choices a[href="#upload-panel"]').click()
             browser_page.locator('#original').set_input_files(str(ROOT / 'public/sample.epub'))

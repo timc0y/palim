@@ -83,7 +83,7 @@ test('MCP imports an owned image and creates an EPUB with repeated captions', as
     assert.equal(
       (
         chapter.match(
-          /<figcaption><span class="figure-number">Figure 1\.<\/span> A useful caption<\/figcaption>/g,
+          /<figcaption><span class="figure-number">Figure 1\.<\/span> <span class="caption-text">A useful caption<\/span><\/figcaption>/g,
         ) ?? []
       ).length,
       2,

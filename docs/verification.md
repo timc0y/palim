@@ -59,8 +59,8 @@ proofs passed after the argument-parsing change.
 The current source gives generated books a paper cover, bounded metadata layout,
 selectable title page, numbered chapter openings and stable figure numbers.
 EPUB text remains reflowable, reader-sized and themeable; original uploads bypass
-these styles. The browser preview shows the actual generated cover, with the
-decorative thumbnail hidden when narrow or enlarged text needs the width.
+these styles. The browser preview uses one shared label/reading grid, with the
+cover retained in the EPUB rather than repeated beside the browser title.
 The sample is a 510-word field guide: choose movement, exchange a stop, then
 compare three frames. Its light-ratio chart precedes the aperture illustration,
 with essential values in reflowable prose. The illustration is rebuilt from its
@@ -74,6 +74,16 @@ chapter structure, figure numbering and original-image byte identity. These are
 browser-source checks; physical Kindle appearance is not established.
 Consecutive figure references now retain semantic figures and captions; prose
 or heading references produce a corrective placement error.
+
+The reading-grid refinement checked 320px/390px phones, 728px and 1100px widths,
+open contents, 200% text at 320px, and actual packaged EPUB chapters. Headings,
+prose, figure images and caption text share the same measured left edge; the
+phone layout stacks the label column and keeps 24px gutters. A source fixture
+without a sources section retained 18px instruction text, while long metadata,
+captions, table cells and code wrapped without horizontal overflow. EPUB uses
+ordinary block flow with a relative 40em maximum measure; it does not depend on
+the browser's CSS grid. The Chromium acceptance script checks reading-edge
+alignment and targets chart/image figures by kind.
 
 The full local suite passed 98 tests, including the public-font response
 checks. Native Worker and Pages proofs exercised seven-tool discovery and matching

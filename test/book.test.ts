@@ -37,7 +37,6 @@ test('generated EPUB declares its cover image without a duplicate HTML cover in 
   const opf = await zip.file('EPUB/package.opf')!.async('text');
   assert.match(opf, /id="cover-image"[^>]+properties="cover-image"/);
   assert.ok(zip.file('EPUB/cover.png'));
-  assert.match(book.preview, /class="preview-cover" src="data:image\/png;base64,/);
   assert.match(await zip.file('EPUB/chapter-1.xhtml')!.async('text'), /class="chapter-heading"/);
   assert.match(await zip.file('EPUB/chapter-1.xhtml')!.async('text'), /Chapter 1<\/p>/);
   assert.equal(zip.file('EPUB/cover.xhtml'), null);

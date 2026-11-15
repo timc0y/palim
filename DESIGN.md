@@ -50,10 +50,20 @@ Generated covers use a paper ground, dark title and abstract indigo fold. Long
 metadata wraps and scales within the cover; the selectable title page retains
 the full text. Chapters have a quiet number and clear opening. Figures carry
 stable numbers and captions. EPUB sizes stay relative and colours inherit from
-the reader. The browser preview pairs the actual cover with the title, uses
-Manrope for reading and hides the decorative cover when enlarged text needs the
-width. The sample illustration is rebuilt from its SVG source with the same
-rasterizer used for generated artwork.
+the reader. Its ordinary block flow has a 40em maximum measure, relative gutters
+and a consistent paragraph size. The browser preview uses Manrope for reading;
+the cover remains in the EPUB rather than repeating beside the browser title.
+The sample illustration is rebuilt from its SVG source with the same rasterizer
+used for generated artwork.
+
+The preview uses a shared grid: a 4.5rem label column, 2rem gutter and one reading
+column inside a 52rem page. Title, contents, chapter text, artwork and captions
+share that reading edge; chapter and figure numbers share the label edge.
+Below 40rem, the grid stacks into one column with 24px minimum page gutters.
+Spacing uses an 8px scale: 16px paragraph gaps, 32px heading/figure separation
+and 48px chapter padding on desktop. Chapter rules separate the full page;
+captions stay with their figures. Sources have their own styling so an ordinary
+final chapter keeps its normal text size when a book has no sources section.
 
 Charts have a bounded reading width so their raster labels do not dominate a
 wide page. The sample moves from a light-ratio chart to the aperture exchange,
