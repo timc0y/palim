@@ -1,18 +1,20 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { buildBook } from '../src/book.js';
 import { PREVIEW_CSS } from '../src/book-styles.js';
+import { rasterize } from '../src/raster.js';
 const manuscript = JSON.parse(
   await readFile(new URL('../examples/first-edition.json', import.meta.url), 'utf8'),
 ) as unknown;
+const illustration = await rasterize(
+  await readFile(new URL('../examples/assets/exposure-trade.svg', import.meta.url), 'utf8'),
+);
 const book = await buildBook(
   manuscript,
   new Map([
     [
       '00000000-0000-4000-8000-000000000001',
       {
-        bytes: new Uint8Array(
-          await readFile(new URL('../public/images/sample-exposure.png', import.meta.url)),
-        ),
+        bytes: illustration,
         type: 'image/png' as const,
       },
     ],
@@ -28,6 +30,7 @@ const publicPreview = book.preview
 await mkdir('artifacts', { recursive: true });
 await mkdir('public', { recursive: true });
 await Promise.all([
+  writeFile('public/images/sample-exposure.png', illustration),
   writeFile('artifacts/palim-sample.epub', book.bytes),
   writeFile('artifacts/palim-sample.html', publicPreview),
   writeFile('artifacts/manuscript.json', book.source),

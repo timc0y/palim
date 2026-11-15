@@ -5,7 +5,7 @@ import { buildBook } from '../src/book.js';
 import { inspectDocument, inspectZip } from '../src/archive.js';
 import { BookSchema, LIMITS } from '../src/schema.js';
 import { parseXml } from '../src/xml.js';
-import { staticSvg } from '../src/figures.js';
+import { staticSvg, coverSvg } from '../src/figures.js';
 import { simpleBook, pdf } from './helpers.js';
 const time = new Date('2026-10-25T00:00:00Z');
 test('EPUB has stored first mimetype and well-formed package, navigation and chapters', async () => {
@@ -37,6 +37,9 @@ test('generated EPUB declares its cover image without a duplicate HTML cover in 
   const opf = await zip.file('EPUB/package.opf')!.async('text');
   assert.match(opf, /id="cover-image"[^>]+properties="cover-image"/);
   assert.ok(zip.file('EPUB/cover.png'));
+  assert.match(book.preview, /class="preview-cover" src="data:image\/png;base64,/);
+  assert.match(await zip.file('EPUB/chapter-1.xhtml')!.async('text'), /class="chapter-heading"/);
+  assert.match(await zip.file('EPUB/chapter-1.xhtml')!.async('text'), /Chapter 1<\/p>/);
   assert.equal(zip.file('EPUB/cover.xhtml'), null);
   assert.doesNotMatch(opf, /<itemref idref="cover"/);
   assert.match(opf, /<spine><itemref idref="title"/);
@@ -111,6 +114,14 @@ test('Mermaid and data charts render with captions and no remote resources', asy
   assert.match(opf, /rendition:layout">reflowable/);
   assert.match(await zip.file('EPUB/chapter-1.xhtml')!.async('text'), /<h1>Figures<\/h1>/);
   assert.match(await zip.file('EPUB/chapter-1.xhtml')!.async('text'), /figcaption/);
+  assert.match(
+    await zip.file('EPUB/chapter-1.xhtml')!.async('text'),
+    /class="figure-number">Figure 1\.<\/span>/,
+  );
+  assert.match(
+    await zip.file('EPUB/chapter-1.xhtml')!.async('text'),
+    /class="figure-number">Figure 2\.<\/span>/,
+  );
 });
 test('unused and duplicate figures fail clearly', async () => {
   const f = {
@@ -277,4 +288,21 @@ test('combined reading preview has one title and unique chapter anchors', async 
   assert.match(book.preview, /<h3 id="chapter-2-section-1"/);
   assert.doesNotMatch(book.preview, /<h4/);
   assert.doesNotMatch(book.preview, /class="cover"/);
+});
+
+test('cover retains maximum-length metadata without invalid or off-page text', () => {
+  const title = 'W'.repeat(160),
+    subtitle = 'S'.repeat(240),
+    creator = 'A'.repeat(160);
+  const document = parseXml(coverSvg(title, subtitle, creator));
+  const texts = Array.from(document.getElementsByTagName('text'));
+  assert.equal(texts.map((node) => node.textContent).join(''), title + subtitle + creator);
+  for (const node of texts) {
+    const size = Number(node.getAttribute('font-size'));
+    const x = Number(node.getAttribute('x'));
+    const y = Number(node.getAttribute('y'));
+    assert.ok(Number.isFinite(size) && size > 0);
+    assert.ok(y - size >= 0 && y < 1520);
+    assert.ok(x + Array.from(node.textContent || '').length * size < 1152);
+  }
 });

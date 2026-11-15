@@ -26,10 +26,23 @@ test('official MCP client lists the guide and publishing tools and creates a dra
       'get_delivery',
       'get_guide',
       'import_image',
+      'list_destinations',
       'send_document',
     ]);
+    const createTool = tools.tools.find((tool) => tool.name === 'create_book')!;
+    assert.match(createTool.description ?? '', /Minimal|Example/i);
+    assert.match(createTool.description ?? '', /Never sends mail/);
+    const destinationsTool = tools.tools.find((tool) => tool.name === 'list_destinations')!;
+    assert.equal(destinationsTool.annotations?.readOnlyHint, true);
+    assert.equal(destinationsTool.annotations?.idempotentHint, true);
+    assert.equal(destinationsTool.annotations?.openWorldHint, false);
     const result = await client.callTool({ name: 'create_book', arguments: simpleBook });
     assert.notEqual(result.isError, true);
+    const textResult = CallToolResultSchema.parse(result);
+    const textContent = textResult.content.find((item) => item.type === 'text');
+    assert.ok(textContent && textContent.type === 'text');
+    assert.deepEqual(JSON.parse(textContent.text), result.structuredContent);
+    assert.equal(typeof result.structuredContent, 'object');
     assert.equal(f.sent.length, 0);
     const guideResult = CallToolResultSchema.parse(
       await client.callTool({ name: 'get_guide', arguments: {} }),
@@ -38,9 +51,12 @@ test('official MCP client lists the guide and publishing tools and creates a dra
     assert.ok(guide && guide.type === 'text');
     assert.equal(guide.text, client.getInstructions());
     assert.match(guide.text, /Never call create_book to forward an original/);
+    assert.match(guide.text, /list_destinations/);
+    assert.match(guide.text, /"chapters"/);
     const guideTool = tools.tools.find((tool) => tool.name === 'get_guide');
     assert.equal(guideTool?.annotations?.readOnlyHint, true);
     assert.equal(guideTool?.annotations?.idempotentHint, true);
+    assert.equal(guideResult.structuredContent, undefined);
 
     const content = CallToolResultSchema.parse(result).content.find((item) => item.type === 'text');
     assert.ok(content && content.type === 'text');
@@ -51,11 +67,85 @@ test('official MCP client lists the guide and publishing tools and creates a dra
       arguments: { artifactId: artifact.artifactId },
     });
     assert.equal(blocked.isError, true);
+    assert.equal(blocked.structuredContent, undefined);
     assert.match(JSON.stringify(blocked), /DESTINATION_REQUIRED/);
     assert.equal(f.sent.length, 0);
   } finally {
     await client.close();
     await server.close();
+  }
+});
+
+test('saved destination discovery exposes only labels, confirms scope and sends no email', async () => {
+  const f = await fixture();
+  const c = await (async () => {
+    const server = makeMcp(f.env, 'alice', ['books:read', 'books:send']);
+    const client = new Client({ name: 'destination-discovery-test', version: '1' });
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    await server.connect(a);
+    await client.connect(b);
+    return {
+      server,
+      client,
+      close: async () => {
+        await client.close();
+        await server.close();
+      },
+    };
+  })();
+  f.sql.prepare('DELETE FROM reader_destinations WHERE owner=?').run('alice');
+  f.sql
+    .prepare('INSERT INTO reader_destinations(id,owner,label,email,confirmed_at) VALUES(?,?,?,?,?)')
+    .run('reader-alice', 'alice', 'Personal Kindle', 'private@example.test', 1);
+  f.sql
+    .prepare('UPDATE users SET default_destination_id=? WHERE id=?')
+    .run('reader-alice', 'alice');
+  try {
+    const result = CallToolResultSchema.parse(
+      await c.client.callTool({ name: 'list_destinations', arguments: {} }),
+    );
+    assert.equal(result.isError, undefined);
+    const data = result.structuredContent as Record<string, unknown>;
+    const text = result.content.find((item) => item.type === 'text');
+    assert.ok(text && text.type === 'text');
+    assert.deepEqual(JSON.parse(text.text), data);
+    assert.deepEqual(data.destinations, [
+      { id: 'reader-alice', label: 'Personal Kindle', isDefault: true },
+    ]);
+    assert.equal(data.defaultDestinationId, 'reader-alice');
+    assert.equal(data.setupUrl, 'https://palim.example/app#studio-settings');
+    assert.deepEqual(Object.keys(data).sort(), [
+      'defaultDestinationId',
+      'destinations',
+      'setupUrl',
+    ]);
+    assert.doesNotMatch(JSON.stringify(data), /private@example\.test/);
+    assert.equal(f.sent.length, 0);
+    const tool = (await c.client.listTools()).tools.find(
+      (item) => item.name === 'list_destinations',
+    )!;
+    assert.deepEqual(tool._meta?.securitySchemes, [{ type: 'oauth2', scopes: ['books:send'] }]);
+
+    const readonlyServer = makeMcp(f.env, 'alice', ['books:read']);
+    const readonlyClient = new Client({ name: 'destination-scope-test', version: '1' });
+    const [ra, rb] = InMemoryTransport.createLinkedPair();
+    await readonlyServer.connect(ra);
+    await readonlyClient.connect(rb);
+    try {
+      const denied = CallToolResultSchema.parse(
+        await readonlyClient.callTool({ name: 'list_destinations', arguments: {} }),
+      );
+      assert.equal(denied.isError, true);
+      assert.equal(denied.structuredContent, undefined);
+      const denialText = denied.content.find((item) => item.type === 'text');
+      assert.ok(denialText && denialText.type === 'text');
+      assert.equal(JSON.parse(denialText.text).code, 'SCOPE_REQUIRED');
+    } finally {
+      await readonlyClient.close();
+      await readonlyServer.close();
+    }
+  } finally {
+    await c.close();
   }
 });
 test('missing OAuth scope fails before rendering', async () => {
@@ -277,4 +367,29 @@ test('HTML control forms retain same-origin Origin while private preview policy 
       'https://palim.example',
     ),
   );
+});
+
+test('public reading fonts allow anonymous loading in sandboxed book previews', async () => {
+  const f = await fixture();
+  const env = {
+    ...f.env,
+    ASSETS: {
+      async fetch() {
+        return new Response('synthetic font', { headers: { 'Content-Type': 'font/woff2' } });
+      },
+    } as unknown as Fetcher,
+  };
+  for (const name of [
+    'Manrope-Latin.woff2',
+    'Manrope-Extended.woff2',
+    'IBMPlexMono-Latin-400.woff2',
+    'IBMPlexMono-Latin-500.woff2',
+  ]) {
+    const response = await appFetch(new Request(`${env.ORIGIN}/fonts/${name}`), env);
+    assert.equal(response.headers.get('Access-Control-Allow-Origin'), '*');
+    assert.equal(await response.text(), 'synthetic font');
+  }
+  const other = await appFetch(new Request(`${env.ORIGIN}/reader.css`), env);
+  assert.equal(other.headers.get('Access-Control-Allow-Origin'), null);
+  assert.equal(f.sent.length, 0);
 });

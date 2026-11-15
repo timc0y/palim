@@ -54,6 +54,40 @@ proofs passed after the argument-parsing change.
 
 ## Interface checks
 
+### Sample and MCP improvements (not deployed)
+
+The current source gives generated books a paper cover, bounded metadata layout,
+selectable title page, numbered chapter openings and stable figure numbers.
+EPUB text remains reflowable, reader-sized and themeable; original uploads bypass
+these styles. The browser preview shows the actual generated cover, with the
+decorative thumbnail hidden when narrow or enlarged text needs the width.
+The sample uses a two-column exposure comparison and an illustration rebuilt
+from its SVG source through the maintained rasterizer.
+
+Source renders checked the sample and actual packaged XHTML at phone/desktop
+widths and 200% text at 320px. Tests exercise maximum-length cover metadata,
+chapter structure, figure numbering and original-image byte identity. These are
+browser-source checks; physical Kindle appearance is not established.
+
+The full local suite passed 94 tests, including the new public-font response
+checks. Native Worker and Pages proofs exercised six-tool discovery and matching
+structured/text results through OAuth and MCP. The browser proof also checks
+that both reading and mono fonts load inside the private preview's sandbox.
+Public WOFF2 assets allow anonymous font loading; other asset responses do not
+gain that permission.
+
+MCP object results now include structured content with matching JSON text.
+The guide includes a minimal manuscript example and separates creating,
+forwarding, recipient selection and receipt checks. `list_destinations` requires
+sending permission and an active account and returns only owned labels/IDs,
+default and Settings URL. Scope, tenant isolation, disabled accounts, stale
+defaults, omitted email fields and no-mail discovery are exercised through the
+official SDK client. The consent explanation identifies label discovery.
+
+These source changes do not replace the deployment recorded above.
+
+### Landing and studio
+
 The landing uses the MIT SPEC-01 hardware treatment and Apache-2.0 UI SDK
 0.1.0-beta.1. Its bundle, fonts and licences are self-hosted. Native connect
 content remains available without JavaScript; the enhanced copy control appears

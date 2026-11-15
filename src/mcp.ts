@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { z } from 'zod';
 import { BookSchema, LIMITS, ReceiptSchema } from './schema.js';
-import { Palim } from './service.js';
+import { Palim, publicReceipt } from './service.js';
 import { publicError, PalimError } from './errors.js';
 import { readBytes } from './http.js';
 import { agentGuide } from './guide.js';
@@ -10,10 +10,18 @@ import type { Env } from './types.js';
 
 const HostFileSchema = z
   .object({
-    download_url: z.url().max(8192),
-    file_id: z.string().min(1).max(256),
-    mime_type: z.string().max(160).optional(),
-    file_name: z.string().max(200).optional(),
+    download_url: z.url().max(8192).describe('The client-provided public HTTPS download URL.'),
+    file_id: z
+      .string()
+      .min(1)
+      .max(256)
+      .describe('The host file identifier; not a Palim artifact ID.'),
+    mime_type: z
+      .string()
+      .max(160)
+      .optional()
+      .describe('The host-reported MIME type, when available.'),
+    file_name: z.string().max(200).optional().describe('The original file name, when available.'),
   })
   .strict();
 export const ToolSendSchema = z
@@ -21,7 +29,12 @@ export const ToolSendSchema = z
     artifactId: z.uuid().optional(),
     file: HostFileSchema.optional(),
     resendOf: z.uuid().optional(),
-    destinationId: z.uuid().optional(),
+    destinationId: z
+      .uuid()
+      .optional()
+      .describe(
+        'A saved destination ID confirmed to match the user’s requested recipient. Omit to use the account default.',
+      ),
   })
   .strict()
   .refine(
@@ -45,7 +58,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
           403,
         );
       const value = await work();
-      return {
+      const result = {
         content: [
           {
             type: 'text' as const,
@@ -53,6 +66,9 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
           },
         ],
       };
+      return typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? { ...result, structuredContent: value as Record<string, unknown> }
+        : result;
     } catch (e) {
       const p = publicError(e);
       return {
@@ -84,8 +100,10 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     {
       title: 'Create an illustrated EPUB',
       description:
-        'Create a private temporary EPUB from supplied title, language and chapters [{title, markdown}]. Read get_guide for authoring and figures. Return download/preview, expiry and warnings. Never sends mail; no Kindle setup needed.',
-      inputSchema: BookSchema,
+        'Create a private illustrated EPUB from the supplied manuscript. Example: {"title":"A short guide","language":"en","chapters":[{"title":"Start","markdown":"A clear first page."}]}. Returns artifact ID, private links, expiry and warnings. Never sends mail.',
+      inputSchema: BookSchema.describe(
+        'The complete manuscript and optional metadata/figures used to render a new EPUB. The supplied manuscript is authored by the agent; Palim does not infer or add content.',
+      ),
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -94,6 +112,37 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
       },
     },
     async (input) => run('books:write', () => palim.create(owner, input)),
+  );
+  server.registerTool(
+    'list_destinations',
+    {
+      title: 'List saved Kindle destinations',
+      description:
+        'List this signed-in account’s saved destination labels and IDs; the stored email field is omitted. Use only when a label clearly matches the recipient requested by the user; otherwise ask the user to choose in Settings. Read-only; never sends mail.',
+      inputSchema: z.object({}).strict(),
+      _meta: { securitySchemes: [{ type: 'oauth2', scopes: ['books:send'] }] },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async () =>
+      run('books:send', async () => {
+        const user = await palim.store.user(owner);
+        const destinations = (await palim.store.readers(owner)).map(({ id, label }) => ({
+          id,
+          label,
+          isDefault: id === user.default_destination_id,
+        }));
+        return {
+          destinations,
+          defaultDestinationId:
+            destinations.find((destination) => destination.isDefault)?.id ?? null,
+          setupUrl: `${env.ORIGIN}/app#studio-settings`,
+        };
+      }),
   );
   server.registerTool(
     'import_image',
@@ -172,7 +221,6 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     },
     async (input) =>
       run('books:read', async () => {
-        const { publicReceipt } = await import('./service.js');
         return publicReceipt(await palim.store.delivery(owner, input.deliveryId));
       }),
   );

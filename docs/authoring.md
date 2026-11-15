@@ -2,6 +2,8 @@
 
 Palim gives the authoring agent a set of tools, not a prescribed book template. Choose the explanation and visual that help this reader answer their question. Use a consistent, quiet text style and let the reader adjust it.
 
+Palim supplies the cover, title page, chapter openings and figure numbers. Keep chapter titles concise; do not repeat them as the first Markdown heading. Figure numbers follow definition order, so reusing a figure keeps the same number. Text sizes remain relative to the reader's settings, and the browser preview shows the actual generated cover alongside selectable title and author text.
+
 ## Ways to explain
 
 | Reader needs to understand          | Possible treatment                                                                      |

@@ -477,15 +477,22 @@ try:
     assert ORIGIN + '/app' in json.loads(payload)['result']['instructions']
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}, auth)
     tools = json.loads(payload)['result']['tools']
-    assert sorted(t['name'] for t in tools) == ['create_book', 'get_delivery', 'get_guide', 'import_image', 'send_document']
+    assert sorted(t['name'] for t in tools) == ['create_book', 'get_delivery', 'get_guide', 'import_image', 'list_destinations', 'send_document']
     status, _, guide_payload = post('/mcp', {'jsonrpc': '2.0', 'id': 20, 'method': 'tools/call', 'params': {'name': 'get_guide', 'arguments': {}}}, auth)
     guide_result = json.loads(guide_payload)['result']
     assert status == 200 and not guide_result.get('isError')
+    status, _, options_payload = post('/mcp', {'jsonrpc': '2.0', 'id': 21, 'method': 'tools/call', 'params': {'name': 'list_destinations', 'arguments': {}}}, auth)
+    options_result = json.loads(options_payload)['result']
+    assert status == 200 and not options_result.get('isError')
+    assert options_result['structuredContent'] == json.loads(options_result['content'][0]['text'])
+    assert options_result['structuredContent']['destinations'] == []
+    assert options_result['structuredContent']['setupUrl'] == ORIGIN + '/app#studio-settings'
     assert 'Never call create_book to forward an original' in guide_result['content'][0]['text']
     status, _, payload = post('/mcp', {'jsonrpc': '2.0', 'id': 3, 'method': 'tools/call', 'params': {'name': 'create_book', 'arguments': {'title': 'Native runtime proof', 'chapters': [{'title': 'A real local journey', 'markdown': 'Created through actual workerd, OAuth PKCE, D1, R2 and the MCP transport. No live email was sent.'}]}}}, auth)
     result = json.loads(payload)['result']
     assert status == 200 and not result.get('isError'), result
     artifact = json.loads(result['content'][0]['text'])
+    assert result['structuredContent'] == artifact
     download = urllib.parse.urlsplit(artifact['downloadUrl'])
     assert download.netloc == urllib.parse.urlsplit(ORIGIN).netloc
     status, _, epub = request(download.path + '?' + download.query)
@@ -540,7 +547,7 @@ try:
                 assert sample_page.evaluate("[...document.fonts].some(f=>f.family==='Manrope' && f.status==='loaded')")
                 assert sample_page.locator('body').evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)') >= 18
                 assert not sample_page.evaluate('document.documentElement.scrollWidth > innerWidth')
-                assert sample_page.locator('main p').first.bounding_box()['y'] < height - 80
+                assert sample_page.locator('main section > p').first.bounding_box()['y'] < height - 80
                 assert sample_page.evaluate('new Set([...document.querySelectorAll("[id]")].map(e=>e.id)).size === document.querySelectorAll("[id]").length')
                 sample_page.screenshot(path=str(ARTIFACTS / f'sample-reader-{label}.png'), full_page=True)
                 if label == 'mobile':
@@ -643,6 +650,7 @@ try:
             expect(preview_page.locator('figure')).to_have_count(2)
             expect(preview_page.locator('h1')).to_have_count(1)
             assert preview_page.evaluate("[...document.fonts].some(f=>f.family==='Manrope' && f.status==='loaded')")
+            assert preview_page.evaluate("[...document.fonts].some(f=>f.family.includes('IBM Plex Mono') && f.status==='loaded')")
             assert not preview_page.evaluate("[...document.querySelectorAll('h1,h2,h3,h4')].some(e=>e.tagName==='H4')")
             assert preview_page.locator('body').evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)') >= 18
             preview_page.screenshot(path=str(ARTIFACTS / 'private-reader-mobile.png'), full_page=True)

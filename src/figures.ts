@@ -144,11 +144,22 @@ export function coverSvg(
   subtitle: string | undefined,
   creator: string | undefined,
 ): string {
-  const wrap = (text: string, length: number): string[] => {
+  const wrap = (text: string, target: number): string[] => {
     const lines: string[] = [];
     let line = '';
-    for (const word of text.split(/\s+/)) {
-      if ((line + ' ' + word).length > length && line) {
+    // Bound unbroken titles as well as ordinary word-wrapped metadata.
+    const words = text
+      .trim()
+      .split(/\s+/)
+      .flatMap((word) => {
+        const characters = Array.from(word);
+        const parts: string[] = [];
+        for (let at = 0; at < characters.length; at += target * 2)
+          parts.push(characters.slice(at, at + target * 2).join(''));
+        return parts;
+      });
+    for (const word of words) {
+      if (line && Array.from(line + ' ' + word).length > target) {
         lines.push(line);
         line = word;
       } else line += (line ? ' ' : '') + word;
@@ -156,8 +167,30 @@ export function coverSvg(
     if (line) lines.push(line);
     return lines;
   };
-  const lines = wrap(title, 17);
-  const size = Math.min(118, 650 / lines.length);
-  const subtitleLines = subtitle ? wrap(subtitle, 42) : [];
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600"><rect width="1200" height="1600" fill="#1a1916"/><path d="M110 168H250L310 108H620M110 268H390L450 208H700M110 348H250" fill="none" stroke="#263fa9" stroke-width="22" stroke-linecap="square" stroke-linejoin="miter"/><path d="M110 1480H1090" stroke="#263fa9" stroke-width="3"/>${lines.map((line, i) => `<text x="110" y="${460 + i * size * 1.15}" font-family="sans-serif" font-size="${size}" fill="#e8e5db">${e(line)}</text>`).join('')}<path d="M110 1120H280" stroke="#263fa9" stroke-width="8"/>${subtitleLines.map((line, i) => `<text x="110" y="${1220 + i * 52}" font-family="sans-serif" font-size="40" fill="#c5cef0">${e(line)}</text>`).join('')}${creator ? `<text x="110" y="1400" font-family="sans-serif" font-size="36" fill="#e8e5db">${e(creator)}</text>` : ''}</svg>`;
+  const titleLines = wrap(title, 9);
+  const subtitleLines = subtitle ? wrap(subtitle, 26) : [];
+  const authorLines = creator ? wrap(creator, 28) : [];
+  const titleSize = Math.min(
+    140,
+    1008 / Math.max(...titleLines.map((line) => Array.from(line).length)),
+    620 / (titleLines.length * 1.15),
+  );
+  const titleBottom = 240 + titleLines.length * titleSize * 1.15;
+  const authorTop = 1480 - Math.max(0, authorLines.length - 1) * 44;
+  const subtitleSize = Math.min(
+    36,
+    1008 / Math.max(1, ...subtitleLines.map((line) => Array.from(line).length)),
+    (authorTop - titleBottom - 160) / Math.max(1, subtitleLines.length * 1.3),
+  );
+  const authorSize = Math.min(
+    32,
+    1008 / Math.max(1, ...authorLines.map((line) => Array.from(line).length)),
+  );
+  const subtitleTop = titleBottom + 80;
+  const contentBottom = subtitleLines.length
+    ? subtitleTop + subtitleLines.length * subtitleSize * 1.3
+    : titleBottom;
+  const motifTop = Math.max(960, contentBottom + 80);
+  const motifHeight = Math.min(300, authorTop - motifTop - 100);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600"><rect width="1200" height="1600" fill="#f1f0e7"/><path d="M96 96H1104" stroke="#242521" stroke-width="3"/><path d="M96 138H190M96 152H154" stroke="#263fa9" stroke-width="5"/>${titleLines.map((line, i) => `<text x="96" y="${240 + titleSize + i * titleSize * 1.15}" font-family="sans-serif" font-size="${titleSize}" fill="#242521">${e(line)}</text>`).join('')}${subtitleLines.map((line, i) => `<text x="100" y="${subtitleTop + subtitleSize + i * subtitleSize * 1.3}" font-family="sans-serif" font-size="${subtitleSize}" fill="#4c5346">${e(line)}</text>`).join('')}${motifHeight > 100 ? `<rect x="96" y="${motifTop}" width="1008" height="${motifHeight}" fill="#263fa9"/><path d="M96 ${motifTop}H700L${700 - motifHeight} ${motifTop + motifHeight}H96Z" fill="#242521"/><path d="M700 ${motifTop}L${700 - motifHeight} ${motifTop + motifHeight}" stroke="#f1f0e7" stroke-width="3"/>` : ''}${authorLines.map((line, i) => `<text x="100" y="${authorTop + i * 44}" font-family="sans-serif" font-size="${authorSize}" fill="#242521">${e(line)}</text>`).join('')}<path d="M96 1520H1104" stroke="#b8bdb0" stroke-width="2"/></svg>`;
 }

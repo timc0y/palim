@@ -8,6 +8,12 @@ import { canEmail, safeFilename } from './mail.js';
 import { rasterize } from './raster.js';
 import { BOOK_CSS, PREVIEW_CSS } from './book-styles.js';
 
+function dataUrl(type: string, bytes: Uint8Array): string {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return `data:${type};base64,${btoa(binary)}`;
+}
+
 export interface BuiltBook {
   bytes: Uint8Array;
   source: string;
@@ -55,7 +61,8 @@ export async function buildBook(
     { id: 'nav', href: 'nav.xhtml', type: 'application/xhtml+xml', properties: 'nav' },
     { id: 'cover-image', href: 'cover.png', type: 'image/png', properties: 'cover-image' },
   ];
-  file('EPUB/cover.png', await rasterize(coverSvg(book.title, book.subtitle, book.creator)), true);
+  const cover = await rasterize(coverSvg(book.title, book.subtitle, book.creator));
+  file('EPUB/cover.png', cover, true);
   const rendered = new Map<string, ReturnType<typeof renderFigure>>();
   // Render sequentially to bound WASM image memory across a manuscript's figures.
   for (const f of book.figures) {
@@ -94,7 +101,7 @@ export async function buildBook(
   addPage(
     'title',
     book.title,
-    `<section class="title-page"><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}${book.creator ? `<p>${e(book.creator)}</p>` : ''}${book.description ? `<p>${e(book.description)}</p>` : ''}<p class="source-note">${e(book.edition || 'Reading edition')} · ${modified.slice(0, 10)}</p>${book.sourceRevision ? `<p class="source-note">Source revision: ${e(book.sourceRevision)}</p>` : ''}</section>`,
+    `<section class="title-page"><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}${book.creator ? `<p class="author">${e(book.creator)}</p>` : ''}${book.description ? `<p>${e(book.description)}</p>` : ''}<p class="source-note">${e(book.edition || 'Reading edition')} · ${modified.slice(0, 10)}</p>${book.sourceRevision ? `<p class="source-note">Source revision: ${e(book.sourceRevision)}</p>` : ''}</section>`,
   );
   const used = new Set<string>();
   for (const [index, chapter] of book.chapters.entries()) {
@@ -148,15 +155,15 @@ export async function buildBook(
       }
     }
     let body = md.renderer.render(tokens, md.options, {});
-    for (const figure of rendered.values())
+    for (const [figureIndex, figure] of [...rendered.values()].entries())
       body = body.replaceAll(
         `<p><img src="${figure.filename}" alt="${e(figure.alt)}"/></p>`,
-        `<figure><img src="${figure.filename}" alt="${e(figure.alt)}"/><figcaption>${e(figure.caption)}</figcaption></figure>`,
+        `<figure><img src="${figure.filename}" alt="${e(figure.alt)}"/><figcaption><span class="figure-number">Figure ${figureIndex + 1}.</span> ${e(figure.caption)}</figcaption></figure>`,
       );
     addPage(
       `chapter-${index + 1}`,
       chapter.title,
-      `<section id="chapter-${index + 1}"><h1>${e(chapter.title)}</h1>${body}</section>`,
+      `<section class="chapter" id="chapter-${index + 1}"><header class="chapter-heading"><p class="chapter-number">Chapter ${index + 1}</p><h1>${e(chapter.title)}</h1></header>${body}</section>`,
     );
   }
   for (const figure of book.figures)
@@ -200,14 +207,12 @@ export async function buildBook(
     .join('\n')
     .replace(/src="(fig-[a-z0-9-]+\.(?:png|jpg))"/g, (_, filename: string) => {
       const f = [...rendered.values()].find((r) => r.filename === filename)!;
-      let bin = '';
-      for (const byte of f.bytes) bin += String.fromCharCode(byte);
-      return `src="data:${f.type};base64,${btoa(bin)}"`;
+      return `src="${dataUrl(f.type, f.bytes)}"`;
     });
   return {
     bytes,
     source,
-    preview: `<!doctype html><html lang="${e(book.language)}"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${e(book.title)}</title><style>${PREVIEW_CSS}</style></head><body><div class="preview-tools"><a href="/app">Back to desk</a></div><header class="preview-header"><p class="preview-meta">Reading preview</p><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}<p class="preview-meta">${e(book.creator || 'Reading edition')}${book.edition ? ` · ${e(book.edition)}` : ''}</p></header><nav class="preview-contents" aria-label="Contents"><details><summary>In this edition</summary><ol>${book.chapters.map((chapter, index) => `<li><a href="#chapter-${index + 1}">${e(chapter.title)}</a></li>`).join('')}${book.sources.length ? '<li><a href="#sources">Sources and further reading</a></li>' : ''}</ol></details></nav><main>${inlinePreview}</main></body></html>`,
+    preview: `<!doctype html><html lang="${e(book.language)}"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${e(book.title)}</title><style>${PREVIEW_CSS}</style></head><body><div class="preview-tools"><a href="/app">Back to desk</a></div><header class="preview-header"><div class="preview-heading"><p class="preview-meta">${e(book.edition || 'Reading edition')}</p><h1>${e(book.title)}</h1>${book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : ''}${book.creator ? `<p class="preview-meta">${e(book.creator)}</p>` : ''}</div><img class="preview-cover" src="${dataUrl('image/png', cover)}" alt="" width="1200" height="1600"/></header><nav class="preview-contents" aria-label="Contents"><details><summary>In this edition</summary><ol>${book.chapters.map((chapter, index) => `<li><a href="#chapter-${index + 1}">${e(chapter.title)}</a></li>`).join('')}${book.sources.length ? '<li><a href="#sources">Sources and further reading</a></li>' : ''}</ol></details></nav><main>${inlinePreview}</main></body></html>`,
     filename: safeFilename(book.title, 'application/epub+zip'),
     hash: await sha256(bytes),
     wordCount: book.chapters.reduce(

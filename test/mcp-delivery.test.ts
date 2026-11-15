@@ -13,7 +13,11 @@ function output(value: unknown): Record<string, unknown> {
   const result = z
     .object({ content: z.array(z.object({ type: z.literal('text'), text: z.string() })) })
     .parse(value);
-  return z.record(z.string(), z.unknown()).parse(JSON.parse(result.content[0]!.text));
+  const parsed = z.record(z.string(), z.unknown()).parse(JSON.parse(result.content[0]!.text));
+  const call = value as { isError?: boolean; structuredContent?: Record<string, unknown> };
+  if (call.isError) assert.equal(call.structuredContent, undefined);
+  else assert.deepEqual(call.structuredContent, parsed);
+  return parsed;
 }
 async function connect(
   f: Awaited<ReturnType<typeof fixture>>,
@@ -76,7 +80,14 @@ test('MCP imports an owned image and creates an EPUB with repeated captions', as
     const zip = await JSZip.loadAsync(epub);
     const chapter = await zip.file('EPUB/chapter-1.xhtml')!.async('text');
     assert.equal((chapter.match(/<figure>/g) ?? []).length, 2);
-    assert.equal((chapter.match(/<figcaption>A useful caption<\/figcaption>/g) ?? []).length, 2);
+    assert.equal(
+      (
+        chapter.match(
+          /<figcaption><span class="figure-number">Figure 1\.<\/span> A useful caption<\/figcaption>/g,
+        ) ?? []
+      ).length,
+      2,
+    );
     assert.equal((chapter.match(/alt="A synthetic illustration"/g) ?? []).length, 2);
     assert.deepEqual(await zip.file('EPUB/fig-example.png')!.async('nodebuffer'), image);
     assert.equal(f.sent.length, 0);
@@ -288,6 +299,73 @@ test('MCP delivery ownership and scope failures occur before email submission', 
   } finally {
     await bob.close();
     await limited.close();
+  }
+});
+
+test('destination discovery is scoped, tenant-owned, email-free and read-only', async () => {
+  const f = await fixture();
+  f.sql.prepare('DELETE FROM reader_destinations WHERE owner=?').run('alice');
+  f.sql.prepare('DELETE FROM reader_destinations WHERE owner=?').run('bob');
+  f.sql
+    .prepare('INSERT INTO reader_destinations(id,owner,label,email,confirmed_at) VALUES(?,?,?,?,?)')
+    .run('alice-reader', 'alice', 'Home Kindle', 'alice-private@example.test', 1);
+  f.sql
+    .prepare('INSERT INTO reader_destinations(id,owner,label,email,confirmed_at) VALUES(?,?,?,?,?)')
+    .run('bob-reader', 'bob', 'Bob Kindle', 'bob-private@example.test', 1);
+  f.sql
+    .prepare('UPDATE users SET default_destination_id=? WHERE id=?')
+    .run('alice-reader', 'alice');
+  const alice = await connect(f);
+  const bobWithoutSend = await connect(f, 'bob', ['books:read']);
+  try {
+    const result = await alice.client.callTool({ name: 'list_destinations', arguments: {} });
+    const data = output(result);
+    assert.deepEqual(data.destinations, [
+      { id: 'alice-reader', label: 'Home Kindle', isDefault: true },
+    ]);
+    assert.equal(data.defaultDestinationId, 'alice-reader');
+    assert.equal(data.setupUrl, 'https://palim.example/app#studio-settings');
+    f.sql
+      .prepare('UPDATE users SET default_destination_id=? WHERE id=?')
+      .run('bob-reader', 'alice');
+    const staleDefault = output(
+      await alice.client.callTool({ name: 'list_destinations', arguments: {} }),
+    );
+    assert.equal(staleDefault.defaultDestinationId, null);
+    assert.deepEqual(staleDefault.destinations, [
+      { id: 'alice-reader', label: 'Home Kindle', isDefault: false },
+    ]);
+    assert.doesNotMatch(JSON.stringify(staleDefault), /bob-reader|Bob Kindle|@example\.test/);
+    assert.doesNotMatch(
+      JSON.stringify(data),
+      /@example\.test|bob-reader|Bob Kindle|sender|artifacts/i,
+    );
+    const denied = await bobWithoutSend.client.callTool({
+      name: 'list_destinations',
+      arguments: {},
+    });
+    assert.equal(denied.isError, true);
+    assert.equal(output(denied).code, 'SCOPE_REQUIRED');
+    assert.equal(f.sent.length, 0);
+    assert.equal(f.sql.prepare('SELECT count(*) n FROM deliveries').get()!.n, 0);
+  } finally {
+    await alice.close();
+    await bobWithoutSend.close();
+  }
+});
+
+test('destination discovery rejects a disabled account even when called directly', async () => {
+  const f = await fixture();
+  f.sql.prepare('UPDATE users SET disabled=1 WHERE id=?').run('alice');
+  const c = await connect(f);
+  try {
+    const result = await c.client.callTool({ name: 'list_destinations', arguments: {} });
+    assert.equal(result.isError, true);
+    assert.equal(result.structuredContent, undefined);
+    assert.equal(output(result).code, 'SIGN_IN_REQUIRED');
+    assert.equal(f.sent.length, 0);
+  } finally {
+    await c.close();
   }
 });
 

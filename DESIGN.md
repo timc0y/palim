@@ -45,3 +45,12 @@ unknown delivery status never implies success or an automatic resend.
 EPUB text remains reflowable XHTML with semantic headings, navigation and figure
 alternatives. Artwork is PNG. A preview is useful evidence of layout, not proof
 of Amazon conversion, Kindle delivery or physical-device readability.
+
+Generated covers use a paper ground, dark title and abstract indigo fold. Long
+metadata wraps and scales within the cover; the selectable title page retains
+the full text. Chapters have a quiet number and clear opening. Figures carry
+stable numbers and captions. EPUB sizes stay relative and colours inherit from
+the reader. The browser preview pairs the actual cover with the title, uses
+Manrope for reading and hides the decorative cover when enlarged text needs the
+width. The sample illustration is rebuilt from its SVG source with the same
+rasterizer used for generated artwork.
