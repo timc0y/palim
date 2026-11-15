@@ -1,6 +1,5 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import JSZip from 'jszip';
 import { fixture, pdf, simpleBook, NOW } from './helpers.js';
 import { buildBook } from '../src/book.js';
 import { prepareEmail, messageBudget, canEmail } from '../src/mail.js';

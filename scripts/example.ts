@@ -1,5 +1,6 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { buildBook, PREVIEW_CSS } from '../src/book.js';
+import { buildBook } from '../src/book.js';
+import { PREVIEW_CSS } from '../src/book-styles.js';
 const manuscript = JSON.parse(
   await readFile(new URL('../examples/first-edition.json', import.meta.url), 'utf8'),
 ) as unknown;

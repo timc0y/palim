@@ -39,6 +39,12 @@ current code and visual owners. Local agent instructions remain outside the
 published tree. Tests, migrations, operational scripts, licences and product
 contracts are retained.
 
+A subsequent source-only cleanup separated book styles from EPUB packaging and
+enabled unused-code and browser-JavaScript syntax checks in `npm run check`.
+All 89 tests passed. Rebuilding the example preserved the EPUB, preview HTML,
+reader CSS and manuscript JSON byte for byte. This cleanup is not a new deployed
+version; the live deployment above remains the release record.
+
 ## Interface checks
 
 The landing uses the MIT SPEC-01 hardware treatment and Apache-2.0 UI SDK

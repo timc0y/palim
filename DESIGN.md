@@ -9,6 +9,9 @@ wordless; the studio exposes one task at a time. Manrope is for reading.
 `public/kindle.css` owns the landing; `public/studio.css` owns the studio.
 `public/style.css` serves privacy and OAuth consent. Keep changes with their owner.
 
+`src/book-styles.ts` owns generated EPUB and browser-preview styles. The sample
+build writes `public/reader.css` from that source; do not edit the generated file.
+
 ## Colour and type
 
 The hardware palette is paper `#efefeb`, ink `#242521` and indigo `#263fa9`.

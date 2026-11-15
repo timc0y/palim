@@ -136,6 +136,9 @@ npm run format:check
 npm run build
 ```
 
+`npm run check` rejects unused TypeScript code and checks the syntax of the studio,
+landing and Pages JavaScript before running the tests.
+
 Tests use real SQLite for the application's D1 queries and explicit doubles for external R2/email
 operations. Separate runtime checks exercise local workerd, D1, R2, OAuth PKCE and MCP. CI
 validates the generated sample with a checksum-pinned EPUBCheck distribution.
@@ -143,6 +146,7 @@ validates the generated sample with a checksum-pinned EPUBCheck distribution.
 ## Repository map
 
 - `src/book.ts`, `figures.ts`, `archive.ts` — EPUB creation, artwork and original-file inspection.
+- `src/book-styles.ts` — shared EPUB and browser-preview styles, also used by the sample build.
 - `src/service.ts`, `store.ts`, `mail.ts` — publishing, ownership, allowances and delivery.
 - `src/index.ts`, `routes.ts`, `mcp.ts`, `auth.ts`, `login.ts` — HTTP, MCP and identity.
 - `public/` — landing, studio, styles and self-hosted assets.
