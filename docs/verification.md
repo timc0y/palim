@@ -4,20 +4,24 @@ What has actually been checked, and what remains unverified.
 
 ## Latest deployment
 
-On 24 November 2026 at 16:44 UTC, source commit
-`5528c90e72e4112dc16e587ca6ee8fed1674bd82` was deployed after applying remote D1
-migration `0008-mcp-token.sql` on `palim` (`7328bb73-47d8-415c-9c21-7efe595961e8`,
-leaving `0` pending migrations). Worker `palim` in the `tims` account was
-deployed as version `dca2cc8b-2ec9-4f7a-ba9d-a6972c9b32d1` (tag `5528c90`;
-previous version `3846894a-b549-43d9-820f-1a858abbfccc`), and Cloudflare Pages
-project `palim-timc0y` was deployed to production deployment
-`e633b099-4c99-422a-b5da-382fafd597f0` (`https://e633b099.palim-timc0y.pages.dev`)
-at the canonical front door https://palim-timc0y.pages.dev. No secrets, sending
-domains, or unrelated Cloudflare infrastructure were altered.
+On 24 November 2026 at 16:59 UTC, source commit
+`3fbd72360c14f36e81393fe7d88a2a49cd016a81` was deployed to switch the canonical
+Cloudflare Pages front door from `https://palim-timc0y.pages.dev` to
+https://palim.pages.dev (remote D1 migration `0008-mcp-token.sql` was already
+applied on `palim` `7328bb73-47d8-415c-9c21-7efe595961e8`). Worker `palim` in
+the `tims` account was deployed as version
+`ae2ab2a1-7022-464b-805c-20e2d0dce47a` (tag `3fbd723`; previous versions
+`8506abe3-e77b-4dbc-a051-be34fc3965d3` and `dca2cc8b-2ec9-4f7a-ba9d-a6972c9b32d1`),
+and Cloudflare Pages project `palim` was deployed to production deployment
+`b03b094f-39b1-4c64-9a12-0ac0dc0cd119` (`https://b03b094f.palim.pages.dev`)
+at https://palim.pages.dev. No secrets, sending domains (`reading@palim.timc0y.com`),
+or unrelated Cloudflare infrastructure were altered. Legacy project `palim-timc0y`
+remains intact temporarily and refuses requests with HTTP `400` (`ORIGIN`) so old
+bookmarks cannot create split OAuth metadata.
 
-Public GET checks against `https://palim-timc0y.pages.dev` matched all 32
-checked routes (`/`, `/app`, `/privacy`, `/sample.epub`, and all 28 non-worker
-files under `public/`, including landing/studio/privacy HTML, client scripts,
+Public GET checks against `https://palim.pages.dev` matched all 32 checked
+routes (`/`, `/app`, `/privacy`, `/sample.epub`, and all 28 non-worker files
+under `public/`, including landing/studio/privacy HTML, client scripts,
 stylesheets, fonts, licence files, cover/diagram/OG PNGs, `robots.txt`,
 `sample.html`, `example.json`, `reader.css`, `palim-plugin.zip`, and
 `palim-plugin.sha256`) byte for byte against this release. `/` and `/app`
@@ -25,11 +29,11 @@ returned strict `default-src 'self'; script-src 'self'; style-src 'self'`
 CSP headers. Unauthenticated `GET /api/account` and `GET /mcp` returned `401`;
 an invalid Personal MCP bearer on `POST /mcp` returned `401` `UNAUTHORISED`;
 and `/.well-known/oauth-protected-resource/mcp` returned `200` advertising
-`https://palim-timc0y.pages.dev/mcp` and `https://palim-timc0y.pages.dev`.
+`https://palim.pages.dev/mcp` and `https://palim.pages.dev`.
 The served sample EPUB SHA-256 is
 `28c27c0abf3d6350bdf8a9afdd31a40b297fb6427fc38d53b91f255a535856cb` (`142,171`
 bytes), and `palim-plugin.zip` SHA-256 is
-`b15f12fc8104a29bf2c39279670f50d6de23968dc1a0bc07e54611f001deb714` (`2,395` bytes).
+`dfbe1e22356aaf98a1fe07ec255dd5c2932a597f66d19ab4db5e1c31fa4f3062` (`2,385` bytes).
 
 These public checks did not sign in, exercise a live OAuth grant or Personal
 MCP token against production, send provider mail, import into Amazon, or inspect
@@ -41,9 +45,9 @@ a physical Kindle. Source-file parity is not an authenticated live journey.
   checks, `npm audit --omit=dev --audit-level=high` (`0` vulnerabilities),
   `git diff --check`, and all 105 behavioural tests passed.
 - The deployment rebuilt the landing module, sample EPUB/preview/OG card, reader
-  CSS, plugin ZIP, and Worker from checked source commit `5528c90`.
-- [CI for the deployed source](https://github.com/timc0y/palim/actions/runs/45439960907)
-  passed in `2m17s` including formatting, build/type/105-test checks, production
+  CSS, plugin ZIP, and Worker from checked source commit `3fbd723`.
+- [CI for the deployed source](https://github.com/timc0y/palim/actions/runs/45443222064)
+  passed in `1m22s` including formatting, build/type/105-test checks, production
   dependency audit, independent EPUBCheck v5.4.0 (`Validating using EPUB version 3.4 rules`, `0 fatals / 0 errors / 0 warnings / 0 infos`), and both Worker and Pages `--browser` Chromium journeys.
 - Native local proofs use disposable D1, private R2, Better Auth, OAuth PKCE,
   MCP and captured synthetic mail. They establish local behaviour separately
@@ -252,7 +256,7 @@ The [Checks workflow](../.github/workflows/checks.yml) runs formatting, TypeScri
 behavioural tests, a dry-run bundle, production dependency audit and independent
 EPUBCheck validation using a checksum-pinned distribution. Its Worker and Pages
 proofs also enable the Chromium `--browser` branch of the runtime script; both ran
-and passed in [CI run `45439960907`](https://github.com/timc0y/palim/actions/runs/45439960907).
+and passed in [CI run `45443222064`](https://github.com/timc0y/palim/actions/runs/45443222064).
 
 The native proofs check identity and tenant isolation, logout revocation,
 discovery, consent, PKCE, MCP creation, download hashes, deletion and refusal
