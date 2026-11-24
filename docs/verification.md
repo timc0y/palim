@@ -4,37 +4,47 @@ What has actually been checked, and what remains unverified.
 
 ## Latest deployment
 
-On 15 November 2026 at 16:28 UTC, source commit
-`50ce9d0083ddc684da1a549f13bddc47a0bf426b` was deployed to Worker `palim`
-in the `tims` account. Version `3846894a-b549-43d9-820f-1a858abbfccc`
-serves 100% of traffic through the existing Pages front door at
-https://palim-timc0y.pages.dev. The version carries the tag `50ce9d0`.
-The previous version was `e04e7b15-1989-400b-b63c-9cfd8d3f53b0`.
-No Pages redeployment, migration, secret, sending-domain or unrelated resource
-change was performed.
+On 24 November 2026 at 16:44 UTC, source commit
+`5528c90e72e4112dc16e587ca6ee8fed1674bd82` was deployed after applying remote D1
+migration `0008-mcp-token.sql` on `palim` (`7328bb73-47d8-415c-9c21-7efe595961e8`,
+leaving `0` pending migrations). Worker `palim` in the `tims` account was
+deployed as version `dca2cc8b-2ec9-4f7a-ba9d-a6972c9b32d1` (tag `5528c90`;
+previous version `3846894a-b549-43d9-820f-1a858abbfccc`), and Cloudflare Pages
+project `palim-timc0y` was deployed to production deployment
+`e633b099-4c99-422a-b5da-382fafd597f0` (`https://e633b099.palim-timc0y.pages.dev`)
+at the canonical front door https://palim-timc0y.pages.dev. No secrets, sending
+domains, or unrelated Cloudflare infrastructure were altered.
 
-Public GET checks matched all 26 public assets byte for byte against this
-release, including the landing, studio HTML/script, fonts, licence files, sample,
-reader stylesheet and plugin ZIP. `/` and `/app` matched their source HTML.
-HTML retained strict `script-src 'self'` and `style-src 'self'` policies.
-Unauthenticated `/api/account` and `/mcp` returned `401`; the advertised
-protected-resource metadata at `/.well-known/oauth-protected-resource/mcp`
-identified the canonical Pages origin. The served sample EPUB SHA-256 is
-`173fade4c9cab0286aa7da6532a0f730592c76ed56c99fe3bf7a380fa14c1d7e`.
+Public GET checks against `https://palim-timc0y.pages.dev` matched all 32
+checked routes (`/`, `/app`, `/privacy`, `/sample.epub`, and all 28 non-worker
+files under `public/`, including landing/studio/privacy HTML, client scripts,
+stylesheets, fonts, licence files, cover/diagram/OG PNGs, `robots.txt`,
+`sample.html`, `example.json`, `reader.css`, `palim-plugin.zip`, and
+`palim-plugin.sha256`) byte for byte against this release. `/` and `/app`
+returned strict `default-src 'self'; script-src 'self'; style-src 'self'`
+CSP headers. Unauthenticated `GET /api/account` and `GET /mcp` returned `401`;
+an invalid Personal MCP bearer on `POST /mcp` returned `401` `UNAUTHORISED`;
+and `/.well-known/oauth-protected-resource/mcp` returned `200` advertising
+`https://palim-timc0y.pages.dev/mcp` and `https://palim-timc0y.pages.dev`.
+The served sample EPUB SHA-256 is
+`28c27c0abf3d6350bdf8a9afdd31a40b297fb6427fc38d53b91f255a535856cb` (`142,171`
+bytes), and `palim-plugin.zip` SHA-256 is
+`b15f12fc8104a29bf2c39279670f50d6de23968dc1a0bc07e54611f001deb714` (`2,395` bytes).
 
-These public checks did not sign in, call an authenticated hosted MCP tool,
-send provider mail, import into Amazon or use a physical Kindle. Source-file
-parity is not an authenticated live journey.
+These public checks did not sign in, exercise a live OAuth grant or Personal
+MCP token against production, send provider mail, import into Amazon, or inspect
+a physical Kindle. Source-file parity is not an authenticated live journey.
 
 ## Release checks
 
-- Deployment preflight, strict TypeScript and all 98 behavioural tests passed.
-- Formatting and `git diff --check` passed before deployment.
-- The deployment rebuilt the landing module, sample EPUB/preview, reader CSS,
-  plugin ZIP and Worker from the checked source.
-- [CI for the deployed source](https://github.com/timc0y/palim/actions/runs/43735211369)
-  passed the production dependency audit, independent EPUBCheck with no errors
-  or warnings, and both Worker and Pages Chromium journeys.
+- Deployment preflight, Prettier `format:check`, `tsc --noEmit`, JS syntax
+  checks, `npm audit --omit=dev --audit-level=high` (`0` vulnerabilities),
+  `git diff --check`, and all 105 behavioural tests passed.
+- The deployment rebuilt the landing module, sample EPUB/preview/OG card, reader
+  CSS, plugin ZIP, and Worker from checked source commit `5528c90`.
+- [CI for the deployed source](https://github.com/timc0y/palim/actions/runs/45439960907)
+  passed in `2m17s` including formatting, build/type/105-test checks, production
+  dependency audit, independent EPUBCheck v5.4.0 (`Validating using EPUB version 3.4 rules`, `0 fatals / 0 errors / 0 warnings / 0 infos`), and both Worker and Pages `--browser` Chromium journeys.
 - Native local proofs use disposable D1, private R2, Better Auth, OAuth PKCE,
   MCP and captured synthetic mail. They establish local behaviour separately
   from the hosted public checks above.
@@ -163,17 +173,17 @@ labelled native disclosure. Source checks covered 390px and 728px layouts and
 200% text at 320px, with the menu fitting the viewport. Handler checks exercised
 Settings navigation and heading focus, Escape and outside-click dismissal,
 signed-out Privacy access and draft retention. The Chromium acceptance script
-also checks keyboard opening and the actual Privacy-and-return journey. This
-change is not included in the deployment recorded above.
+also checks keyboard opening and the actual Privacy-and-return journey. Now
+included in the 24 November 2026 deployment (`5528c90`).
 
 The current studio source removes the manual Image upload and Copy ID list
 from Settings, including their handlers and styles. Agent image import and the
-illustrated example remain available. Local checks passed all 98 tests;
-source-handler checks exercised book creation and Settings navigation, and the
-390px Settings render fitted without horizontal overflow. This removal is not
-deployed.
+illustrated example remain available. Local checks passed all 98 tests at that
+step; source-handler checks exercised book creation and Settings navigation, and
+the 390px Settings render fitted without horizontal overflow. Now included in the
+24 November 2026 deployment (`5528c90`).
 
-### Launch-readiness & design-system updates (unreleased, 24 November 2026)
+### Launch-readiness & design-system updates (deployed 24 November 2026, commit 5528c90)
 
 Subsequent unreleased source updates cover three cohesive passes:
 
@@ -228,20 +238,21 @@ Local verification run on the final source state:
   of the cover, bar chart, Mermaid flowchart, and exposure illustration was
   inspected via `ffmpeg` greyscale conversions.
 
-These unreleased changes and migration `0008-mcp-token.sql` are not deployed to
-`https://palim-timc0y.pages.dev` yet. Live deployment, remote migration, updated
-CI EPUBCheck, hosted sign-in/OAuth/Personal MCP token use, Cloudflare Email
-acceptance, Amazon conversion/import, and physical Kindle display remain separate
-post-deploy checks.
+With commit `5528c90` pushed, [CI run `45439960907`](https://github.com/timc0y/palim/actions/runs/45439960907)
+green, remote migration `0008-mcp-token.sql` applied, Worker `palim` updated to
+`dca2cc8b-2ec9-4f7a-ba9d-a6972c9b32d1`, Pages `palim-timc0y` updated to
+`e633b099-4c99-422a-b5da-382fafd597f0`, and public GET parity/boundary checks
+verified against `https://palim-timc0y.pages.dev`, hosted sign-in, live OAuth/Personal
+MCP token usage, Cloudflare Email acceptance, Amazon conversion/import, and
+physical Kindle display remain separate manual post-deploy checks.
 
 ## CI and runtime coverage
 
 The [Checks workflow](../.github/workflows/checks.yml) runs formatting, TypeScript,
 behavioural tests, a dry-run bundle, production dependency audit and independent
 EPUBCheck validation using a checksum-pinned distribution. Its Worker and Pages
-proofs also enable the Chromium branch of the runtime script. That `--browser`
-branch was not rerun locally during the 15 November deployment check; local
-headless Chrome checks for subsequent unreleased edits are recorded above.
+proofs also enable the Chromium `--browser` branch of the runtime script; both ran
+and passed in [CI run `45439960907`](https://github.com/timc0y/palim/actions/runs/45439960907).
 
 The native proofs check identity and tenant isolation, logout revocation,
 discovery, consent, PKCE, MCP creation, download hashes, deletion and refusal
