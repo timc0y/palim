@@ -17,11 +17,21 @@ export function returnPath(value: string | null): string {
   const parsed = new URL(value, 'https://palim.invalid');
   return parsed.origin === 'https://palim.invalid' ? parsed.pathname + parsed.search : '/app';
 }
-export async function session(request: Request, env: Env): Promise<string | null> {
+async function currentSession(
+  request: Request,
+  env: Env,
+): Promise<{ id: string; name: string; email: string } | null> {
   const current = await authentication(env).api.getSession({ headers: request.headers });
   if (!current) return null;
   await new Store(env.DB).upsertUser(current.user.id, current.user.name);
-  return current.user.id;
+  return {
+    id: current.user.id,
+    name: current.user.name,
+    email: current.user.email,
+  };
+}
+export async function session(request: Request, env: Env): Promise<string | null> {
+  return (await currentSession(request, env))?.id ?? null;
 }
 export async function requireSession(request: Request, env: Env): Promise<string> {
   const owner = await session(request, env);
@@ -46,7 +56,7 @@ export async function authRoute(request: Request, env: Env): Promise<Response | 
     );
     if (!response.ok) return response;
     const headers = new Headers(response.headers);
-    headers.set('Location', '/app');
+    headers.set('Location', returnPath(url.searchParams.get('returnTo')));
     return new Response(null, { status: 303, headers });
   }
   if (url.pathname.startsWith('/auth/')) {
@@ -71,9 +81,20 @@ export async function authRoute(request: Request, env: Env): Promise<Response | 
       const claim = await new Store(env.DB).claimLogin(
         await hmac(env.SIGNING_SECRET, `login\n${parsed.data.email}`),
       );
+      const delivery = { failed: false };
       if (claim) {
-        await authentication(env, claim).handler(
+        await authentication(env, claim, delivery).handler(
           new Request(request, { body: JSON.stringify(parsed.data) }),
+        );
+      }
+      if (delivery.failed) {
+        return json(
+          {
+            code: 'LOGIN_EMAIL',
+            message:
+              'The sign-in email could not be sent right now. Request another code after a minute.',
+          },
+          503,
         );
       }
       return json({
@@ -100,8 +121,8 @@ export async function authRoute(request: Request, env: Env): Promise<Response | 
     return new Response(response.body, { status: response.status, headers });
   }
   if (url.pathname === '/authorize') {
-    const owner = await session(request, env);
-    if (!owner)
+    const account = await currentSession(request, env);
+    if (!account)
       return new Response(null, {
         status: 302,
         headers: {
@@ -109,6 +130,7 @@ export async function authRoute(request: Request, env: Env): Promise<Response | 
           'Cache-Control': 'no-store',
         },
       });
+    const owner = account.id;
     if (request.method === 'GET') {
       const auth = await env.OAUTH_PROVIDER.parseAuthRequest(request),
         details = await env.OAUTH_PROVIDER.describeConsent(auth),
@@ -116,7 +138,7 @@ export async function authRoute(request: Request, env: Env): Promise<Response | 
       consent.headers.set('Content-Type', 'text/html; charset=utf-8');
       consent.headers.set('Cache-Control', 'no-store');
       const ownerProof = await hmac(env.SIGNING_SECRET, `${owner}\n${consent.handle}`);
-      const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Connect your agent · Palim</title><link rel="stylesheet" href="/style.css"/></head><body><main class="consent"><a class="wordmark" href="/"><svg class="wordmark__emblem" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="3"/><path class="wordmark__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4"/></svg>palim</a><h1>Connect your agent</h1><p><strong>${e(details.clientName)}</strong> requests access to Palim.</p><p>Redirect destination: <strong>${e(details.redirectHost)}</strong>. ${details.redirectIsLoopback ? 'This is a local application; another local process could be listening.' : ''}</p><p>The client name is supplied by the client. Verify the destination before continuing.</p><ul>${details.scope.map((s) => `<li>${e(s)}</li>`).join('')}</ul><p>Access can create and download your books, and send documents to your selected saved Kindle address when you ask. Sending permission also lets the agent read your saved Kindle labels to help select a recipient. It does not grant access to your Amazon account.</p><form method="post" action="/authorize"><input type="hidden" name="handle" value="${e(consent.handle)}"/><input type="hidden" name="ownerProof" value="${ownerProof}"/><button name="decision" value="allow">Connect agent</button><button class="secondary" name="decision" value="deny">Cancel</button></form></main></body></html>`;
+      const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Connect your agent · Palim</title><meta name="robots" content="noindex, nofollow"/><meta name="theme-color" content="#efefeb"/><link rel="icon" href="/mark.svg" type="image/svg+xml"/><link rel="stylesheet" href="/style.css"/></head><body><a class="skip-link" href="#main-content">Skip to content</a><main id="main-content" class="consent" tabindex="-1"><a class="wordmark" href="/"><svg class="wordmark__emblem" viewBox="0 0 32 32" aria-hidden="true"><path class="wordmark__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4"/></svg>palim</a><h1>Connect your agent</h1><div class="consent-account"><span>Signed in as <strong>${e(account.email || account.name)}</strong></span><form method="post" action="/auth/logout?returnTo=${e(encodeURIComponent(url.pathname + url.search))}"><button type="submit" class="plain-button">Switch account</button></form></div><p><strong>${e(details.clientName)}</strong> requests access to Palim.</p><p class="consent-label">Redirect destination</p><p><code class="consent-host">${e(details.redirectHost)}</code></p>${details.redirectIsLoopback ? '<p class="consent-warning">This is a local application; another local process could be listening.</p>' : ''}<p>The client name is supplied by the client. Verify the destination before continuing.</p><ul>${details.scope.map((s) => `<li>${e(s)}</li>`).join('')}</ul><p>Access can create and download your books, and send documents to your selected saved Kindle address when you ask. Sending permission also lets the agent read your saved Kindle labels to help select a recipient. Connected agents can refresh access for up to 30 days until you disconnect them in Settings → Agent. It does not grant access to your Amazon account.</p><form class="consent-actions" method="post" action="/authorize"><input type="hidden" name="handle" value="${e(consent.handle)}"/><input type="hidden" name="ownerProof" value="${ownerProof}"/><button name="decision" value="allow">Connect agent</button><button class="secondary" name="decision" value="deny">Cancel</button></form></main></body></html>`;
       return new Response(page, { headers: consent.headers });
     }
     if (request.method === 'POST') {
@@ -142,10 +164,18 @@ export async function authRoute(request: Request, env: Env): Promise<Response | 
         return new Response(null, { status: 302, headers: denied.headers });
       }
       const approved = await env.OAUTH_PROVIDER.approveConsent(request, handle);
+      let clientName = approved.request.clientId;
+      try {
+        clientName =
+          (await env.OAUTH_PROVIDER.lookupClient?.(approved.request.clientId))?.clientName ||
+          clientName;
+      } catch {
+        // Keep clientId fallback when client metadata cannot be resolved.
+      }
       const { redirectTo } = await env.OAUTH_PROVIDER.completeAuthorization({
         request: approved.request,
         userId: owner,
-        metadata: {},
+        metadata: { clientName },
         scope: approved.request.scope,
         props: { userId: owner },
       });

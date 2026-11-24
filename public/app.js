@@ -175,7 +175,6 @@ async function busy(element, work) {
   const states = {
     'create-form': 'Creating…',
     'upload-form': 'Uploading…',
-    'image-form': 'Uploading…',
     'destination-form': 'Saving address…',
     'login-email-form': 'Requesting code…',
     'login-code-form': 'Signing in…',
@@ -254,11 +253,15 @@ function sendActionText() {
 }
 
 function shareButton(artifact) {
-  const trigger = viewButton('More share options', 'share', () => {
-    openShare(artifact, trigger);
-  });
-  trigger.classList.add('share-trigger');
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'secondary share-trigger';
+  trigger.textContent = 'Send';
+  decorate(trigger, 'send', false);
+  trigger.setAttribute('aria-label', `Send ${artifact.filename} to Kindle`);
+  trigger.title = 'Send to Kindle';
   trigger.dataset.artifactId = artifact.artifactId;
+  trigger.addEventListener('click', () => openShare(artifact, trigger));
   return trigger;
 }
 function openShare(artifact, trigger) {
@@ -315,8 +318,7 @@ function updateSendTargets() {
   const d = chosenReader();
   for (const target of document.querySelectorAll('.send-target')) {
     target.textContent = d?.email || '';
-    const picker = target.closest('.result-send')?.querySelector('.reader-picker');
-    target.hidden = !d || (!!picker && !picker.hidden);
+    target.hidden = !d;
   }
   for (const b of document.querySelectorAll('.send-action')) {
     b.disabled = !!sendingArtifactId;
@@ -523,6 +525,7 @@ function showShelf(artifacts) {
         await api(`/api/files/${a.artifactId}`, { method: 'DELETE' });
         removeResult(a.artifactId);
         await refresh();
+        feedback($('files-panel').hidden ? $('desk') : $('files-panel'), `Removed ${a.filename}.`);
         ($('shelf').querySelector('a,button') || $('studio-title')).focus();
       },
       'plain-button',
@@ -533,38 +536,6 @@ function showShelf(artifacts) {
     item.append(title, info, links);
     shelf.append(item);
   }
-}
-function showImageAssets(images) {
-  const imageAssets = $('image-assets');
-  imageAssets.replaceChildren();
-  if (!images.length) return;
-  const list = document.createElement('ul');
-  list.className = 'field-help image-ids';
-  for (const [index, image] of images.entries()) {
-    const item = document.createElement('li');
-    const description = document.createElement('span');
-    description.textContent = `Image ${index + 1}`;
-    description.title = `Expires ${new Date(image.expiresAt).toLocaleString()}`;
-    const status = document.createElement('span');
-    status.setAttribute('role', 'status');
-    const copy = button(
-      'Copy ID',
-      async () => {
-        try {
-          await navigator.clipboard.writeText(image.artifactId);
-          status.textContent = 'Copied.';
-        } catch {
-          description.textContent = image.artifactId;
-          throw new Error('Copy unavailable. Select the ID.');
-        }
-      },
-      'plain-button',
-    );
-    copy.setAttribute('aria-label', `Copy ID for image ${index + 1}`);
-    item.append(description, copy, status);
-    list.append(item);
-  }
-  imageAssets.append(list);
 }
 function showReaders(destinations) {
   $('destination-status').textContent = destinations.length
@@ -608,13 +579,55 @@ function showReaders(destinations) {
     list.append(row);
   }
 }
+function showGrants(grants) {
+  const list = $('grant-list');
+  const empty = $('grants-empty');
+  list.replaceChildren();
+  empty.hidden = grants.length > 0;
+  for (const grant of grants) {
+    const row = document.createElement('div');
+    row.className = 'grant-item';
+    const name = document.createElement('strong');
+    name.textContent = grant.clientName;
+    const details = document.createElement('p');
+    const created = new Date(grant.createdAt).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+    details.textContent = `${grant.scope.join(', ')} · Connected ${created}`;
+    const disconnect = button(
+      'Disconnect',
+      async () => {
+        if (
+          !window.confirm(
+            `Disconnect ${grant.clientName}? Any OAuth tokens issued to it will stop working.`,
+          )
+        )
+          return;
+        await api(`/api/oauth-grants/${encodeURIComponent(grant.id)}`, { method: 'DELETE' });
+        await refresh();
+        feedback($('connect-agent'), `Disconnected ${grant.clientName}.`);
+      },
+      'plain-button',
+    );
+    disconnect.classList.add('token-revoke');
+    disconnect.setAttribute('aria-label', `Disconnect ${grant.clientName}`);
+    row.append(name, details, disconnect);
+    list.append(row);
+  }
+}
 function showAccount(account) {
   currentAccount = account;
   document.body.classList.add('signed-in');
   document.body.classList.remove('signed-out');
   $('signin').hidden = true;
   $('desk').hidden = false;
+  $('personal-token').hidden = false;
+  syncTokenState(!!account.hasMcpToken);
+  showGrants(account.grants || []);
   $('logout').hidden = false;
+  $('delete-account').hidden = false;
   $('account-name').textContent = account.name;
   $('sender-address').textContent = account.sender;
   if (!account.destinations.some((d) => d.id === selectedReaderId))
@@ -625,7 +638,6 @@ function showAccount(account) {
     : '';
   showReaders(account.destinations);
   showShelf(account.artifacts.filter((artifact) => artifact.kind === 'document'));
-  showImageAssets(account.artifacts.filter((artifact) => artifact.kind === 'image'));
   syncReaderChoices();
   updateSendTargets();
 }
@@ -634,11 +646,14 @@ function showSignedOut() {
   document.body.classList.remove('signed-in');
   $('signin').hidden = false;
   $('desk').hidden = true;
+  $('personal-token').hidden = true;
+  $('personal-token').open = false;
+  clearToken();
+  syncTokenState(false);
+  $('grant-list').replaceChildren();
+  $('grants-empty').hidden = false;
   $('logout').hidden = true;
-  $('image-result').hidden = true;
-  $('image-result').textContent = '';
-  $('image-assets').replaceChildren();
-  $('image-form').reset();
+  $('delete-account').hidden = true;
   // Clear the previous account's private files and addresses from the page.
   for (const id of ['created', 'uploaded', 'shelf', 'reader-list']) {
     $(id).replaceChildren();
@@ -723,7 +738,7 @@ originalInput.addEventListener('change', () => {
     files.length > 1 ? `${files.length} files` : file?.name || 'Drop an EPUB or PDF';
   $('file-info').textContent = file
     ? `${fileSize(file.size)} · change file`
-    : 'or choose · 20 MiB max';
+    : 'or choose · 20 MiB max · bytes kept unchanged';
   originalError(
     files.length > 1
       ? 'One EPUB or PDF at a time.'
@@ -762,20 +777,66 @@ fileDrop.addEventListener('drop', (event) => {
   originalInput.files = event.dataTransfer.files;
   originalInput.dispatchEvent(new Event('change'));
 });
-const MANUSCRIPT_LIMIT = 50000;
+const MANUSCRIPT_LIMIT = 240000;
+const CHAPTER_LIMIT = 50000;
+const MAX_CHAPTERS = 24;
 const manuscriptCount = $('manuscript-count');
 const updateManuscriptCount = () => {
-  const used = $('manuscript').value.length;
-  manuscriptCount.hidden = used < MANUSCRIPT_LIMIT * 0.9;
-  manuscriptCount.textContent = `${used.toLocaleString()} / ${MANUSCRIPT_LIMIT.toLocaleString()} characters`;
+  const value = $('manuscript').value;
+  const used = value.length;
+  const chapters = parseChapters(value, $('title').value.trim());
+  const tooLong = chapters.findIndex((c) => c.markdown.length > CHAPTER_LIMIT);
+  const warnings = [];
+  if (chapters.length > MAX_CHAPTERS)
+    warnings.push(`${chapters.length} / ${MAX_CHAPTERS} chapters`);
+  if (tooLong >= 0)
+    warnings.push(`Chapter ${tooLong + 1} over ${CHAPTER_LIMIT.toLocaleString()} chars`);
+  manuscriptCount.hidden = used < MANUSCRIPT_LIMIT * 0.9 && !warnings.length;
+  manuscriptCount.textContent = warnings.length
+    ? `${used.toLocaleString()} / ${MANUSCRIPT_LIMIT.toLocaleString()} characters (${warnings.join('; ')})`
+    : `${used.toLocaleString()} / ${MANUSCRIPT_LIMIT.toLocaleString()} characters`;
 };
 $('manuscript').addEventListener('input', updateManuscriptCount);
 updateManuscriptCount();
 
-$('figure-image').addEventListener('change', () => {
-  $('image-result').hidden = true;
-  $('image-result').textContent = '';
-});
+function parseChapters(markdown, fallbackTitle) {
+  const lines = markdown.split(/\r?\n/);
+  const chapters = [];
+  let fence = null;
+  let currentTitle = null;
+  let buffer = [];
+  const flush = (title) => {
+    const text = buffer.join('\n').trim();
+    if (title !== null) {
+      chapters.push({ title: title.slice(0, 160), markdown: text || title });
+    } else if (text) {
+      chapters.push({ title: (fallbackTitle || 'Reading edition').slice(0, 160), markdown: text });
+    }
+    buffer = [];
+  };
+  for (const line of lines) {
+    const fenceMatch = /^\s{0,3}(`{3,}|~{3,})/.exec(line);
+    if (fenceMatch) {
+      const marker = fenceMatch[1][0];
+      if (!fence) fence = marker;
+      else if (fence === marker) fence = null;
+      buffer.push(line);
+      continue;
+    }
+    const h1 = !fence && /^\s{0,3}#\s+(.+?)\s*$/.exec(line);
+    if (h1) {
+      flush(currentTitle);
+      currentTitle = h1[1].trim();
+    } else {
+      buffer.push(line);
+    }
+  }
+  flush(currentTitle);
+  if (chapters.length > 0 && currentTitle !== null) return chapters;
+  const heading = /^\s{0,3}#{2,3}\s+(.+)$/m.exec(markdown)?.[1]?.trim();
+  return [{ title: (heading || fallbackTitle || 'Reading edition').slice(0, 160), markdown }];
+}
+
 $('create-form').addEventListener(
   'invalid',
   (event) => {
@@ -788,13 +849,26 @@ $('create-form').addEventListener('submit', (event) => {
   event.preventDefault();
   busy(event.submitter, async () => {
     const markdown = $('manuscript').value;
-    const heading = /^\s{0,3}#{1,3}\s+(.+)$/m.exec(markdown)?.[1]?.trim();
+    const title = $('title').value.trim();
     const body = {
-      title: $('title').value.trim(),
+      title,
       language: $('language').value,
-      chapters: [{ title: heading || $('title').value.trim() || 'Reading edition', markdown }],
+      chapters: parseChapters(markdown, title),
     };
     if ($('creator').value.trim()) body.creator = $('creator').value.trim();
+    if (!example) {
+      if (body.chapters.length > MAX_CHAPTERS)
+        throw new Error(
+          `Use at most ${MAX_CHAPTERS} # chapter headings (currently ${body.chapters.length}).`,
+        );
+      const oversized = body.chapters.findIndex((c) => c.markdown.length > CHAPTER_LIMIT);
+      if (oversized >= 0)
+        throw new Error(
+          `Chapter ${oversized + 1} exceeds ${CHAPTER_LIMIT.toLocaleString()} characters. Add a # heading to split it.`,
+        );
+      if (markdown.length > MANUSCRIPT_LIMIT)
+        throw new Error(`Manuscript exceeds ${MANUSCRIPT_LIMIT.toLocaleString()} characters.`);
+    }
     if (example) {
       const originalText = example.chapters
         .map((c) => `# ${c.title}\n\n${c.markdown}`)
@@ -841,6 +915,7 @@ $('example-button').addEventListener('click', (event) =>
     $('manuscript').value = example.chapters
       .map((c) => `# ${c.title}\n\n${c.markdown}`)
       .join('\n\n');
+    updateManuscriptCount();
     $('example-status').hidden = false;
   }),
 );
@@ -864,28 +939,6 @@ $('upload-form').addEventListener('submit', (event) => {
     });
     showArtifact('uploaded', artifact);
     await refresh();
-  });
-});
-$('image-form').addEventListener('submit', (event) => {
-  event.preventDefault();
-  busy(event.submitter, async () => {
-    const file = $('figure-image').files[0];
-    if (!file) throw new Error('Choose an image first.');
-    const artifact = await api('/api/files?kind=image', {
-      method: 'POST',
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
-      body: file,
-    });
-    await refresh();
-    if ($('desk').hidden) return;
-    showImageAssets([
-      artifact,
-      ...currentAccount.artifacts.filter(
-        (item) => item.kind === 'image' && item.artifactId !== artifact.artifactId,
-      ),
-    ]);
-    $('image-result').textContent = 'Uploaded.';
-    $('image-result').hidden = false;
   });
 });
 $('destination-form').addEventListener('submit', (event) => {
@@ -978,4 +1031,90 @@ $('login-code-form').addEventListener('submit', (event) => {
     );
   });
 });
+function clearToken() {
+  $('token-value').hidden = true;
+  $('token-secret').value = '';
+  const status = $('token-status');
+  status.textContent = '';
+  status.className = 'action-feedback';
+  status.setAttribute('role', 'status');
+}
+function syncTokenState(hasToken) {
+  const badge = $('token-badge');
+  badge.textContent = hasToken ? 'Active' : 'None';
+  badge.dataset.active = String(!!hasToken);
+  $('create-token').textContent = hasToken ? 'Replace token' : 'Create token';
+  $('revoke-token').hidden = !hasToken;
+}
+$('personal-token').addEventListener('toggle', () => {
+  if (!$('personal-token').open) clearToken();
+});
+$('copy-token').addEventListener('click', async () => {
+  const status = $('token-status');
+  status.className = 'action-feedback';
+  status.setAttribute('role', 'status');
+  const button = $('copy-token');
+  button.disabled = true;
+  try {
+    await navigator.clipboard.writeText($('token-secret').value);
+    status.textContent = 'Token copied.';
+  } catch {
+    $('token-secret').focus();
+    $('token-secret').select();
+    status.textContent = 'Copy unavailable. Copy the selected token.';
+  } finally {
+    button.disabled = false;
+  }
+});
+for (const action of ['create', 'revoke']) {
+  $(action + '-token').addEventListener('click', async () => {
+    if (
+      !window.confirm(
+        action === 'create'
+          ? 'Create a token and invalidate any previous personal MCP token?'
+          : 'Revoke your personal MCP token on every device?',
+      )
+    )
+      return;
+    clearToken();
+    const status = $('token-status');
+    $('create-token').disabled = $('revoke-token').disabled = true;
+    try {
+      const result = await api('/api/mcp-token', {
+        method: action === 'create' ? 'POST' : 'DELETE',
+      });
+      const active = 'hasMcpToken' in result ? !!result.hasMcpToken : !!result.token;
+      if (currentAccount) currentAccount.hasMcpToken = active;
+      syncTokenState(active);
+      if (result.token) {
+        $('token-value').hidden = false;
+        $('token-secret').value = result.token;
+        $('token-secret').focus();
+        $('token-secret').select();
+      } else {
+        status.textContent = 'Token revoked.';
+      }
+    } catch (e) {
+      status.textContent = e.message;
+      status.className = 'action-feedback error';
+      status.setAttribute('role', 'alert');
+    } finally {
+      $('create-token').disabled = $('revoke-token').disabled = false;
+    }
+  });
+}
+$('delete-account').addEventListener('click', (event) =>
+  busy(event.currentTarget, async () => {
+    if (
+      !window.confirm(
+        'Delete your Palim account? Stored books, saved Kindle addresses, personal MCP tokens and connected agents will be removed.',
+      )
+    )
+      return;
+    await api('/api/account', { method: 'DELETE' });
+    showSignedOut();
+    feedback($('signin'), 'Account deleted.');
+    $('login-email').focus();
+  }),
+);
 await refresh();

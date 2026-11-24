@@ -1,0 +1,7 @@
+# Copy to .dev.vars for `npm run dev` (never commit .dev.vars).
+# Local HTTPS lets Secure __Host-palim session cookies work in Safari as well as Chromium/Firefox.
+ORIGIN=https://localhost:8787
+SENDER=reading@palim.invalid
+# Replace with distinct 32+ character random strings (e.g. `openssl rand -hex 32`).
+AUTH_SECRET=replace-with-local-random-auth-secret-at-least-32-chars
+SIGNING_SECRET=replace-with-local-random-signing-secret-at-least-32-chars

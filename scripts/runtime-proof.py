@@ -230,7 +230,7 @@ try:
             personal_sender = account['sender']
             assert re.fullmatch(r'p-[0-9a-f]{32}@example.invalid', personal_sender)
             expect(page.locator('#sender-address')).to_have_text(personal_sender)
-            assert page.locator('.amazon-setup a').first.get_attribute('href') == 'https://www.amazon.co.uk/mycd'
+            assert page.locator('.amazon-setup a').first.get_attribute('href') == 'https://www.amazon.com/mycd'
             context.grant_permissions(['clipboard-read','clipboard-write'])
             page.locator('#copy-sender').click()
             expect(page.locator('#copy-sender-status')).to_have_text('Copied.')
@@ -258,23 +258,9 @@ try:
             page.locator('#create-form button[type=submit]').click()
             page.locator('#created a.button').first.wait_for()
             page.locator('#created').screenshot(path=str(ARTIFACTS / 'ux-create-result-mobile.png'))
-            open_settings(page)
-            page.locator('#figure-image').set_input_files(str(ROOT / 'public/images/sample-exposure.png'))
-            page.locator('#image-form button[type=submit]').click()
-            expect(page.locator('#image-result')).to_contain_text('Uploaded.')
-            page.locator('#image-assets button').first.click()
-            image_id = page.evaluate('navigator.clipboard.readText()')
-            assert re.fullmatch(r'[0-9a-f-]{36}', image_id)
-            expect(page.locator('#image-assets [role=status]')).to_have_text('Copied.')
-            image = next(a for a in json.loads(request('/api/account')[2])['artifacts'] if a['artifactId'] == image_id)
-            image_url = urllib.parse.urlsplit(image['downloadUrl'])
-            assert request(image_url.path+'?'+image_url.query)[2] == (ROOT / 'public/images/sample-exposure.png').read_bytes()
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 0
             reloaded = context.new_page()
             reloaded.goto(ORIGIN + '/app', wait_until='networkidle')
-            open_settings(reloaded)
-            reloaded.locator('#image-assets button').first.click()
-            assert reloaded.evaluate('navigator.clipboard.readText()') == image_id
             reloaded.get_by_role('link',name='Create',exact=True).click()
             reloaded.locator('#title').fill('Keep this title')
             reloaded.locator('#manuscript').fill('Keep this manuscript.')
@@ -290,13 +276,12 @@ try:
             expect(reloaded.locator('#example-status')).to_be_hidden()
             expect(reloaded.locator('#create-form .action-feedback')).to_contain_text('Delete any figure: references')
             reloaded.close()
+            open_settings(page)
             for width,height,label in [(390,844,'mobile'),(1440,1000,'desktop')]:
                 page.set_viewport_size({'width':width,'height':height})
                 assert not page.evaluate('document.documentElement.scrollWidth>innerWidth')
-                page.locator('#image-form').locator('..').screenshot(path=str(ARTIFACTS / f'image-upload-{label}.png'))
+                page.locator('#connect-agent').screenshot(path=str(ARTIFACTS / f'agent-setup-{label}.png'))
             page.set_viewport_size({'width':390,'height':844})
-            page.locator('#figure-image').set_input_files({'name':'another.png','mimeType':'image/png','buffer':(ROOT / 'public/images/sample-exposure.png').read_bytes()})
-            expect(page.locator('#image-result')).to_be_hidden()
             page.get_by_role('link',name='Upload',exact=True).click()
             original = b'%PDF-1.7\n% Synthetic original for local UX proof\n1 0 obj<</Type/Catalog>>endobj\n%%EOF'
             page.locator('#original').set_input_files({'name':'Original.pdf','mimeType':'application/pdf','buffer':original})
@@ -312,7 +297,7 @@ try:
             page.locator('#created .share-trigger').click()
             page.locator('#send-reader').select_option(travel['id'])
             expect(page.locator('#share-content .send-target')).to_contain_text(travel['email'])
-            expect(page.locator('#share-content .send-target')).to_be_hidden()
+            expect(page.locator('#share-content .send-target')).to_be_visible()
             expect(page.locator('#share-send')).to_have_text('Send')
             assert database.execute('SELECT count(*) FROM proof_mail').fetchone()[0] == 0
             assert database.execute('SELECT count(*) FROM mail_attempts').fetchone()[0] == 0
@@ -466,6 +451,9 @@ try:
     status, _, payload = request('/authorize?' + urllib.parse.urlencode(params))
     assert status == 200, (status, payload)
     page = payload.decode()
+    assert 'reader@example.invalid' in page
+    assert 'Switch account' in page
+    assert '30 days' in page
     handle = html.unescape(re.search(r'name="handle" value="([^"]+)"', page).group(1))
     proof = html.unescape(re.search(r'name="ownerProof" value="([^"]+)"', page).group(1))
     status, headers, payload = request('/authorize', 'POST', urllib.parse.urlencode({'handle': handle, 'ownerProof': proof, 'decision': 'allow'}).encode(), 'application/x-www-form-urlencoded')
@@ -521,6 +509,30 @@ try:
     assert request(download.path + '?' + download.query)[0] == 404
     assert post('/mcp', {'jsonrpc': '2.0', 'id': 4, 'method': 'tools/list', 'params': {}}, {'Authorization': 'Bearer invalid', 'Accept': 'application/json'})[0] == 401
     print('Native consent, PKCE, seven-tool discovery, MCP create, link refresh, download hash, missing-destination refusal and deletion passed.')
+
+    assert json.loads(request('/api/account')[2])['hasMcpToken'] is False
+    status, _, token_payload = post('/api/mcp-token', {})
+    assert status == 201, (status, token_payload)
+    personal_token = json.loads(token_payload)['token']
+    assert personal_token.startswith('palim_')
+    account_raw = request('/api/account')[2].decode()
+    assert json.loads(account_raw)['hasMcpToken'] is True and personal_token not in account_raw
+    token_auth = {'Authorization': 'Bearer ' + personal_token, 'Accept': 'application/json, text/event-stream'}
+    status, _, init_res = post('/mcp', {'jsonrpc': '2.0', 'id': 30, 'method': 'initialize', 'params': {'protocolVersion': '2025-06-18', 'capabilities': {}, 'clientInfo': {'name': 'token-proof', 'version': '1'}}}, token_auth)
+    assert status == 200 and json.loads(init_res)['result']['serverInfo']['name'] == 'palim'
+    status, _, tools_res = post('/mcp', {'jsonrpc': '2.0', 'id': 31, 'method': 'tools/list', 'params': {}}, token_auth)
+    assert status == 200 and len(json.loads(tools_res)['result']['tools']) == 7
+    assert post('/mcp', {'jsonrpc': '2.0', 'id': 32, 'method': 'tools/list', 'params': {}}, {**token_auth, 'Origin': 'https://evil.example'})[0] == 403
+    assert request('/api/account', headers={'Cookie': '', 'Authorization': 'Bearer ' + personal_token})[0] == 401
+    status, _, revoke_payload = request('/api/mcp-token', 'DELETE')
+    assert status == 200 and json.loads(revoke_payload)['hasMcpToken'] is False
+    assert post('/mcp', {'jsonrpc': '2.0', 'id': 33, 'method': 'tools/list', 'params': {}}, token_auth)[0] == 401
+    account_with_grant = json.loads(request('/api/account')[2])
+    assert len(account_with_grant['grants']) == 1 and account_with_grant['grants'][0]['clientName'] == 'Disposable runtime proof'
+    grant_id = account_with_grant['grants'][0]['id']
+    assert request('/api/oauth-grants/' + urllib.parse.quote(grant_id, safe=''), 'DELETE')[0] == 200
+    assert json.loads(request('/api/account')[2])['grants'] == []
+    print('Personal MCP bearer token creation, /mcp authentication, /api isolation, revocation, and OAuth grant listing/revocation passed.')
 
     if args.browser:
         from playwright.sync_api import sync_playwright, expect
@@ -610,7 +622,7 @@ try:
             settings_toggle.press('Enter')
             expect(settings_menu.get_by_role('link', name='Privacy', exact=True)).to_be_visible()
             expect(settings_menu.get_by_role('link', name='Settings', exact=True)).to_be_hidden()
-            assert settings_menu.get_by_role('link', name='Privacy', exact=True).get_attribute('href') == '/privacy.html'
+            assert settings_menu.get_by_role('link', name='Privacy', exact=True).get_attribute('href') == '/privacy'
             settings_toggle.press('Escape')
             assert not settings_menu.evaluate('(e)=>e.open')
             expect(settings_toggle).to_be_focused()
@@ -733,7 +745,7 @@ try:
             browser_page.locator('#send-reader').select_option(reader_ids[1])
             expect(browser_page.locator('#send-reader')).to_have_value(reader_ids[1])
             expect(browser_page.locator('#share-content .send-target')).to_contain_text('travel@kindle.com')
-            expect(browser_page.locator('#share-content .send-target')).to_be_hidden()
+            expect(browser_page.locator('#share-content .send-target')).to_be_visible()
             browser_page.locator('#send-reader').select_option(reader_ids[0])
             expect(browser_page.locator('#share-content .send-target')).to_contain_text('bedside@kindle.com')
             browser_page.locator('#share-dialog .close-dialog').click()
@@ -812,6 +824,9 @@ try:
         assert post('/api/destinations/' + reader_ids[0] + '/default', {})[0] == 404
         assert request('/api/destinations/' + reader_ids[0], 'DELETE')[0] == 404
         assert post('/api/send', {'artifactId':private['artifactId'], 'destinationId':reader_ids[0]})[0] == 404
+    assert request('/api/oauth-grants/nonexistent-grant', 'DELETE')[0] == 404
+    assert request('/api/account', 'DELETE')[0] == 200
+    assert request('/api/account')[0] == 401
 
     cookies[:] = alice_cookie
     assert post('/auth/logout', {})[0] == 303

@@ -3,7 +3,7 @@ import { emailOTP } from 'better-auth/plugins';
 import type { Env } from './types.js';
 import { PalimError } from './errors.js';
 
-export function authOptions(env: Env, claim?: string) {
+export function authOptions(env: Env, claim?: string, delivery?: { failed: boolean }) {
   if (!env.AUTH_SECRET || env.AUTH_SECRET.length < 32)
     throw new PalimError(
       'CONFIGURATION',
@@ -75,9 +75,10 @@ export function authOptions(env: Env, claim?: string) {
               headers: {},
             });
           } catch {
+            if (delivery) delivery.failed = true;
             throw new PalimError(
               'LOGIN_EMAIL',
-              'The sign-in email could not be confirmed. Request another code after a minute.',
+              'The sign-in email could not be sent right now. Request another code after a minute.',
               503,
             );
           }
@@ -87,6 +88,6 @@ export function authOptions(env: Env, claim?: string) {
   } satisfies Parameters<typeof betterAuth>[0];
 }
 
-export function authentication(env: Env, claim?: string) {
-  return betterAuth(authOptions(env, claim));
+export function authentication(env: Env, claim?: string, delivery?: { failed: boolean }) {
+  return betterAuth(authOptions(env, claim, delivery));
 }

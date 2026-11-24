@@ -68,7 +68,7 @@ npx wrangler d1 migrations apply palim --remote
 npm run deploy
 ```
 
-Deployment runs static preflight, TypeScript/tests, example generation and Wrangler. It does not prove that remote bindings, sender verification, OAuth credentials or a Kindle destination work. The local build command does not deploy:
+Deployment runs static preflight, TypeScript/tests, example generation and Wrangler. It does not prove that remote bindings, sender verification, OAuth credentials or a Kindle destination work. For local development (`npm run dev`), copy `.dev.vars.example` to `.dev.vars` with distinct random local secrets (`AUTH_SECRET` and `SIGNING_SECRET`). The local build command does not deploy:
 
 ```sh
 npm run build
@@ -94,7 +94,7 @@ A `submitted` record has a provider message ID. Inspect it in Cloudflare if trou
 
 Disable an abusive or compromised account by setting its `users.disabled` field; every tool rechecks the user. Revoke corresponding grants through the owning OAuth/provider facilities when needed. There is no operator dashboard or bulk customer email tool in this version.
 
-To remove an account, first list and remove its owned private objects, revoke its grants, then delete its Better Auth `auth_users` row and the matching application `users` row so sessions, private saved destinations and account records cascade. Deleting only the application row does not delete the identity. Keep required provider audit information under the provider's policy; deleting local records cannot recall email or erase an Amazon library copy.
+To remove an account (users can also delete their own account in **Settings → Account**, or an operator can perform removal manually): first list and remove its owned private objects, revoke its OAuth grants, then delete its Better Auth `auth_users` row and the matching application `users` row so sessions, private saved destinations and account records cascade. Deleting only the application row does not delete the identity. Keep required provider audit information under the provider's policy; deleting local records cannot recall email or erase an Amazon library copy.
 
 Review the scheduled cleanup and bucket lifecycle. Backups and provider-side retention are separate from the application's expiry. Never claim total deletion from all processors merely because an R2 object was removed.
 
@@ -111,3 +111,5 @@ Control HTML uses Referrer-Policy: same-origin so browser consent/logout forms r
 Apply all checked-in migrations before deployment, including 0004 for personal senders and 0005 for account allowances. These additive changes preserve saved/confirmed address IDs, labels, defaults and historical receipts/challenges; legacy confirmation state is no longer used for admission. Each enabled account atomically receives an immutable random sender alias on first authenticated access. Documents use only that alias on the existing onboarded SENDER domain; the shared address remains for login mail. No new credential or provider is needed. A missing/invalid domain or alias fails closed without falling back to the shared sender. Changing the domain requires users to update Amazon's approved sender.
 
 Saving, labelling, choosing a default and selecting an address send no mail. Document delivery checks current account/recipient ownership and personal sender binding in atomic D1 admission, along with all existing budgets. No Palim Kindle verification endpoint remains. The grant-free --saved-addresses-only native proof uses synthetic local browser-session fixtures and captured mail, never OAuth registration/consent or actual provider mail. Full native OAuth tests remain subject to their separate grant approval.
+
+MCP clients can also send a personal bearer token created in signed-in Settings → Agent → Personal MCP token. Apply migration 0008 before deploying the Worker. Each account has one token, displayed only at creation; D1 stores its SHA-256 digest. Replacing or revoking the token invalidates it on every client. OAuth clients continue to use the existing consent flow.

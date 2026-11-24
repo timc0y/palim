@@ -126,7 +126,7 @@ function readingPreview(book: Book, body: string): string {
     `<title>${e(book.title)}</title>`,
     `<style>${PREVIEW_CSS}</style>`,
     '</head><body>',
-    '<div class="preview-tools"><a href="/app">Back to desk</a></div>',
+    '<div class="preview-tools"><a href="/app">Back to studio</a></div>',
     '<header class="preview-header"><div class="preview-heading">',
     `<p class="preview-meta">${e(book.edition || 'Reading edition')}${book.creator ? ` · ${e(book.creator)}` : ''}</p>`,
     `<h1>${e(book.title)}</h1>`,
@@ -221,7 +221,7 @@ export async function buildBook(
       `<h1>${e(book.title)}</h1>`,
       book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : '',
       book.creator ? `<p class="author">${e(book.creator)}</p>` : '',
-      book.description ? `<p>${e(book.description)}</p>` : '',
+      book.description ? `<p class="description">${e(book.description)}</p>` : '',
       `<p class="source-note">${e(book.edition || 'Reading edition')} · ${modified.slice(0, 10)}</p>`,
       book.sourceRevision
         ? `<p class="source-note">Source revision: ${e(book.sourceRevision)}</p>`

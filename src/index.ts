@@ -1,3 +1,4 @@
+import { tokenOwner } from './personal-token.js';
 import OAuthProvider from '@cloudflare/workers-oauth-provider';
 import { z } from 'zod';
 import { mcpFetch } from './mcp.js';
@@ -39,9 +40,21 @@ function provider(env: Env) {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
+      const url = new URL(request.url);
       // Canonical origin prevents Host-header manipulation of OAuth metadata and redirects.
-      if (new URL(request.url).origin !== env.ORIGIN)
+      if (url.origin !== env.ORIGIN)
         throw new PalimError('ORIGIN', 'Use this deployment’s canonical Palim address.', 400);
+      const bearer = /^Bearer (palim_[^ ]*)$/i.exec(request.headers.get('Authorization') || '');
+      if (url.pathname === '/mcp' && bearer) {
+        const owner = await tokenOwner(bearer[1]!, env);
+        if (!owner)
+          return secureHeaders(
+            json({ code: 'UNAUTHORISED', message: 'Invalid or revoked personal MCP token.' }, 401),
+          );
+        return secureHeaders(
+          await mcpFetch(request, env, owner, ['books:read', 'books:write', 'books:send']),
+        );
+      }
       const bounded = await guardAuthentication(request, env.AUTH_RATE_LIMIT);
       return secureHeaders(await provider(env).fetch(bounded, env, ctx));
     } catch (error) {

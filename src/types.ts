@@ -18,6 +18,7 @@ export interface User {
   name: string;
   destination: string | null;
   sender_alias: string;
+  mcp_token_digest?: string | null;
   disabled: number;
   created_at: number;
   default_destination_id: string | null;

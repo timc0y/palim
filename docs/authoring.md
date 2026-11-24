@@ -2,7 +2,7 @@
 
 Palim gives the authoring agent a set of tools, not a prescribed book template. Choose the explanation and visual that help this reader answer their question. Use a consistent, quiet text style and let the reader adjust it.
 
-Palim supplies the cover, title page, chapter openings and figure numbers. Keep chapter titles concise; do not repeat them as the first Markdown heading. Figure numbers follow definition order, so reusing a figure keeps the same number. Text sizes remain relative to the reader's settings, and the browser preview shows the actual generated cover alongside selectable title and author text.
+Palim supplies the cover, title page, chapter openings and figure numbers. Keep chapter titles concise; do not repeat them as the first Markdown heading. Figure numbers follow definition order, so reusing a figure keeps the same number. Text sizes remain relative to the reader's settings, and the browser preview keeps the title, author and contents in selectable text while the generated cover sits inside the EPUB.
 
 ## Ways to explain
 
@@ -38,7 +38,7 @@ The figure's `alt` should identify the schedule and point to the nearby descript
 
 ## Preparing figures
 
-Use an owned PNG/JPEG for a photograph, map, annotated illustration or other artwork. A connected agent can call `import_image` with a client-provided file, then use the returned `artifactId` as the figure's `assetId`. If the client cannot provide the file object, upload it in the signed-in workspace and give the temporary asset ID to the agent. Do not invent a file URL or paste image bytes into the manuscript.
+Use an owned PNG/JPEG for a photograph, map, annotated illustration or other artwork. A connected agent can call `import_image` with a client-provided file, then use the returned `artifactId` as the figure's `assetId`. In the studio, the built-in Example loads and uploads its own sample illustration automatically; custom PNG/JPEG figures use an agent's `import_image` upload. Do not invent a file URL or paste image bytes into the manuscript.
 
 Use Mermaid for a small relationship or sequence, and the built-in bar chart for supplied numeric data. Palim also accepts ordinary Markdown headings, lists, blockquotes, code and tables. Raw HTML and remote images are not supported. Define each figure once, give it `alt` and `caption`, and put references in their own paragraph, separated from prose by a blank line. Consecutive figure references retain their own captions. References mixed into prose or headings return a placement error. Add the full useful explanation beside a complex figure rather than hiding it only inside the image.
 

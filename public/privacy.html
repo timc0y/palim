@@ -4,22 +4,23 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Privacy and limits · Palim</title>
-    <meta name="theme-color" content="#e8e5db" />
+    <meta name="description" content="Privacy, data retention, and real limits for Palim." />
+    <meta name="theme-color" content="#efefeb" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="wrap nav">
       <a class="wordmark" href="/">
         <svg class="wordmark__emblem" viewBox="0 0 32 32" aria-hidden="true">
-          <rect x="0" y="0" width="32" height="32" rx="3" />
           <path class="wordmark__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
         </svg>
         palim
       </a>
       <a class="nav-privacy" href="/app">studio</a>
     </header>
-    <main class="prose">
+    <main id="main-content" class="prose" tabindex="-1">
       <h1>Privacy &amp; limits</h1>
       <p>
         Palim is independent open-source software by Tim Coy. Each self-hosted instance has its own
@@ -46,13 +47,21 @@
         with can download until it expires.
       </p>
       <p>
-        Account settings persist until removed by the operator. Browser sessions last seven days.
-        Sign-in codes expire after five minutes and allow three attempts. Codes are encrypted in the
-        database; expired codes and sessions are removed by scheduled cleanup. Session records
-        include the connecting IP address and browser user agent. Short-lived authentication rate
-        counters are removed after an hour of inactivity. Minimal delivery records and keyed
-        destination hashes are retained for 35 days for recovery, abuse prevention and monthly
-        allowances. Manuscripts, raw destinations and provider error text are not application logs.
+        Account settings persist until you delete your account in
+        <strong>Settings → Account</strong>
+        or ask the operator to remove them. Self-service deletion immediately removes your account
+        rows, active browser sessions, stored files and previews, saved Kindle addresses, personal
+        MCP token, and connected OAuth agent grants; provider-side logs and any book already emailed
+        to Amazon follow those providers’ policies. If you create an optional Personal MCP token,
+        only its SHA-256 digest is stored until you replace or revoke it; the token grants read,
+        create and send access on your account. OAuth-connected agents can refresh access for up to
+        30 days until disconnected in Settings. Browser sessions last seven days. Sign-in codes
+        expire after five minutes and allow three attempts. Codes are encrypted in the database;
+        expired codes and sessions are removed by scheduled cleanup. Session records include the
+        connecting IP address and browser user agent. Short-lived authentication rate counters are
+        removed after an hour of inactivity. Minimal delivery records are removed with your account;
+        keyed 35-day mail-attempt counters remain temporarily to enforce sending ceilings.
+        Manuscripts, raw destinations and provider error text are not application logs.
       </p>
       <h2>Originals remain original</h2>
       <p>

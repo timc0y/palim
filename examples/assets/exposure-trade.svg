@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="840" height="900" viewBox="0 0 840 900">
   <rect width="840" height="900" fill="#fff"/>
-  <g font-family="sans-serif" fill="#242521">
+  <g font-family="Manrope, sans-serif" fill="#242521">
     <text x="48" y="76" font-size="40">Starting point</text>
     <circle cx="150" cy="230" r="86" fill="#242521"/>
     <circle cx="150" cy="230" r="46" fill="#fff"/>
     <text x="150" y="382" font-size="48" text-anchor="middle">f/8</text>
     <rect x="345" y="202" width="420" height="44" fill="#555b4d"/>
     <text x="345" y="318" font-size="48">1/250 second</text>
-    <path d="M48 450H792" stroke="#cdd0c3" stroke-width="2"/>
+    <path d="M48 450H792" stroke="#c5c8ba" stroke-width="2"/>
     <text x="48" y="526" font-size="40">One stop exchanged</text>
     <circle cx="150" cy="680" r="86" fill="#242521"/>
     <circle cx="150" cy="680" r="65.05" fill="#fff"/>

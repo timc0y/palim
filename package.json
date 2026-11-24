@@ -4,12 +4,32 @@
   "private": true,
   "type": "module",
   "description": "From thought to page. Illustrated EPUBs and unchanged ebook forwarding.",
+  "homepage": "https://palim-timc0y.pages.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timc0y/palim.git"
+  },
+  "bugs": {
+    "url": "https://github.com/timc0y/palim/issues"
+  },
+  "author": {
+    "name": "Tim Coy",
+    "url": "https://timcoy.uk"
+  },
+  "keywords": [
+    "epub",
+    "kindle",
+    "mcp",
+    "cloudflare-workers",
+    "publishing",
+    "open-source"
+  ],
   "license": "MIT",
   "engines": {
     "node": ">=22.16.0"
   },
   "scripts": {
-    "dev": "npm run ui && npm run example && wrangler dev",
+    "dev": "npm run ui && npm run example && wrangler dev --local-protocol https",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts test/*.test.mjs",
     "check:js": "node --check public/app.js && node --check public/kindle.js && node --check pages/public/_worker.js",

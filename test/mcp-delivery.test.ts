@@ -493,3 +493,35 @@ test('MCP receipt access cannot disclose another account’s submission', async 
     await bob.close();
   }
 });
+
+test('MCP send_document validates saved destination before downloading a host file', async (t) => {
+  const f = await fixture();
+  f.sql.prepare('DELETE FROM reader_destinations WHERE owner=?').run('alice');
+  let fetched = 0;
+  t.mock.method(globalThis, 'fetch', async () => {
+    fetched++;
+    return new Response(pdf(), { headers: { 'Content-Type': 'application/pdf' } });
+  });
+  const c = await connect(f);
+  try {
+    const missing = await c.client.callTool({
+      name: 'send_document',
+      arguments: {
+        file: {
+          download_url: 'https://files.example/unseen-book.pdf',
+          file_id: 'host-file-1',
+          file_name: 'Book.pdf',
+        },
+      },
+    });
+    assert.equal(missing.isError, true);
+    assert.equal(output(missing).code, 'DESTINATION_REQUIRED');
+    assert.equal(fetched, 0);
+    assert.equal(f.objects.size, 0);
+    assert.equal(f.sent.length, 0);
+    for (const table of ['artifacts', 'deliveries', 'operations'])
+      assert.equal(f.sql.prepare(`SELECT count(*) n FROM ${table}`).get()!.n, 0);
+  } finally {
+    await c.close();
+  }
+});

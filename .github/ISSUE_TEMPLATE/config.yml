@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability (private)
+    url: https://github.com/timc0y/palim/security/advisories/new
+    about: Never report private manuscripts, addresses, codes, tokens, or security bugs in public issues.
+  - name: Author & deployment docs
+    url: https://github.com/timc0y/palim/blob/main/docs/deployment.md
+    about: Review setup, limits, and verification boundaries before reporting an issue.

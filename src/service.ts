@@ -116,6 +116,111 @@ export class Palim {
     // Account-bound identity, never supplied by a browser or MCP caller; no shared fallback.
     return `p-${user.sender_alias}@${domain}`;
   }
+  private async lookupClientName(clientId: string): Promise<string> {
+    try {
+      const client = await this.env.OAUTH_PROVIDER?.lookupClient?.(clientId);
+      return client?.clientName?.trim() || clientId;
+    } catch {
+      return clientId;
+    }
+  }
+  private async listGrants(owner: string) {
+    const provider = this.env.OAUTH_PROVIDER;
+    if (!provider?.listUserGrants) return [];
+    const listed = await provider.listUserGrants(owner, { limit: 50 });
+    return Promise.all(
+      listed.items.map(async (grant) => {
+        const meta = grant.metadata as { clientName?: unknown } | null | undefined;
+        const storedName = typeof meta?.clientName === 'string' ? meta.clientName.trim() : '';
+        return {
+          id: grant.id,
+          clientName: storedName || (await this.lookupClientName(grant.clientId)),
+          scope: grant.scope,
+          createdAt: new Date(grant.createdAt * 1000).toISOString(),
+        };
+      }),
+    );
+  }
+  async revokeGrant(owner: string, grantId: string) {
+    await this.store.user(owner);
+    const provider = this.env.OAUTH_PROVIDER;
+    if (!grantId || grantId.length > 256 || !provider?.listUserGrants || !provider?.revokeGrant) {
+      throw new PalimError('NOT_FOUND', 'Connected agent not found.', 404);
+    }
+    let owned = false;
+    let cursor: string | undefined;
+    for (let page = 0; page < 4; page++) {
+      const listed = await provider.listUserGrants(owner, {
+        limit: 50,
+        ...(cursor ? { cursor } : {}),
+      });
+      if (listed.items.some((g) => g.id === grantId)) {
+        owned = true;
+        break;
+      }
+      if (!listed.cursor) break;
+      cursor = listed.cursor;
+    }
+    if (!owned) throw new PalimError('NOT_FOUND', 'Connected agent not found.', 404);
+    await provider.revokeGrant(grantId, owner);
+    return { revoked: true };
+  }
+  async deleteAccount(owner: string) {
+    await this.store.user(owner);
+    const artifacts = (
+      await this.env.DB.prepare('SELECT object_key FROM artifacts WHERE owner=?')
+        .bind(owner)
+        .all<{ object_key: string }>()
+    ).results;
+    const keys = artifacts.flatMap((a) => [
+      a.object_key,
+      `${a.object_key}.source`,
+      `${a.object_key}.preview`,
+    ]);
+    for (let at = 0; at < keys.length; at += 100) {
+      await this.env.BOOKS.delete(keys.slice(at, at + 100));
+    }
+    const provider = this.env.OAUTH_PROVIDER;
+    if (provider?.listUserGrants && provider?.revokeGrant) {
+      let cursor: string | undefined;
+      for (let page = 0; page < 10; page++) {
+        const listed = await provider.listUserGrants(owner, {
+          limit: 50,
+          ...(cursor ? { cursor } : {}),
+        });
+        for (const grant of listed.items) await provider.revokeGrant(grant.id, owner);
+        if (!listed.cursor || listed.items.length === 0) break;
+        cursor = listed.cursor;
+      }
+    }
+    const authUser = await this.env.DB.prepare('SELECT email FROM auth_users WHERE id=?')
+      .bind(owner)
+      .first<{ email: string }>();
+    const statements: D1PreparedStatement[] = [];
+    if (authUser?.email) {
+      statements.push(
+        this.env.DB.prepare(
+          'DELETE FROM auth_verifications WHERE identifier=? OR identifier=?',
+        ).bind(`sign-in-otp-${authUser.email}`, `email-otp-sign-in-${authUser.email}`),
+      );
+    }
+    statements.push(
+      this.env.DB.prepare('DELETE FROM auth_users WHERE id=?').bind(owner),
+      this.env.DB.prepare('DELETE FROM users WHERE id=?').bind(owner),
+    );
+    await this.env.DB.batch(statements);
+    return { deleted: true };
+  }
+  async verifyDestination(owner: string, destinationId?: string) {
+    const user = await this.store.user(owner);
+    const selectedId = destinationId ?? user.default_destination_id;
+    invariant(
+      selectedId,
+      'DESTINATION_REQUIRED',
+      'Open the Palim workspace and save a Kindle address first.',
+    );
+    return this.store.reader(owner, selectedId);
+  }
   async account(owner: string) {
     const user = await this.store.user(owner);
     return {
@@ -129,6 +234,8 @@ export class Palim {
         isDefault: d.id === user.default_destination_id,
       })),
       sender: this.documentSender(user),
+      hasMcpToken: !!user.mcp_token_digest,
+      grants: await this.listGrants(owner),
       limits: {
         renders: user.daily_render_limit,
         sends: user.daily_send_limit,

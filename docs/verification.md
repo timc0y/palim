@@ -166,13 +166,82 @@ signed-out Privacy access and draft retention. The Chromium acceptance script
 also checks keyboard opening and the actual Privacy-and-return journey. This
 change is not included in the deployment recorded above.
 
+The current studio source removes the manual Image upload and Copy ID list
+from Settings, including their handlers and styles. Agent image import and the
+illustrated example remain available. Local checks passed all 98 tests;
+source-handler checks exercised book creation and Settings navigation, and the
+390px Settings render fitted without horizontal overflow. This removal is not
+deployed.
+
+### Launch-readiness & design-system updates (unreleased, 24 November 2026)
+
+Subsequent unreleased source updates cover three cohesive passes:
+
+1. **Launch readiness & Personal MCP tokens:** Landing tagline, dual-client connect
+   disclosure (`/mcp` URL and Codex commands), below-the-fold manual with generated
+   sample cover (`public/images/sample-cover.png`) and `1200×630` Open Graph card
+   (`public/og.png`), `public/robots.txt`, global Amazon store links, Studio `#`
+   multi-chapter Markdown splitting, and Settings → Agent Personal MCP token
+   lifecycle (`migrations/0008-mcp-token.sql`).
+2. **Unified web + EPUB design system:** Consolidated CSS tokens and Manrope
+   `@font-face` rules into `public/hardware.css` (deleting surface duplicates),
+   resolved the dropzone border non-text contrast to `3.29:1` (`--control-line` on
+   `--inset`), unified focus offsets (`4px`), status pills, label-style Studio
+   panel headings, Privacy `h2` hierarchy, OAuth consent panel framing, shared
+   `PALIM_PALETTE`/`PALIM_FONTS` across `PREVIEW_CSS`/`figures.ts`/`example.ts`,
+   cover left-edge (`x="96"`) alignment, bare-ink `/sample.html` wordmark, and
+   owner/invariant docs in `DESIGN.md`.
+3. **Pre-launch review fixes:** Login email outage propagation returning `503`
+   `LOGIN_EMAIL` (while keeping throttled resends `200`), OAuth consent account
+   display with `Switch account` sign-out, 30-day refresh disclosure and clean
+   standalone redirect chip, destination pre-validation before host file fetch in
+   MCP `send_document`, Studio OAuth grant listing/revocation and self-service
+   `DELETE /api/account`, full multi-chapter client validation (`240,000` chars /
+   `24` chapters / `50,000` per chapter), always-visible full recipient email in
+   the Share dialog, labeled `Send` trigger on cards/shelf, and local HTTPS
+   development defaults (`https://localhost:8787`).
+
+Local verification run on the final source state:
+
+- `npm run example` rebuilt deterministic outputs (`artifacts/palim-sample.epub`,
+  `142,171` bytes, `510` words, `0` warnings, `public/images/sample-cover.png`,
+  `public/images/sample-exposure.png`, `public/og.png`, `public/reader.css`, and
+  `public/sample.html`).
+- `npm run format:check`, `npm run check` (`tsc --noEmit`, `node --check`, and
+  **105/105** behavioural tests), `npm run build` (`public/landing.js`, example,
+  `public/palim-plugin.zip`, and `wrangler deploy --dry-run`),
+  `npm audit --omit=dev --audit-level=high` (`0` vulnerabilities), and
+  `git diff --check` all passed.
+- `python3 scripts/runtime-proof.py` and `python3 scripts/runtime-proof.py --pages`
+  passed against local `workerd` and the Pages service binding (exercising Better
+  Auth OTP, OAuth consent & PKCE, 7-tool MCP, link refresh, Personal MCP bearer
+  token lifecycle & `/api/*` isolation, OAuth grant listing/revocation, and
+  `DELETE /api/account`).
+- Because system `python3` lacks `playwright`, `runtime-proof.py --browser` was
+  not run directly; instead a local headless Google Chrome + Node Playwright
+  harness verified `1440×1000`, `390×844`, and `200%` text zoom across `/`,
+  `/sample.html`, `/privacy`, rendered `/authorize`, Studio views, and unpacked
+  `public/sample.epub` (`title.xhtml` and chapters in default light and
+  simulated dark reader themes) with `0` console/page errors, `0` horizontal
+  overflow, `maxDelta: 0` preview reading-edge alignment, `22.29px` rendered bar
+  chart labels, and three distinct `.receipt-state` colours. Monochrome legibility
+  of the cover, bar chart, Mermaid flowchart, and exposure illustration was
+  inspected via `ffmpeg` greyscale conversions.
+
+These unreleased changes and migration `0008-mcp-token.sql` are not deployed to
+`https://palim-timc0y.pages.dev` yet. Live deployment, remote migration, updated
+CI EPUBCheck, hosted sign-in/OAuth/Personal MCP token use, Cloudflare Email
+acceptance, Amazon conversion/import, and physical Kindle display remain separate
+post-deploy checks.
+
 ## CI and runtime coverage
 
 The [Checks workflow](../.github/workflows/checks.yml) runs formatting, TypeScript,
 behavioural tests, a dry-run bundle, production dependency audit and independent
 EPUBCheck validation using a checksum-pinned distribution. Its Worker and Pages
-proofs also enable the Chromium branch of the runtime script. That branch was
-not rerun locally during this release.
+proofs also enable the Chromium branch of the runtime script. That `--browser`
+branch was not rerun locally during the 15 November deployment check; local
+headless Chrome checks for subsequent unreleased edits are recorded above.
 
 The native proofs check identity and tenant isolation, logout revocation,
 discovery, consent, PKCE, MCP creation, download hashes, deletion and refusal

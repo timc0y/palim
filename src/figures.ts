@@ -1,6 +1,7 @@
 import { render } from 'pele';
 import { escapeXml as e, parseXml } from './xml.js';
 import { invariant, PalimError } from './errors.js';
+import { PALIM_FONTS, PALIM_PALETTE } from './book-styles.js';
 import type { Figure } from './schema.js';
 export interface Asset {
   bytes: Uint8Array;
@@ -18,19 +19,19 @@ export interface RenderedFigure {
 const encode = (s: string) => new TextEncoder().encode(s);
 export function staticSvg(svg: string): string {
   const vars: Record<string, string> = {
-    _bg: '#ffffff',
-    _fg: '#20201e',
-    _m: '#555555',
-    _l: '#20201e',
-    _s: '#f4f3ef',
-    _a: '#e3e1da',
-    _b: '#555555',
-    _c: '#333333',
+    _bg: PALIM_PALETTE.field,
+    _fg: PALIM_PALETTE.ink,
+    _m: PALIM_PALETTE.muted,
+    _l: PALIM_PALETTE.ink,
+    _s: PALIM_PALETTE.previewPaper,
+    _a: PALIM_PALETTE.inset,
+    _b: PALIM_PALETTE.muted,
+    _c: PALIM_PALETTE.inkSoft,
     _r: '2px',
-    _fm: 'monospace',
+    _fm: PALIM_FONTS.reading,
   };
   svg = svg
-    .replace(/var\((--_[a-z]+)\)/g, (_, k: string) => vars[k.slice(2)] ?? '#20201e')
+    .replace(/var\((--_[a-z]+)\)/g, (_, k: string) => vars[k.slice(2)] ?? PALIM_PALETTE.ink)
     .replace(/var\(--pele-[a-z0-9-]+,\s*([^()]+)\)/g, '$1')
     .replace(/--_[a-z]+:[^;]+;?/g, '');
   invariant(svg.length < 180_000, 'FIGURE_TOO_LARGE', 'Split this figure into smaller diagrams.');
@@ -109,23 +110,23 @@ export function renderFigure(figure: Figure, assets: ReadonlyMap<string, Asset>)
       const marks: string[] = [];
       let y = 42;
       for (const line of wrap(figure.unit)) {
-        marks.push(`<text x="24" y="${y}" fill="#333">${e(line)}</text>`);
+        marks.push(`<text x="24" y="${y}" fill="${PALIM_PALETTE.muted}">${e(line)}</text>`);
         y += 36;
       }
       y += 12;
       for (const point of figure.data) {
         for (const line of wrap(point.label)) {
-          marks.push(`<text x="24" y="${y}" fill="#222">${e(line)}</text>`);
+          marks.push(`<text x="24" y="${y}" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`);
           y += 36;
         }
         const exact = String(point.value);
         const displayed = exact.length <= 12 ? exact : `≈ ${point.value.toPrecision(4)}`;
         marks.push(
-          `<rect x="24" y="${y - 12}" width="${Math.round((point.value / max) * 340)}" height="24" fill="#333"><title>${e(point.label)}: ${e(exact)} ${e(figure.unit)}</title></rect><text x="${Math.min(390, 24 + Math.round((point.value / max) * 340) + 16)}" y="${y + 8}" text-anchor="start" fill="#222">${e(displayed)}</text>`,
+          `<rect x="24" y="${y - 12}" width="${Math.round((point.value / max) * 340)}" height="24" fill="${PALIM_PALETTE.ink}"><title>${e(point.label)}: ${e(exact)} ${e(figure.unit)}</title></rect><text x="${Math.min(390, 24 + Math.round((point.value / max) * 340) + 16)}" y="${y + 8}" text-anchor="start" fill="${PALIM_PALETTE.ink}">${e(displayed)}</text>`,
         );
         y += 64;
       }
-      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="${y}" viewBox="0 0 560 ${y}" font-family="sans-serif" font-size="30"><rect width="560" height="${y}" fill="white"/>${marks.join('')}</svg>`;
+      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="${y}" viewBox="0 0 560 ${y}" font-family="${e(PALIM_FONTS.reading)}" font-size="30"><rect width="560" height="${y}" fill="${PALIM_PALETTE.field}"/>${marks.join('')}</svg>`;
     }
     bytes = encode(staticSvg(svg));
     type = 'image/svg+xml';
@@ -194,5 +195,5 @@ export function coverSvg(
     : titleBottom;
   const motifTop = Math.max(960, contentBottom + 80);
   const motifHeight = Math.min(300, authorTop - motifTop - 100);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600"><rect width="1200" height="1600" fill="#f1f0e7"/><path d="M96 96H1104" stroke="#242521" stroke-width="3"/><path d="M96 138H190M96 152H154" stroke="#263fa9" stroke-width="5"/>${titleLines.map((line, i) => `<text x="96" y="${240 + titleSize + i * titleSize * 1.15}" font-family="sans-serif" font-size="${titleSize}" fill="#242521">${e(line)}</text>`).join('')}${subtitleLines.map((line, i) => `<text x="100" y="${subtitleTop + subtitleSize + i * subtitleSize * 1.3}" font-family="sans-serif" font-size="${subtitleSize}" fill="#4c5346">${e(line)}</text>`).join('')}${motifHeight > 100 ? `<rect x="96" y="${motifTop}" width="1008" height="${motifHeight}" fill="#263fa9"/><path d="M96 ${motifTop}H700L${700 - motifHeight} ${motifTop + motifHeight}H96Z" fill="#242521"/><path d="M700 ${motifTop}L${700 - motifHeight} ${motifTop + motifHeight}" stroke="#f1f0e7" stroke-width="3"/>` : ''}${authorLines.map((line, i) => `<text x="100" y="${authorTop + i * 44}" font-family="sans-serif" font-size="${authorSize}" fill="#242521">${e(line)}</text>`).join('')}<path d="M96 1520H1104" stroke="#b8bdb0" stroke-width="2"/></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600"><rect width="1200" height="1600" fill="${PALIM_PALETTE.coverPaper}"/><path d="M96 96H1104" stroke="${PALIM_PALETTE.ink}" stroke-width="3"/><path d="M96 138H190M96 152H154" stroke="${PALIM_PALETTE.accent}" stroke-width="5"/>${titleLines.map((line, i) => `<text x="96" y="${240 + titleSize + i * titleSize * 1.15}" font-family="${e(PALIM_FONTS.reading)}" font-size="${titleSize}" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`).join('')}${subtitleLines.map((line, i) => `<text x="96" y="${subtitleTop + subtitleSize + i * subtitleSize * 1.3}" font-family="${e(PALIM_FONTS.reading)}" font-size="${subtitleSize}" fill="${PALIM_PALETTE.inkSoft}">${e(line)}</text>`).join('')}${motifHeight > 100 ? `<rect x="96" y="${motifTop}" width="1008" height="${motifHeight}" fill="${PALIM_PALETTE.accent}"/><path d="M96 ${motifTop}H700L${700 - motifHeight} ${motifTop + motifHeight}H96Z" fill="${PALIM_PALETTE.ink}"/><path d="M700 ${motifTop}L${700 - motifHeight} ${motifTop + motifHeight}" stroke="${PALIM_PALETTE.coverPaper}" stroke-width="3"/>` : ''}${authorLines.map((line, i) => `<text x="96" y="${authorTop + i * 44}" font-family="${e(PALIM_FONTS.reading)}" font-size="${authorSize}" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`).join('')}<path d="M96 1520H1104" stroke="${PALIM_PALETTE.line}" stroke-width="2"/></svg>`;
 }

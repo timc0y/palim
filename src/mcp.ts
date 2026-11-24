@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { BookSchema, LIMITS, ReceiptSchema } from './schema.js';
 import { Palim, publicReceipt } from './service.js';
 import { publicError, PalimError } from './errors.js';
+import { publicFileUrl } from './file-url.js';
 import { readBytes } from './http.js';
 import { agentGuide } from './guide.js';
 import type { Env } from './types.js';
@@ -219,6 +220,10 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     },
     async (input) =>
       run('books:send', async () => {
+        if (!input.artifactId) {
+          publicFileUrl(input.file!.download_url);
+          await palim.verifyDestination(owner, input.destinationId);
+        }
         const artifactId =
           input.artifactId ??
           (

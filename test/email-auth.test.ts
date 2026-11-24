@@ -214,3 +214,86 @@ test('browser explicit recipient and MCP default share one original receipt even
     assert.equal(f.sent.length, 1);
   }
 });
+
+test('login email provider failure returns 503 while throttled resend keeps generic 200', async () => {
+  const f = await fixture();
+  const failingEnv = {
+    ...f.env,
+    EMAIL: {
+      async send() {
+        throw new Error('provider down');
+      },
+    },
+  };
+  const failed = await authRoute(send('outage@example.invalid'), failingEnv);
+  assert.equal(failed?.status, 503);
+  const body = (await failed?.json()) as { code: string; message: string };
+  assert.equal(body.code, 'LOGIN_EMAIL');
+  assert.match(body.message, /could not be sent/);
+  const throttled = await authRoute(send('outage@example.invalid'), failingEnv);
+  assert.equal(throttled?.status, 200);
+});
+
+test('DELETE /api/account removes private data, revokes grants, clears cookie and preserves mail_attempts', async () => {
+  const { appFetch } = await import('../src/routes.js');
+  const f = await fixture();
+  const cookie = await f.session('alice');
+  await f.palim.create('alice', simpleBook);
+  const created = await appFetch(
+    new Request(`${f.env.ORIGIN}/api/books`, {
+      method: 'POST',
+      headers: { Cookie: cookie, Origin: f.env.ORIGIN, 'Content-Type': 'application/json' },
+      body: JSON.stringify(simpleBook),
+    }),
+    f.env,
+  );
+  assert.equal(created.status, 201);
+  const { artifactId } = (await created.json()) as { artifactId: string };
+  await f.palim.send('alice', artifactId);
+  const revoked: string[] = [];
+  const oauthEnv = {
+    ...f.env,
+    OAUTH_PROVIDER: {
+      async listUserGrants() {
+        return {
+          items: [
+            {
+              id: 'grant-1',
+              clientId: 'client-1',
+              userId: 'alice',
+              scope: ['books:read'],
+              metadata: { clientName: 'Test Agent' },
+              createdAt: NOW,
+            },
+          ],
+        };
+      },
+      async revokeGrant(id: string) {
+        revoked.push(id);
+      },
+    } as unknown as typeof f.env.OAUTH_PROVIDER,
+  };
+  assert.ok(f.objects.size > 0);
+  const deleted = await appFetch(
+    new Request(`${f.env.ORIGIN}/api/account`, {
+      method: 'DELETE',
+      headers: { Cookie: cookie, Origin: f.env.ORIGIN },
+    }),
+    oauthEnv,
+  );
+  assert.equal(deleted.status, 200);
+  assert.match(deleted.headers.get('Set-Cookie') ?? '', /__Host-palim=;.*Max-Age=0/);
+  assert.deepEqual(revoked, ['grant-1']);
+  assert.equal(f.objects.size, 0);
+  assert.equal(f.sql.prepare("SELECT count(*) n FROM users WHERE id='alice'").get()!.n, 0);
+  assert.equal(f.sql.prepare("SELECT count(*) n FROM auth_users WHERE id='alice'").get()!.n, 0);
+  assert.equal(
+    f.sql.prepare("SELECT count(*) n FROM reader_destinations WHERE owner='alice'").get()!.n,
+    0,
+  );
+  assert.ok(Number(f.sql.prepare('SELECT count(*) n FROM mail_attempts').get()!.n) > 0);
+  assert.equal(
+    await session(new Request(f.env.ORIGIN, { headers: { Cookie: cookie } }), f.env),
+    null,
+  );
+});

@@ -37,7 +37,7 @@
         </summary>
         <nav class="settings-menu-links" aria-label="Settings">
           <a class="settings-link" data-studio-view href="#studio-settings">Settings</a>
-          <a href="/privacy.html">Privacy</a>
+          <a href="/privacy">Privacy</a>
         </nav>
       </details>
     </header>
@@ -51,6 +51,9 @@
       </div>
       <section id="signin" class="signin-panel" hidden>
         <h2>Sign in</h2>
+        <p class="field-help">
+          Passwordless sign-in via email code. Free to use — no password or Amazon login required.
+        </p>
         <form id="login-email-form">
           <label for="login-email">Email</label>
           <input
@@ -88,7 +91,13 @@
               <form id="create-form">
                 <label for="title">Title</label>
                 <div class="title-field">
-                  <input id="title" name="title" maxlength="160" required />
+                  <input
+                    id="title"
+                    name="title"
+                    maxlength="160"
+                    placeholder="Field notes on exposure"
+                    required
+                  />
                   <button
                     id="edit-title"
                     type="button"
@@ -102,9 +111,13 @@
                   id="manuscript"
                   name="markdown"
                   rows="7"
-                  maxlength="50000"
+                  maxlength="240000"
+                  placeholder="Write in Markdown — use # headings to split chapters, or try Example below."
                   required
                 ></textarea>
+                <p class="field-help">
+                  Markdown supported: headings, lists, code, tables and blockquotes.
+                </p>
                 <p class="field-help" id="manuscript-count" hidden></p>
                 <p id="example-status" class="field-help" hidden>
                   Figures and sources included.
@@ -143,7 +156,7 @@
               <form id="upload-form">
                 <label class="file-drop" for="original"
                   ><strong id="file-name">Drop an EPUB or PDF</strong
-                  ><span id="file-info">or choose · 20 MiB max</span
+                  ><span id="file-info">or choose · 20 MiB max · bytes kept unchanged</span
                   ><input
                     id="original"
                     type="file"
@@ -164,7 +177,7 @@
           </section>
           <section class="panel receipt-panel" id="receipt-panel" hidden>
             <div id="receipt"></div>
-            <button class="secondary" id="refresh-receipt">Refresh receipt</button>
+            <button type="button" class="secondary" id="refresh-receipt">Refresh receipt</button>
           </section>
           <section class="shelf-panel" id="files-panel" hidden>
             <h2 id="files-heading">Files</h2>
@@ -230,11 +243,16 @@
               <section class="amazon-setup">
                 <ol>
                   <li>
+                    Open Manage Your Content and Devices on
+                    <a href="https://www.amazon.com/mycd" target="_blank" rel="noopener noreferrer"
+                      >Amazon.com</a
+                    >
+                    or
                     <a
                       href="https://www.amazon.co.uk/mycd"
                       target="_blank"
                       rel="noopener noreferrer"
-                      >Amazon (UK)</a
+                      >Amazon.co.uk</a
                     >
                     → Preferences → Personal Document Settings.
                   </li>
@@ -243,46 +261,68 @@
                 </ol>
                 <p class="field-help">
                   <a
-                    href="https://www.amazon.co.uk/gp/help/customer/display.html?nodeId=GX9XLEVV8G4DB28H"
+                    href="https://www.amazon.com/gp/help/customer/display.html?nodeId=GX9XLEVV8G4DB28H"
                     target="_blank"
                     rel="noopener noreferrer"
-                    >Setup help</a
+                    >Send to Kindle help</a
                   >
-                  · Use your Amazon store.
+                  · Use your local Amazon store.
                 </p>
               </section>
             </section>
             <section class="panel connect-panel" id="connect-agent">
               <h2>Agent</h2>
-              <div class="agent-columns">
-                <div id="agent-setup">
-                  <code id="mcp-url"></code
-                  ><button id="copy-mcp" aria-label="Copy agent address" class="secondary">
-                    Copy
-                  </button>
+              <div id="agent-setup">
+                <code id="mcp-url"></code
+                ><button
+                  type="button"
+                  id="copy-mcp"
+                  aria-label="Copy agent address"
+                  class="secondary"
+                >
+                  Copy
+                </button>
+                <p class="field-help">
+                  <a href="https://github.com/timc0y/palim#connect-an-agent">Setup</a>
+                  · <a href="/palim-plugin.zip">Codex package</a>
+                </p>
+              </div>
+              <details id="personal-token" class="token-disclosure" hidden>
+                <summary>
+                  <span>Personal MCP token</span>
+                  <span class="token-badge" id="token-badge">None</span>
+                </summary>
+                <div class="token-body">
                   <p class="field-help">
-                    <a href="https://github.com/timc0y/palim#connect-an-agent">Setup</a>
-                    · <a href="/palim-plugin.zip">Codex package</a>
+                    For MCP clients that take an <code>Authorization: Bearer</code> header. Grants
+                    read, create and send access on your account. Creating a new token replaces any
+                    previous one.
                   </p>
+                  <div class="token-actions">
+                    <button type="button" id="create-token" class="secondary">Create token</button>
+                    <button
+                      type="button"
+                      id="revoke-token"
+                      class="plain-button token-revoke"
+                      hidden
+                    >
+                      Revoke token
+                    </button>
+                  </div>
+                  <div id="token-value" class="token-reveal" hidden>
+                    <label for="token-secret">Copy your token now — it is shown once.</label>
+                    <div class="token-secret-row">
+                      <input id="token-secret" readonly autocomplete="off" spellcheck="false" />
+                      <button type="button" id="copy-token" class="secondary">Copy</button>
+                    </div>
+                  </div>
+                  <p id="token-status" class="action-feedback" role="status"></p>
                 </div>
-                <section class="image-upload">
-                  <form id="image-form">
-                    <label for="figure-image">Image</label>
-                    <p class="field-help" id="image-limits">
-                      PNG/JPEG · 20 MiB · 4 million pixels.<br />8 MiB per book.
-                    </p>
-                    <input
-                      id="figure-image"
-                      aria-describedby="image-limits"
-                      type="file"
-                      accept="image/png,image/jpeg,.png,.jpg,.jpeg"
-                      required
-                    />
-                    <button type="submit">Upload</button>
-                  </form>
-                  <p id="image-result" class="field-help" role="status" hidden></p>
-                  <div id="image-assets"></div>
-                </section>
+              </details>
+              <div id="oauth-grants" class="grants-section">
+                <h3>Connected OAuth agents</h3>
+                <p id="grants-empty" class="field-help">No connected OAuth agents.</p>
+                <div id="grant-list"></div>
               </div>
             </section>
             <section class="limits">
@@ -293,10 +333,16 @@
             <section class="account-panel">
               <h2>Account</h2>
               <p id="account-name"></p>
-              <form action="/auth/logout" method="post" id="logout" hidden>
-                <button class="plain-button">Sign out</button>
-              </form>
-              <a href="https://github.com/timc0y/palim">source</a>
+              <div class="account-actions">
+                <form action="/auth/logout" method="post" id="logout" hidden>
+                  <button class="plain-button">Sign out</button>
+                </form>
+                <button type="button" class="plain-button token-revoke" id="delete-account" hidden>
+                  Delete account
+                </button>
+                <a href="/privacy">privacy</a>
+                <a href="https://github.com/timc0y/palim">source</a>
+              </div>
             </section>
           </div>
         </section>

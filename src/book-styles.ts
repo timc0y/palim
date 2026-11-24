@@ -1,3 +1,24 @@
+export const PALIM_PALETTE = {
+  paper: '#efefeb',
+  coverPaper: '#f1f0e7',
+  previewPaper: '#f5f4ee',
+  surface: '#f9faf4',
+  inset: '#e7ebdd',
+  ink: '#242521',
+  inkSoft: '#4c5346',
+  muted: '#555b4d',
+  accent: '#263fa9',
+  accentDeep: '#17256c',
+  screen: '#d8dbcd',
+  line: '#c5c8ba',
+  field: '#ffffff',
+} as const;
+
+export const PALIM_FONTS = {
+  reading: 'Manrope, sans-serif',
+  mono: '"IBM Plex Mono", monospace',
+} as const;
+
 // EPUB keeps ordinary block flow so the reading app can paginate and resize it.
 export const BOOK_CSS = `
 body { box-sizing: border-box; max-width: 40em; margin: 0 auto; padding: 0 .75em; font-family: serif; font-size: 1em; line-height: 1.5; overflow-wrap: break-word; }
@@ -9,7 +30,7 @@ p { margin: 0 0 1em; orphans: 3; widows: 3; }
 a { text-decoration: underline; }
 img { display: block; max-width: 100%; height: auto; margin: 0; }
 .chapter-heading { margin: 1em 0 1.5em; padding-bottom: 1em; border-bottom: 1px solid; page-break-inside: avoid; break-inside: avoid; }
-.chapter-number { font-family: sans-serif; font-size: .75em; margin: 0 0 .75em; }
+.chapter-number { font-family: sans-serif; font-size: .75em; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 .75em; }
 .chapter-heading h1 { margin: 0; }
 figure { max-width: 30em; margin: 2em 0; page-break-inside: avoid; break-inside: avoid; }
 .figure-bars img { width: 100%; max-width: 24em; }
@@ -21,14 +42,16 @@ blockquote { margin: 1.5em 0; padding-left: 1em; border-left: 2px solid; }
 blockquote p { margin: 0; }
 table { border-collapse: collapse; table-layout: fixed; width: 100%; font-size: .85em; line-height: 1.5; margin: 1.5em 0; }
 th, td { overflow-wrap: anywhere; padding: .75em .5em; border-bottom: 1px solid; text-align: left; vertical-align: top; }
-th { font-weight: bold; }
+th { font-family: sans-serif; font-size: .9em; font-weight: bold; border-bottom: 2px solid; }
 ul, ol { margin: 0 0 1em; padding-left: 1.5em; }
 li { margin-bottom: .5em; }
 .title-page { margin: 2em 0; padding-top: 1em; border-top: 2px solid; }
 .title-page h1 { font-size: 2.25em; line-height: 1.1; margin-bottom: .5em; }
 .subtitle { font-size: 1.15em; line-height: 1.5; }
 .author { margin: 1.5em 0; }
+.title-page .description { font-size: 1em; margin: 1em 0; }
 .source-note { font-size: .85em; }
+.source-section h1 { font-size: 1.75em; }
 `;
 
 // Every preview section uses the same label column, gutter and reading column.
@@ -36,12 +59,12 @@ export const PREVIEW_CSS = `
 @font-face { font-family: Manrope; src: url(/fonts/Manrope-Latin.woff2) format("woff2"); font-weight: 400 700; font-display: swap; }
 @font-face { font-family: "IBM Plex Mono"; src: url(/fonts/IBMPlexMono-Latin-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
 * { box-sizing: border-box; }
-html { color-scheme: light; background: #f5f4ee; color: #242521; scroll-behavior: smooth; }
+html { color-scheme: light; background: ${PALIM_PALETTE.previewPaper}; color: ${PALIM_PALETTE.ink}; scroll-behavior: smooth; }
 body {
   --reader-columns: 4.5rem minmax(0, 1fr);
   --reader-content: 2;
   --reader-gap: 2rem;
-  --reader-rule: #cdd0c3;
+  --reader-rule: ${PALIM_PALETTE.line};
   max-width: 52rem;
   margin: 0 auto;
   padding: 1.5rem clamp(24px, 4vw, 48px) 4rem;
@@ -51,19 +74,20 @@ body {
 h1, h2, h3, h4, h5, h6, p, figure, blockquote, pre, ul, ol { margin: 0; }
 h1, h2, h3, h4, h5, h6 { font-weight: 500; line-height: 1.25; letter-spacing: -.025em; }
 h1 { font-size: 3rem; line-height: 1.1; letter-spacing: -.035em; overflow-wrap: anywhere; }
-a { color: #263fa9; text-underline-offset: .2em; }
-a:focus-visible, summary:focus-visible { outline: 2px solid #263fa9; outline-offset: 5px; }
-::selection { background: #263fa9; color: #fff; }
+a { color: ${PALIM_PALETTE.accent}; text-underline-offset: .2em; }
+a:focus-visible, summary:focus-visible { outline: 2px solid ${PALIM_PALETTE.accent}; outline-offset: 4px; }
+::selection { background: ${PALIM_PALETTE.accent}; color: ${PALIM_PALETTE.field}; }
 strong { font-weight: 650; }
 .preview-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--reader-rule); font: .8125rem/1.5 "IBM Plex Mono", ui-monospace, monospace; }
+.preview-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; }
 .preview-tools a { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; color: inherit; text-decoration: none; }
-.preview-tools a:hover { color: #263fa9; text-decoration: underline; }
+.preview-tools a:hover { color: ${PALIM_PALETTE.accent}; text-decoration: underline; }
 .reader-wordmark svg { width: 1.25rem; height: 1.25rem; }
 .preview-header, .preview-contents, main > section, .chapter-heading, figure, figcaption { display: grid; grid-template-columns: var(--reader-columns); column-gap: var(--reader-gap); }
 .preview-header { padding-block: 2.5rem 2rem; }
 .preview-heading { grid-column: var(--reader-content); min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
-.preview-meta, .chapter-number, .figure-number { font: .75rem/1.5 "IBM Plex Mono", ui-monospace, monospace; color: #555b4d; }
-.preview-header .subtitle { font-size: 1.125rem; line-height: 1.6; color: #555b4d; }
+.preview-meta, .chapter-number, .figure-number { font: .75rem/1.5 "IBM Plex Mono", ui-monospace, monospace; color: ${PALIM_PALETTE.muted}; }
+.preview-header .subtitle { font-size: 1.125rem; line-height: 1.6; color: ${PALIM_PALETTE.muted}; }
 .preview-contents { padding-block: .5rem; border-block: 1px solid var(--reader-rule); font-size: .875rem; }
 .preview-contents details { grid-column: var(--reader-content); min-width: 0; }
 .preview-contents summary { display: flex; align-items: center; gap: .75rem; min-height: 44px; list-style: none; cursor: pointer; }
@@ -82,20 +106,20 @@ main > section > .chapter-heading { grid-column: 1 / -1; margin-bottom: .5rem; a
 main h3 { font-size: 1.25rem; margin-top: 1rem; }
 main h4, main h5, main h6 { font-size: 1rem; margin-top: 1rem; }
 main > section > figure { grid-column: 1 / -1; row-gap: 1rem; margin-block: 1rem; }
-figure img { grid-column: var(--reader-content); display: block; width: 100%; max-width: 30rem; height: auto; margin: 0; }
+figure img { grid-column: var(--reader-content); display: block; width: 100%; max-width: 30rem; height: auto; margin: 0; border: 1px solid var(--reader-rule); }
 .figure-bars img { width: 100%; max-width: 26rem; }
-figcaption { grid-column: 1 / -1; font-size: .875rem; line-height: 1.6; color: #555b4d; }
-.figure-number { padding-top: .125rem; color: #263fa9; }
+figcaption { grid-column: 1 / -1; font-size: .875rem; line-height: 1.6; color: ${PALIM_PALETTE.muted}; }
+.figure-number { padding-top: .125rem; color: ${PALIM_PALETTE.accent}; }
 .caption-text { grid-column: var(--reader-content); }
-blockquote { margin-top: .5rem; border-left: 2px solid #263fa9; padding-left: 1.5rem; font-size: 1rem; line-height: 1.7; }
+blockquote { margin-top: .5rem; border-left: 2px solid ${PALIM_PALETTE.accent}; padding-left: 1.5rem; font-size: 1rem; line-height: 1.7; }
 ul, ol { padding-left: 1.5rem; }
 li + li { margin-top: .5rem; }
 li > p + p { margin-top: .5rem; }
-pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; border: 1px solid var(--reader-rule); padding: 1rem; background: #eeefe5; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; border: 1px solid var(--reader-rule); padding: 1rem; background: ${PALIM_PALETTE.inset}; }
 code { font-family: ui-monospace, monospace; }
 table { border-collapse: collapse; table-layout: fixed; width: 100%; font-size: .875rem; line-height: 1.6; }
 th, td { overflow-wrap: anywhere; padding: .75rem .5rem; border-bottom: 1px solid var(--reader-rule); text-align: left; vertical-align: top; }
-th { font-weight: 500; color: #555b4d; }
+th { font-weight: 500; color: ${PALIM_PALETTE.muted}; }
 td { font-variant-numeric: tabular-nums; }
 .source-section ol { font-size: .875rem; line-height: 1.7; }
 .source-section a { overflow-wrap: anywhere; }

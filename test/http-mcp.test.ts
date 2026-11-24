@@ -8,7 +8,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { makeMcp, mcpFetch } from '../src/mcp.js';
 import { appFetch } from '../src/routes.js';
 import { readBytes, checkOrigin, secureHeaders } from '../src/http.js';
-import { fixture, simpleBook } from './helpers.js';
+import { fixture, NOW, simpleBook } from './helpers.js';
 test('official MCP client lists the guide and publishing tools and creates a draft', async () => {
   const f = await fixture();
   const server = makeMcp(f.env, 'alice', ['books:read', 'books:write', 'books:send']),
@@ -394,4 +394,97 @@ test('public reading fonts allow anonymous loading in sandboxed book previews', 
   const other = await appFetch(new Request(`${env.ORIGIN}/reader.css`), env);
   assert.equal(other.headers.get('Access-Control-Allow-Origin'), null);
   assert.equal(f.sent.length, 0);
+});
+
+test('consent renders signed-in identity and refresh disclosure, and Settings can list and revoke OAuth grants', async () => {
+  const f = await fixture();
+  const cookie = await f.session('alice');
+  const revoked: Array<{ grantId: string; userId: string }> = [];
+  const grants = [
+    {
+      id: 'grant-owned',
+      clientId: 'client-1',
+      userId: 'alice',
+      scope: ['books:read', 'books:write', 'books:send'],
+      metadata: { clientName: 'Codex MCP' },
+      createdAt: NOW,
+    },
+  ];
+  const oauthEnv = {
+    ...f.env,
+    OAUTH_PROVIDER: {
+      async parseAuthRequest() {
+        return {
+          responseType: 'code',
+          clientId: 'client-1',
+          redirectUri: 'https://chatgpt.com/callback',
+          scope: ['books:read', 'books:write', 'books:send'],
+          state: 'state-1',
+        };
+      },
+      async describeConsent() {
+        return {
+          clientName: 'ChatGPT MCP Client',
+          redirectHost: 'chatgpt.com',
+          redirectIsLoopback: false,
+          scope: ['books:read', 'books:write', 'books:send'],
+        };
+      },
+      async beginConsent() {
+        return { handle: 'consent-handle', headers: new Headers() };
+      },
+      async listUserGrants(userId: string) {
+        return { items: grants.filter((g) => g.userId === userId) };
+      },
+      async revokeGrant(grantId: string, userId: string) {
+        revoked.push({ grantId, userId });
+      },
+      async lookupClient() {
+        return { clientId: 'client-1', clientName: 'ChatGPT MCP Client', redirectUris: [] };
+      },
+    } as unknown as typeof f.env.OAUTH_PROVIDER,
+  };
+
+  const consent = await appFetch(
+    new Request(`${f.env.ORIGIN}/authorize`, { headers: { Cookie: cookie } }),
+    oauthEnv,
+  );
+  assert.equal(consent.status, 200);
+  const html = await consent.text();
+  assert.match(html, /alice@example\.invalid/);
+  assert.match(html, /Switch account/);
+  assert.match(html, /30 days/);
+  assert.match(html, /<code class="consent-host">chatgpt\.com<\/code>/);
+
+  const accountRes = await appFetch(
+    new Request(`${f.env.ORIGIN}/api/account`, { headers: { Cookie: cookie } }),
+    oauthEnv,
+  );
+  assert.equal(accountRes.status, 200);
+  const account = (await accountRes.json()) as {
+    grants: Array<{ id: string; clientName: string }>;
+  };
+  assert.equal(account.grants.length, 1);
+  assert.equal(account.grants[0]!.clientName, 'Codex MCP');
+
+  await assert.rejects(
+    appFetch(
+      new Request(`${f.env.ORIGIN}/api/oauth-grants/foreign-grant`, {
+        method: 'DELETE',
+        headers: { Cookie: cookie, Origin: f.env.ORIGIN },
+      }),
+      oauthEnv,
+    ),
+    /Connected agent not found/,
+  );
+
+  const revokeOwned = await appFetch(
+    new Request(`${f.env.ORIGIN}/api/oauth-grants/grant-owned`, {
+      method: 'DELETE',
+      headers: { Cookie: cookie, Origin: f.env.ORIGIN },
+    }),
+    oauthEnv,
+  );
+  assert.equal(revokeOwned.status, 200);
+  assert.deepEqual(revoked, [{ grantId: 'grant-owned', userId: 'alice' }]);
 });

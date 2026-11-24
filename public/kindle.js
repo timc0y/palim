@@ -1,19 +1,22 @@
 /*! UI SDK by Vercel, Apache-2.0. See /ui-sdk-LICENSE.txt. */
 import '@ui-sdk/web/button';
 
-const copy = document.querySelector('ui-button');
-const button = copy.querySelector('button');
-const commands = document.querySelector('.line__commands');
 const connect = document.querySelector('.connect');
 const status = document.querySelector('#copy-status');
-let reset;
+const timers = new WeakMap();
 
-copy.addEventListener('action', (event) => {
-  event.detail.waitUntil(copyCommands());
-});
+for (const copy of document.querySelectorAll('ui-button[data-copy]')) {
+  const button = copy.querySelector('button');
+  const commands = copy.closest('.line')?.querySelector('.line__commands');
+  if (!button || !commands) continue;
+  const label = copy.dataset.copyLabel || 'Command';
+  copy.addEventListener('action', (event) => {
+    event.detail.waitUntil(copyTarget(button, commands, label));
+  });
+}
 
-async function copyCommands() {
-  window.clearTimeout(reset);
+async function copyTarget(button, commands, label) {
+  window.clearTimeout(timers.get(button));
   button.textContent = 'copying';
   delete button.dataset.result;
   status.textContent = '';
@@ -21,11 +24,11 @@ async function copyCommands() {
     await navigator.clipboard.writeText(commands.textContent.trim());
     button.textContent = 'copied';
     button.dataset.result = 'copied';
-    status.textContent = 'Both commands copied.';
+    status.textContent = `${label} copied.`;
   } catch {
-    if (!connect.open) {
+    if (connect && !connect.open) {
       button.textContent = 'copy';
-      status.textContent = 'Copy unavailable. Open connect to copy the commands manually.';
+      status.textContent = 'Copy unavailable. Open connect to copy manually.';
       return;
     }
     const range = document.createRange();
@@ -35,10 +38,13 @@ async function copyCommands() {
     selection.addRange(range);
     button.textContent = 'selected';
     button.dataset.result = 'selected';
-    status.textContent = 'Both commands selected. Copy them using your device.';
+    status.textContent = `${label} selected. Copy using your device.`;
   }
-  reset = window.setTimeout(() => {
-    button.textContent = 'copy';
-    delete button.dataset.result;
-  }, 2400);
+  timers.set(
+    button,
+    window.setTimeout(() => {
+      button.textContent = 'copy';
+      delete button.dataset.result;
+    }, 2400),
+  );
 }

@@ -1,3 +1,4 @@
+import { changeToken } from './personal-token.js';
 import { z } from 'zod';
 import { authRoute, requireSession } from './auth.js';
 import { Palim, publicReceipt } from './service.js';
@@ -16,8 +17,31 @@ export async function appFetch(request: Request, env: Env): Promise<Response> {
   if (path.startsWith('/api/')) {
     const owner = await requireSession(request, env);
     if (!['GET', 'HEAD'].includes(request.method)) checkOrigin(request, env.ORIGIN);
+    if (path === '/api/mcp-token' && ['POST', 'DELETE'].includes(request.method))
+      return changeToken(owner, request.method, env);
     if (path === '/api/account' && request.method === 'GET')
       return json(await palim.account(owner));
+    if (path === '/api/account' && request.method === 'DELETE') {
+      await palim.deleteAccount(owner);
+      return new Response(JSON.stringify({ deleted: true }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'Set-Cookie': '__Host-palim=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
+        },
+      });
+    }
+    const grant = /^\/api\/oauth-grants\/([^/]+)$/.exec(path);
+    if (grant && request.method === 'DELETE') {
+      let grantId: string;
+      try {
+        grantId = decodeURIComponent(grant[1]!);
+      } catch {
+        throw new PalimError('INVALID_REQUEST', 'Invalid connected agent identifier.');
+      }
+      return json(await palim.revokeGrant(owner, grantId));
+    }
     if (path === '/api/books' && request.method === 'POST')
       return json(await palim.create(owner, await readJson(request, LIMITS.manuscript * 2)), 201);
     if (path === '/api/files' && request.method === 'POST')

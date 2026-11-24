@@ -6,6 +6,7 @@ import { inspectDocument, inspectZip } from '../src/archive.js';
 import { BookSchema, LIMITS } from '../src/schema.js';
 import { parseXml } from '../src/xml.js';
 import { staticSvg, coverSvg } from '../src/figures.js';
+import { BOOK_CSS, PALIM_FONTS, PALIM_PALETTE } from '../src/book-styles.js';
 import { simpleBook, pdf } from './helpers.js';
 const time = new Date('2026-10-25T00:00:00Z');
 test('EPUB has stored first mimetype and well-formed package, navigation and chapters', async () => {
@@ -354,4 +355,23 @@ test('cover retains maximum-length metadata without invalid or off-page text', (
     assert.ok(y - size >= 0 && y < 1520);
     assert.ok(x + Array.from(node.textContent || '').length * size < 1152);
   }
+});
+
+test('EPUB styles inherit reader colours and generated artwork uses canonical palette tokens', () => {
+  assert.equal(/(^|[;{\s])(color|background(-color)?)\s*:/i.test(BOOK_CSS), false);
+
+  const cover = parseXml(coverSvg('Title', 'Sub', 'Author'));
+  const texts = Array.from(cover.getElementsByTagName('text'));
+  assert.equal(texts.map((node) => node.textContent).join(''), 'TitleSubAuthor');
+  for (const node of texts) assert.equal(node.getAttribute('x'), '96');
+  assert.ok(coverSvg('Title', 'Sub', 'Author').includes(PALIM_PALETTE.coverPaper));
+  assert.ok(coverSvg('Title', 'Sub', 'Author').includes(PALIM_PALETTE.inkSoft));
+
+  const diagram = staticSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg"><rect fill="var(--_bg)"/><text fill="var(--_fg)" font-family="var(--_fm)">Hi</text></svg>',
+  );
+  assert.doesNotMatch(diagram, /var\(--_/);
+  assert.ok(diagram.includes(PALIM_PALETTE.field));
+  assert.ok(diagram.includes(PALIM_PALETTE.ink));
+  assert.ok(diagram.includes(PALIM_FONTS.reading));
 });
