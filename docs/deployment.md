@@ -1,7 +1,7 @@
 # Deploy your own Palim
 
 Deploy Palim to Cloudflare resources you control. The checked-in configuration points at the
-maintainer's own account, D1 database, KV namespace and the reserved `palim-timc0y.pages.dev`
+maintainer's own account, D1 database, KV namespace and the reserved `palim.pages.dev`
 hostname. Replace every identifier below before deploying. Resource creation is not a deployed or
 verified application, and each new deployment needs its own inbox and Kindle acceptance checks; see
 the current evidence in [verification](verification.md).
@@ -9,9 +9,9 @@ the current evidence in [verification](verification.md).
 ## Pages front door
 
 The maintained instance uses a `pages.dev` address: the direct-upload Pages project
-`palim-timc0y` is `https://palim-timc0y.pages.dev`. The deployment that serves it is recorded in
-[verification](verification.md). If you self-host, choose your own project name and do not assume
-`palim.pages.dev` is available.
+`palim` is `https://palim.pages.dev`. The deployment that serves it is recorded in
+[verification](verification.md). If you self-host, choose your own project name (for example
+`palim-yourname`), since `palim.pages.dev` is already taken.
 
 `pages/public/_worker.js` forwards every request unchanged through the `PALIM` service binding to the `palim` Worker. That Worker still owns static assets, email-code sign-in, MCP OAuth, D1, private R2, email, rate limiting and scheduled cleanup. There is no cross-origin browser API or duplicate authentication layer. Worker `ORIGIN` must be the canonical Pages origin; OAuth callbacks and signed downloads use that same origin. The Worker public `workers.dev` route and version URLs are disabled. Alternate Pages preview hostnames must fail the canonical origin check.
 

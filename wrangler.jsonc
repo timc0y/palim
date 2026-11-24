@@ -30,7 +30,7 @@
   "limits": { "cpu_ms": 30000 },
   "observability": { "enabled": false },
   "vars": {
-    "ORIGIN": "https://palim-timc0y.pages.dev",
+    "ORIGIN": "https://palim.pages.dev",
     "SENDER": "reading@palim.timc0y.com"
   }
 }

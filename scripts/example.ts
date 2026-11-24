@@ -52,7 +52,7 @@ const ogCard = await rasterize(
     <text x="140" y="366" font-family="${escapeXml(PALIM_FONTS.reading)}" font-size="29" fill="${PALIM_PALETTE.ink}">Illustrated EPUBs &amp; unchanged Kindle delivery.</text>
     <text x="140" y="416" font-family="${escapeXml(PALIM_FONTS.reading)}" font-size="22" fill="${PALIM_PALETTE.inkSoft}">Free · MIT open source · MCP + Web Studio</text>
     <path d="M140 464H720" stroke="${PALIM_PALETTE.line}" stroke-width="1.5"/>
-    <text x="140" y="502" font-family="${escapeXml(PALIM_FONTS.reading)}" font-size="20" fill="${PALIM_PALETTE.accent}">palim-timc0y.pages.dev</text>
+    <text x="140" y="502" font-family="${escapeXml(PALIM_FONTS.reading)}" font-size="20" fill="${PALIM_PALETTE.accent}">palim.pages.dev</text>
     <rect x="776" y="132" width="284" height="378" rx="4" fill="${PALIM_PALETTE.line}"/>
     <rect x="770" y="126" width="284" height="378" rx="4" fill="${PALIM_PALETTE.coverPaper}" stroke="${PALIM_PALETTE.ink}" stroke-width="2"/>
     <path d="M798 156H1026" stroke="${PALIM_PALETTE.ink}" stroke-width="2"/>

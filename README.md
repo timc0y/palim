@@ -7,8 +7,8 @@ AI model inside the service.
 [![Checks](https://github.com/timc0y/palim/actions/workflows/checks.yml/badge.svg)](https://github.com/timc0y/palim/actions/workflows/checks.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-263fa9.svg)](LICENSE)
 
-[Website](https://palim-timc0y.pages.dev/) · [Studio](https://palim-timc0y.pages.dev/app) ·
-[Sample](https://palim-timc0y.pages.dev/sample.html) · [Connect an agent](#connect-an-agent) ·
+[Website](https://palim.pages.dev/) · [Studio](https://palim.pages.dev/app) ·
+[Sample](https://palim.pages.dev/sample.html) · [Connect an agent](#connect-an-agent) ·
 [Self-host](#self-host-on-cloudflare)
 
 ![Palim — Illustrated EPUBs and unchanged Kindle delivery](public/og.png)
@@ -70,7 +70,7 @@ an original unchanged when you ask.
 
 1. Open [ChatGPT Plugins](https://chatgpt.com/plugins), select **+ → Add custom MCP server**, and
    name it Palim.
-2. Enter `https://palim-timc0y.pages.dev/mcp`, choose OAuth, review the connection warning, and
+2. Enter `https://palim.pages.dev/mcp`, choose OAuth, review the connection warning, and
    select **Create as a plugin**.
 3. Complete Palim sign-in in the browser and approve consent. Start a new conversation with Palim
    enabled.
@@ -92,8 +92,8 @@ from it. Complete the client’s OAuth connection and sign-in when requested. Do
 Palim connection. Client discovery and actual authenticated use are separate checks; see
 [verification](docs/verification.md).
 
-[Download the complete plugin ZIP](https://palim-timc0y.pages.dev/palim-plugin.zip) ·
-[SHA-256](https://palim-timc0y.pages.dev/palim-plugin.sha256)
+[Download the complete plugin ZIP](https://palim.pages.dev/palim-plugin.zip) ·
+[SHA-256](https://palim.pages.dev/palim-plugin.sha256)
 
 The archive is an inspectable Codex compatibility package containing no credentials. For a
 self-hosted deployment, generate the same bundle with your actual origin:
@@ -106,9 +106,9 @@ npm run plugin -- https://your-real-palim-host
 
 For any client that accepts a streamable HTTP MCP URL and an `Authorization: Bearer` header:
 
-1. Sign in to the [Palim studio](https://palim-timc0y.pages.dev/app).
+1. Sign in to the [Palim studio](https://palim.pages.dev/app).
 2. Open **Settings → Agent → Personal MCP token**, select **Create token**, and copy it once.
-3. Point your client at `https://palim-timc0y.pages.dev/mcp` with header
+3. Point your client at `https://palim.pages.dev/mcp` with header
    `Authorization: Bearer <your token>`.
 
 The personal token can read, create, and send books on your account. Store it only in your client’s
@@ -162,11 +162,11 @@ after 24 hours and download links after 15 minutes. Hosted accounts default to 2
 uploads, and 3 email submissions per UTC day, with shared daily and monthly ceilings.
 
 There is no server-side writing model and no repository crawler. Read the full statement in
-[privacy and limits](https://palim-timc0y.pages.dev/privacy).
+[privacy and limits](https://palim.pages.dev/privacy).
 
 ## Status & verification
 
-The hosted instance at `https://palim-timc0y.pages.dev` serves the deployment recorded in
+The hosted instance at `https://palim.pages.dev` serves the deployment recorded in
 [verification](docs/verification.md). Any subsequent unreleased changes on `main` are noted there
 separately until deployed.
 
@@ -201,6 +201,6 @@ npm run build         # build UI module, sample book/assets, plugin ZIP, and Wor
 
 ## Connection troubleshooting
 
-Use the canonical Pages address (`https://palim-timc0y.pages.dev`). If a saved consent screen
+Use the canonical Pages address (`https://palim.pages.dev`). If a saved consent screen
 mentions `ORIGIN`, start the connection again from the client instead of replaying that form. Never
 paste codes, cookies, or tokens into an issue.

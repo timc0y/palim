@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "From thought to page. Illustrated EPUBs and unchanged ebook forwarding.",
-  "homepage": "https://palim-timc0y.pages.dev",
+  "homepage": "https://palim.pages.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/timc0y/palim.git"

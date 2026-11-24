@@ -8,7 +8,7 @@ test('one Codex plugin contains one connection and branding, without obsolete sk
   const zip = await JSZip.loadAsync(built.bytes);
   const manifest = JSON.parse(await zip.file('.codex-plugin/plugin.json').async('text'));
   const config = JSON.parse(await zip.file('.mcp.json').async('text'));
-  assert.equal(config.mcpServers.palim.url, 'https://palim-timc0y.pages.dev/mcp');
+  assert.equal(config.mcpServers.palim.url, 'https://palim.pages.dev/mcp');
   assert.equal(manifest.mcpServers, './.mcp.json');
   assert.equal(manifest.skills, undefined);
   assert.equal(manifest.extensions?.['com.openai']?.onboardingSkill, undefined);

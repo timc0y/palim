@@ -67,7 +67,7 @@ try:
     def probe(url):
         with urllib.request.urlopen(base + '?url=' + urllib.parse.quote(url, safe=''), timeout=15) as r:
             return json.load(r)
-    positive = probe('https://palim-timc0y.pages.dev/sample.epub')
+    positive = probe('https://palim.pages.dev/sample.epub')
     assert positive.get('status') == 200, positive
     assert positive['hash'] == hashlib.sha256((ROOT / 'public/sample.epub').read_bytes()).hexdigest()
     negatives = []

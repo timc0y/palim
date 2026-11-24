@@ -23,8 +23,8 @@
     ],
     "composerIcon": "./assets/mark.svg",
     "logo": "./assets/mark.svg",
-    "websiteURL": "https://palim-timc0y.pages.dev",
-    "privacyPolicyURL": "https://palim-timc0y.pages.dev/privacy"
+    "websiteURL": "https://palim.pages.dev",
+    "privacyPolicyURL": "https://palim.pages.dev/privacy"
   },
   "mcpServers": "./.mcp.json"
 }

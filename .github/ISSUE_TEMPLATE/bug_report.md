@@ -13,7 +13,7 @@ A clear description of what went wrong and what you expected.
 
 ## Environment
 
-- **Target**: Hosted (`palim-timc0y.pages.dev`) / Self-hosted / Local (`npm run dev` or `npm run example`)
+- **Target**: Hosted (`palim.pages.dev`) / Self-hosted / Local (`npm run dev` or `npm run example`)
 - **Client / Browser**: (e.g. Studio on Safari 18, ChatGPT MCP, Codex CLI)
 - **Revision / Version**: (commit SHA or package version)
 
