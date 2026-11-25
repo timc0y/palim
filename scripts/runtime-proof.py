@@ -1762,22 +1762,34 @@ try:
             browser_page.once('dialog', lambda dialog: dialog.accept())
             browser_page.locator('#revoke-token').click()
             expect(browser_page.locator('#token-badge')).to_have_text('None')
-            def lose_created_token(route):
-                assert route.fetch().status == 201
-                route.abort('failed')
-            browser_page.route('**/api/mcp-token', lose_created_token, times=1)
+            lost_token = []
+            browser_page.route('**/api/mcp-token', lambda route: lost_token.append(route), times=1)
             browser_page.once('dialog', lambda dialog: dialog.accept())
             browser_page.locator('#create-token').click()
+            expect(browser_page.locator('#create-token')).to_have_text('Creating…')
+            deadline = time.monotonic() + 5
+            while not lost_token and time.monotonic() < deadline:
+                browser_page.wait_for_timeout(20)
+            route = lost_token.pop()
+            assert route.fetch().status == 201
+            route.abort('failed')
             expect(browser_page.locator('#token-status')).to_contain_text('A token is active.')
             expect(browser_page.locator('#create-token')).to_have_text('Replace token')
             expect(browser_page.locator('#token-secret')).to_have_value('')
             browser_page.once('dialog', lambda dialog: dialog.accept())
             browser_page.locator('#revoke-token').click()
             expect(browser_page.locator('#token-badge')).to_have_text('None')
-            browser_page.route('**/api/mcp-token', lose_created_token, times=1)
+            browser_page.route('**/api/mcp-token', lambda route: lost_token.append(route), times=1)
             browser_page.route('**/api/account', lambda route: route.abort('failed'), times=1)
             browser_page.once('dialog', lambda dialog: dialog.accept())
             browser_page.locator('#create-token').click()
+            expect(browser_page.locator('#create-token')).to_have_text('Creating…')
+            deadline = time.monotonic() + 5
+            while not lost_token and time.monotonic() < deadline:
+                browser_page.wait_for_timeout(20)
+            route = lost_token.pop()
+            assert route.fetch().status == 201
+            route.abort('failed')
             expect(browser_page.locator('#token-badge')).to_have_text('Unknown')
             pending_status = []
             browser_page.route('**/api/account', lambda route: pending_status.append(route), times=1)
@@ -2343,11 +2355,14 @@ try:
             expect(browser_page.locator('#file-name')).to_have_text('Choose an EPUB or PDF')
             expect(browser_page.locator('.file-drop')).to_have_css('border-top-style', 'dashed')
             expect(browser_page.locator('#file-info')).to_have_text('Drop a file here · 20 MiB maximum', use_inner_text=True)
-            touch_session = context.new_cdp_session(browser_page)
+            touch_page = context.new_page()
+            touch_page.set_viewport_size({'width':390,'height':844})
+            touch_session = context.new_cdp_session(touch_page)
             touch_session.send('Emulation.setTouchEmulationEnabled', {'enabled': True})
-            expect(browser_page.locator('#file-info')).to_have_text('20 MiB maximum', use_inner_text=True)
-            touch_session.send('Emulation.setTouchEmulationEnabled', {'enabled': False})
+            touch_page.goto(ORIGIN + '/app#upload-panel')
+            expect(touch_page.locator('#file-info')).to_have_text('20 MiB maximum', use_inner_text=True)
             touch_session.detach()
+            touch_page.close()
             expect(browser_page.locator('#file-info .drop-hint')).to_be_visible()
             browser_page.locator('.file-drop').evaluate('''el => {
                 const transfer = new DataTransfer();

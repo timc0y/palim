@@ -4,51 +4,62 @@ What has actually been checked, and what remains unverified.
 
 ## Latest deployment
 
-On 24 November 2026 at 16:59 UTC, source commit
-`3fbd72360c14f36e81393fe7d88a2a49cd016a81` was deployed to switch the canonical
-Cloudflare Pages front door from `https://palim-timc0y.pages.dev` to
-https://palim.pages.dev (remote D1 migration `0008-mcp-token.sql` was already
-applied on `palim` `7328bb73-47d8-415c-9c21-7efe595961e8`). Worker `palim` in
-the `tims` account was deployed as version
-`ae2ab2a1-7022-464b-805c-20e2d0dce47a` (tag `3fbd723`; previous versions
-`8506abe3-e77b-4dbc-a051-be34fc3965d3` and `dca2cc8b-2ec9-4f7a-ba9d-a6972c9b32d1`),
-and Cloudflare Pages project `palim` was deployed to production deployment
-`b03b094f-39b1-4c64-9a12-0ac0dc0cd119` (`https://b03b094f.palim.pages.dev`)
-at https://palim.pages.dev. No secrets, sending domains (`reading@palim.timc0y.com`),
-or unrelated Cloudflare infrastructure were altered. Legacy project `palim-timc0y`
-remains intact temporarily and refuses requests with HTTP `400` (`ORIGIN`) so old
-bookmarks cannot create split OAuth metadata.
+On 25 November 2026 at 08:38 UTC, source commit
+`03ad65edfe90495f080ff3c5da206ef35bbe3226` (comprising `66af68f` and `03ad65e`)
+was deployed to https://palim.pages.dev (no new D1 migrations; remote D1
+`palim` `7328bb73-47d8-415c-9c21-7efe595961e8` remains at `0008-mcp-token.sql`).
+Worker `palim` in account `04d3e478b1ddf0f5147120cacbf430de` was deployed as
+version `584142ec-4096-4611-a91b-05a400d61bab` (previous version
+`ae2ab2a1-7022-464b-805c-20e2d0dce47a`), and Cloudflare Pages project `palim`
+was deployed to production deployment `20b3ac49-09b7-413a-a201-c92bbd96a9fd`
+(`https://20b3ac49.palim.pages.dev`, previous
+`b03b094f-39b1-4c64-9a12-0ac0dc0cd119`) at https://palim.pages.dev. No secrets,
+sending domains (`reading@palim.timc0y.com`), or unrelated Cloudflare
+infrastructure were altered.
 
-Public GET checks against `https://palim.pages.dev` matched all 32 checked
-routes (`/`, `/app`, `/privacy`, `/sample.epub`, and all 28 non-worker files
-under `public/`, including landing/studio/privacy HTML, client scripts,
-stylesheets, fonts, licence files, cover/diagram/OG PNGs, `robots.txt`,
-`sample.html`, `example.json`, `reader.css`, `palim-plugin.zip`, and
-`palim-plugin.sha256`) byte for byte against this release. `/` and `/app`
-returned strict `default-src 'self'; script-src 'self'; style-src 'self'`
-CSP headers. Unauthenticated `GET /api/account` and `GET /mcp` returned `401`;
-an invalid Personal MCP bearer on `POST /mcp` returned `401` `UNAUTHORISED`;
-and `/.well-known/oauth-protected-resource/mcp` returned `200` advertising
-`https://palim.pages.dev/mcp` and `https://palim.pages.dev`.
-The served sample EPUB SHA-256 is
-`28c27c0abf3d6350bdf8a9afdd31a40b297fb6427fc38d53b91f255a535856cb` (`142,171`
-bytes), and `palim-plugin.zip` SHA-256 is
-`dfbe1e22356aaf98a1fe07ec255dd5c2932a597f66d19ab4db5e1c31fa4f3062` (`2,385` bytes).
+Public GET checks against `https://palim.pages.dev` matched all 31 served
+public routes (`/`, `/app`, `/privacy`, and all 28 non-HTML files under
+`public/`, including client scripts, stylesheets, self-hosted fonts, licence
+files, icons, `og.png`, `mark.svg`, `robots.txt`, `palim-plugin.zip`, and
+`palim-plugin.sha256`) byte for byte against commit `03ad65e`, while
+`/index.html`, `/app.html`, and `/privacy.html` returned HTTP `307` canonical
+clean-URL redirects. `/`, `/app`, and `/privacy` returned strict
+`default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'`
+CSP headers. Unauthenticated `GET /api/account` (`SIGN_IN_REQUIRED`) and
+`GET /mcp` returned `401`; an invalid Personal MCP bearer on `POST /mcp`
+returned `401` `invalid_token`; `/.well-known/oauth-protected-resource/mcp`
+returned `200` advertising `https://palim.pages.dev/mcp` and
+`https://palim.pages.dev`; and retired sample routes (`/sample.epub`,
+`/sample.html`, `/example.json`) returned `404`. The served `palim-plugin.zip`
+is `2,402` bytes with SHA-256
+`4358c29a3d5a32cbac82a514c60ae69cff3470b0901f4c62e2b72a35cda455ed`.
 
 These public checks did not sign in, exercise a live OAuth grant or Personal
-MCP token against production, send provider mail, import into Amazon, or inspect
-a physical Kindle. Source-file parity is not an authenticated live journey.
+MCP token against production, send provider mail, test the 25 MiB email limit
+with Cloudflare, import into Amazon, or inspect a physical Kindle. Source-file
+parity is not an authenticated live journey.
+
+### Previous deployment (`3fbd723`, 24 November 2026)
+
+On 24 November 2026 at 16:59 UTC, source commit
+`3fbd72360c14f36e81393fe7d88a2a49cd016a81` switched the canonical Cloudflare
+Pages front door from `https://palim-timc0y.pages.dev` to
+https://palim.pages.dev (Worker `ae2ab2a1-7022-464b-805c-20e2d0dce47a`, Pages
+`b03b094f-39b1-4c64-9a12-0ac0dc0cd119`). Legacy project `palim-timc0y` remains
+intact temporarily and refuses requests with HTTP `400` (`ORIGIN`) so old
+bookmarks cannot create split OAuth metadata.
 
 ## Release checks
 
 - Deployment preflight, Prettier `format:check`, `tsc --noEmit`, JS syntax
   checks, `npm audit --omit=dev --audit-level=high` (`0` vulnerabilities),
-  `git diff --check`, and all 105 behavioural tests passed.
-- The deployment rebuilt the landing module, sample EPUB/preview/OG card, reader
-  CSS, plugin ZIP, and Worker from checked source commit `3fbd723`.
-- [CI for the deployed source](https://github.com/timc0y/palim/actions/runs/45443222064)
-  passed in `1m22s` including formatting, build/type/105-test checks, production
-  dependency audit, independent EPUBCheck v5.4.0 (`Validating using EPUB version 3.4 rules`, `0 fatals / 0 errors / 0 warnings / 0 infos`), and both Worker and Pages `--browser` Chromium journeys.
+  `git diff --check`, and all 107 behavioural tests passed on `03ad65e`.
+- The deployment rebuilt `public/og.png`, `public/palim-plugin.zip`, and the
+  Worker bundle from checked source commit `03ad65e`.
+- `uv run --with playwright python scripts/runtime-proof.py --pages --browser`
+  passed locally on `03ad65e` (focus contrast `14.49:1`, placeholder contrast
+  `14.24:1`, expired-link CTA contrast `>= 4.5`, zero horizontal overflow at
+  `320px` + `200%` text zoom, and copy-button width stability).
 - Native local proofs use disposable D1, private R2, Better Auth, OAuth PKCE,
   MCP and captured synthetic mail. They establish local behaviour separately
   from the hosted public checks above.
@@ -77,7 +88,7 @@ fetch errors and retaining an unfinished draft after session expiry. These are
 source checks with mocked responses, not hosted account or mail evidence. This
 cleanup is included in this deployment.
 
-## Current working-tree retro-visual and truthfulness pass (not deployed)
+## Retro-visual, truthfulness, and UI-system pass (deployed 25 November 2026, `03ad65e`)
 
 Home opens on a grayscale desktop inside a graphite bezel. The publishing
 window sits above Home and Shelf. Menu contains
@@ -179,13 +190,11 @@ Local verification on this exact working tree:
   preserving the canonical OAuth origin, cookies, bearer tokens, request bodies, private downloads
   and wrong-origin refusal.
 
-These are disposable local proofs only. They did not deploy this working tree, sign in to the
-hosted service, submit provider email, prove the updated 25 MiB boundary with Cloudflare, import
-into Amazon, or inspect a physical Kindle. The public deployment recorded above still serves the
-earlier `142,171`-byte sample EPUB with SHA-256
-`28c27c0abf3d6350bdf8a9afdd31a40b297fb6427fc38d53b91f255a535856cb` and plugin SHA-256
-`dfbe1e22356aaf98a1fe07ec255dd5c2932a597f66d19ab4db5e1c31fa4f3062`; it is not in parity with this
-working tree.
+These are disposable local proofs only. They did not sign in to the hosted
+service, submit provider email, prove the updated 25 MiB boundary with
+Cloudflare, import into Amazon, or inspect a physical Kindle. Public route
+parity for this deployed release (`03ad65e`) is recorded under
+[Latest deployment](#latest-deployment) above.
 
 ## Interface checks
 
