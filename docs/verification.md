@@ -4,40 +4,66 @@ What has actually been checked, and what remains unverified.
 
 ## Latest deployment
 
-On 25 November 2026 at 08:38 UTC, source commit
-`03ad65edfe90495f080ff3c5da206ef35bbe3226` (comprising `66af68f` and `03ad65e`)
-was deployed to https://palim.pages.dev (no new D1 migrations; remote D1
-`palim` `7328bb73-47d8-415c-9c21-7efe595961e8` remains at `0008-mcp-token.sql`).
-Worker `palim` in account `04d3e478b1ddf0f5147120cacbf430de` was deployed as
-version `584142ec-4096-4611-a91b-05a400d61bab` (previous version
-`ae2ab2a1-7022-464b-805c-20e2d0dce47a`), and Cloudflare Pages project `palim`
-was deployed to production deployment `20b3ac49-09b7-413a-a201-c92bbd96a9fd`
-(`https://20b3ac49.palim.pages.dev`, previous
-`b03b094f-39b1-4c64-9a12-0ac0dc0cd119`) at https://palim.pages.dev. No secrets,
+On 25 November 2026 at 19:54 UTC, source commit
+`bc437765f6042efc897cc3bea377bea2b8663978` (`bc43776`) was deployed to
+https://palim.pages.dev (no new D1 migrations; remote D1 `palim`
+`7328bb73-47d8-415c-9c21-7efe595961e8` remains at `0008-mcp-token.sql`). Worker
+`palim` in account `04d3e478b1ddf0f5147120cacbf430de` was deployed as version
+`1b079c8c-a984-40f0-b968-c19518f73b14` (previous version
+`584142ec-4096-4611-a91b-05a400d61bab`), and Cloudflare Pages project `palim`
+was deployed to production deployment `1a66ef4a-0af4-437e-8dbe-5237f854fb56`
+(`https://1a66ef4a.palim.pages.dev`, previous
+`20b3ac49-09b7-413a-a201-c92bbd96a9fd`) at https://palim.pages.dev. No secrets,
 sending domains (`reading@palim.timc0y.com`), or unrelated Cloudflare
 infrastructure were altered.
 
-Public GET checks against `https://palim.pages.dev` matched all 31 served
-public routes (`/`, `/app`, `/privacy`, and all 28 non-HTML files under
-`public/`, including client scripts, stylesheets, self-hosted fonts, licence
-files, icons, `og.png`, `mark.svg`, `robots.txt`, `palim-plugin.zip`, and
-`palim-plugin.sha256`) byte for byte against commit `03ad65e`, while
-`/index.html`, `/app.html`, and `/privacy.html` returned HTTP `307` canonical
-clean-URL redirects. `/`, `/app`, and `/privacy` returned strict
+Public GET checks against `https://palim.pages.dev` matched all 34 served
+public routes (`/`, `/app`, `/privacy`, and all 31 non-HTML files under
+`public/`, including the night-crossing artwork `icons/cloud.svg`,
+`icons/tide.svg`, and `icons/boat.svg`, updated `og.png`, client scripts,
+stylesheets, self-hosted fonts, licence files, `mark.svg`, `robots.txt`,
+`palim-plugin.zip`, and `palim-plugin.sha256`) byte for byte against commit
+`bc43776`, while `/index.html`, `/app.html`, and `/privacy.html` returned HTTP
+`307` canonical clean-URL redirects. `/`, `/app`, and `/privacy` returned strict
 `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'`
 CSP headers. Unauthenticated `GET /api/account` (`SIGN_IN_REQUIRED`) and
 `GET /mcp` returned `401`; an invalid Personal MCP bearer on `POST /mcp`
-returned `401` `invalid_token`; `/.well-known/oauth-protected-resource/mcp`
+returned `401` (`UNAUTHORISED`); `/.well-known/oauth-protected-resource/mcp`
 returned `200` advertising `https://palim.pages.dev/mcp` and
 `https://palim.pages.dev`; and retired sample routes (`/sample.epub`,
 `/sample.html`, `/example.json`) returned `404`. The served `palim-plugin.zip`
 is `2,402` bytes with SHA-256
 `4358c29a3d5a32cbac82a514c60ae69cff3470b0901f4c62e2b72a35cda455ed`.
 
-These public checks did not sign in, exercise a live OAuth grant or Personal
-MCP token against production, send provider mail, test the 25 MiB email limit
-with Cloudflare, import into Amazon, or inspect a physical Kindle. Source-file
-parity is not an authenticated live journey.
+Local checks on `bc43776` passed before deployment: Prettier `format:check`,
+`tsc --noEmit`, JS syntax checks, `npm audit --omit=dev --audit-level=high` (`0`
+vulnerabilities), `npm run build`, `npm run example` (`artifacts/palim-sample.epub`,
+`126,521` bytes, SHA-256
+`d55b27ac3d0fc8ee59135c1ce3504cba914014a9c0239cde01769e63b56cf0b9`), all 108 unit
+and behavioural tests (including the six minimal monochrome visual primitives
+`plot`, `graph`, `trace`, `anatomy`, `equation`, and `table`, `wide: true` 90°
+rotated plates, native EPUB3 `noteref`/`footnote` markup, and the `nav.xhtml`
+`loi` Artifacts index), and both
+`uv run --with playwright python scripts/runtime-proof.py --browser` and
+`--pages --browser` (home focus contrast `15.89:1`, workspace focus contrast
+`14.49:1`, placeholder contrast `14.24:1`, zero horizontal overflow from `320px`
+to `1440px` and at `200%` text zoom). Visual inspection of `resvg`-rasterized
+PNGs verified the minimal cover and all six visual primitives. Local EPUBCheck
+was not run on this machine because no Java runtime is installed; CI runs
+EPUBCheck 5.4.0 `--failonwarnings` on push.
+
+These checks did not sign in on production, exercise a live OAuth grant or
+Personal MCP token against production, send provider mail, test the 25 MiB
+email limit with Cloudflare, import into Amazon, or inspect a physical Kindle.
+Local checks and live public GET parity are not an authenticated live journey.
+
+### Previous deployment (`03ad65e`, 25 November 2026)
+
+On 25 November 2026 at 08:38 UTC, source commit
+`03ad65edfe90495f080ff3c5da206ef35bbe3226` (comprising `66af68f` and `03ad65e`)
+was deployed to https://palim.pages.dev (Worker
+`584142ec-4096-4611-a91b-05a400d61bab`, Pages
+`20b3ac49-09b7-413a-a201-c92bbd96a9fd`).
 
 ### Previous deployment (`3fbd723`, 24 November 2026)
 
