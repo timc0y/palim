@@ -1,5 +1,5 @@
 @charset "UTF-8";
-@import url('/hardware.css');
+@import url('/theme.css');
 
 :root {
   --container-max: 58rem;
@@ -14,6 +14,9 @@
 }
 body {
   margin: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(255 255 255 / 58%), transparent 62%), var(--paper);
+  color: var(--ink);
   line-height: 1.65;
 }
 [hidden] {
@@ -63,30 +66,38 @@ h1,
 h2,
 h3 {
   overflow-wrap: anywhere;
-  font-family: var(--mono);
-  font-weight: 500;
+  font-weight: 700;
   text-wrap: balance;
 }
 .prose h1,
 .consent h1 {
-  font-size: 1.5rem;
+  font-family: var(--editorial);
+  font-size: 1.875rem;
   line-height: 1.3;
   letter-spacing: -0.03em;
 }
 .prose h2 {
-  font-size: 1rem;
-  line-height: 1.35;
+  scroll-margin-block-start: 0.75rem;
   margin-top: var(--space-4);
+  padding-top: var(--space-2);
+  border-top: 1px solid rgb(36 37 33 / 24%);
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.05em;
 }
 button,
 .button,
-.nav-privacy,
-code {
-  font-family: var(--mono);
+.nav-privacy {
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0;
   line-height: 1.45;
+}
+code {
+  font-family: var(--mono);
+  font-size: 0.875em;
 }
 p {
   text-wrap: pretty;
@@ -102,32 +113,18 @@ p {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--machine-edge);
+  font-family: var(--mono);
 }
 .wordmark {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   min-height: var(--target);
-  font-family: var(--mono);
-  font-size: 0.875rem;
-  font-weight: 400;
+  font: 600 1.1rem var(--editorial);
   letter-spacing: 0;
   line-height: 1;
   text-decoration: none;
-}
-.wordmark__emblem {
-  display: block;
-  width: 1.5rem;
-  height: 1.5rem;
-  flex: none;
-}
-.wordmark__stroke {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 1.75;
-  stroke-linecap: square;
-  stroke-linejoin: miter;
 }
 .nav-privacy {
   display: inline-flex;
@@ -148,24 +145,24 @@ button {
   justify-content: center;
   gap: var(--space-1);
   padding: 0.625rem 1.125rem;
-  background: var(--accent);
-  color: var(--field);
-  border: 1px solid var(--accent-edge);
+  background: var(--ink);
+  color: var(--screen);
+  border: 0;
   border-radius: var(--radius-control);
+  font-family: var(--ui);
   text-decoration: none;
-  transition: background-color 150ms;
 }
 .button:hover,
 button:hover {
-  background: var(--accent-edge);
+  background: #343530;
 }
 .secondary {
-  background: var(--surface);
+  background: var(--field);
   color: var(--ink);
   border: 1px solid var(--control-line);
 }
 .secondary:hover {
-  background: var(--inset);
+  background: var(--field);
 }
 .plain-button {
   min-height: var(--target);
@@ -198,6 +195,18 @@ button:hover {
   overflow: hidden;
   white-space: nowrap;
 }
+.prose,
+.consent {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  border: clamp(0.375rem, 1vw, 0.625rem) solid var(--bezel-lo);
+  border-radius: var(--radius-shell);
+  background: var(--paper);
+  box-shadow: 0 5px 16px rgb(0 0 0 / 12%);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
 .prose {
   max-width: 47.5rem;
   width: calc(100% - 3rem);
@@ -207,11 +216,6 @@ button:hover {
   max-width: 36rem;
   width: calc(100% - 3rem);
   margin: var(--space-4) auto var(--space-5);
-  padding: var(--panel-pad);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  background: var(--surface);
-  overflow-wrap: anywhere;
 }
 .prose h1,
 .consent h1 {
@@ -225,47 +229,64 @@ button:hover {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 1rem;
+  gap: 0.25rem 0.75rem;
   margin-bottom: var(--space-3);
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--inset);
   font-size: 0.875rem;
 }
-.consent-label {
-  margin-bottom: 0.375rem;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.8125rem;
+.consent {
+  container: consent / inline-size;
+  overflow-wrap: anywhere;
+  font: 400 1rem/1.55 var(--ui);
 }
-.consent-warning {
-  color: var(--warn);
-  font-size: 0.875rem;
-}
-.consent ul {
-  list-style: none;
-  margin: var(--space-3) 0;
-  padding: 0;
-  border-block: 1px solid var(--line);
-}
-.consent li {
-  padding-block: 0.625rem;
-  font-family: var(--mono);
-  font-size: 0.8125rem;
-}
-.consent li + li {
+.consent section {
+  margin-block: 1.5rem;
+  padding-top: 1rem;
   border-top: 1px solid var(--line);
 }
+.consent section h2 {
+  margin: 0 0 0.5rem;
+  font: 600 1rem/1.55 var(--ui);
+}
+.consent section p {
+  margin: 0.375rem 0 0;
+}
+.consent ul {
+  margin: 0 0 0.75rem;
+  padding-inline-start: 1.25rem;
+}
+.consent li + li {
+  margin-top: 0.375rem;
+}
+.consent-destination dl {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.25rem 1rem;
+  margin: 0 0 0.75rem;
+}
+@container consent (max-width: 24rem) {
+  .consent-account {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .consent-account .plain-button {
+    border-inline-start-width: 0;
+    padding-inline-start: 0;
+  }
+}
+@container consent (max-width: 18rem) {
+  .consent-destination dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .consent-destination dt:not(:first-child) {
+    margin-top: 0.5rem;
+  }
+}
+.consent-destination dd {
+  margin: 0;
+}
 .consent-host {
-  display: inline-block;
-  max-width: 100%;
-  padding: 0.1em 0.45em;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-chip);
-  background: var(--inset);
-  font-family: var(--mono);
-  font-size: 0.8125rem;
+  font: inherit;
   overflow-wrap: anywhere;
 }
 .consent .consent-actions {
@@ -273,6 +294,12 @@ button:hover {
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: 2rem;
+}
+@container consent (max-width: 16rem) {
+  .consent form.consent-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }
 @media (max-width: 47.5rem) {
   .wrap,
@@ -288,6 +315,39 @@ button:hover {
     margin-block: var(--space-3);
   }
 }
+@media (width < 40rem) {
+  body {
+    background: var(--paper);
+  }
+  .nav,
+  .prose,
+  .consent {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding-inline: 1rem;
+  }
+  .nav,
+  .prose {
+    padding-inline: min(1rem, 5vw);
+  }
+  .nav {
+    min-height: var(--target);
+  }
+  .prose,
+  .consent {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding-block: 1.25rem 2rem;
+  }
+  .consent > .wordmark {
+    display: flex;
+    margin: -1.25rem -1rem 1.25rem;
+    padding-inline: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   :root {
     scroll-behavior: auto;
@@ -297,5 +357,75 @@ button:hover {
   *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+.prose p,
+.consent p {
+  max-width: 65ch;
+}
+.file-recovery h1 {
+  margin-bottom: var(--space-1);
+}
+.file-recovery > p {
+  margin-block: 0 var(--space-3);
+}
+.file-recovery .shared-link-help {
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--line);
+}
+.file-recovery .consent-actions {
+  gap: var(--space-1);
+  margin-top: 0;
+}
+@container consent (max-width: 16rem) {
+  .file-recovery .consent-actions > a {
+    flex: 1 1 100%;
+  }
+}
+.prose h2 {
+  font: 600 1.25rem/1.3 var(--editorial);
+  letter-spacing: normal;
+}
+.prose p + p {
+  margin-top: 0.85rem;
+}
+
+:root:has(#file-upload-limit:target) {
+  scroll-behavior: auto;
+}
+#file-upload-limit {
+  scroll-margin-block-start: 0.5rem;
+}
+.policy-limits {
+  container: policy-limits / inline-size;
+  margin: 0;
+}
+.policy-limits > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) 2fr;
+  gap: 1rem;
+  padding-block: 0.875rem;
+}
+.policy-limits > div + div {
+  border-top: 1px solid var(--line);
+}
+.policy-limits > div:first-child {
+  padding-top: 0;
+}
+.policy-limits > div:last-child {
+  padding-bottom: 0;
+}
+.policy-limits dt {
+  font-weight: 600;
+}
+.policy-limits dd {
+  margin: 0;
+}
+@container policy-limits (max-width: 32rem) {
+  .policy-limits > div {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
   }
 }

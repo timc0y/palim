@@ -108,23 +108,30 @@ export function renderFigure(figure: Figure, assets: ReadonlyMap<string, Asset>)
       };
       const max = Math.max(...figure.data.map((point) => point.value)) || 1;
       const marks: string[] = [];
-      let y = 42;
+      let y = 44;
       for (const line of wrap(figure.unit)) {
-        marks.push(`<text x="24" y="${y}" fill="${PALIM_PALETTE.muted}">${e(line)}</text>`);
-        y += 36;
+        marks.push(
+          `<text x="24" y="${y}" font-weight="600" fill="${PALIM_PALETTE.muted}">${e(line)}</text>`,
+        );
+        y += 34;
       }
-      y += 12;
+      y += 16;
       for (const point of figure.data) {
+        const labelTop = y;
         for (const line of wrap(point.label)) {
-          marks.push(`<text x="24" y="${y}" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`);
-          y += 36;
+          marks.push(
+            `<text x="24" y="${y}" font-weight="800" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`,
+          );
+          y += 34;
         }
         const exact = String(point.value);
         const displayed = exact.length <= 12 ? exact : `≈ ${point.value.toPrecision(4)}`;
+        const width = Math.round((point.value / max) * 340);
+        const barY = y + 6;
         marks.push(
-          `<rect x="24" y="${y - 12}" width="${Math.round((point.value / max) * 340)}" height="24" fill="${PALIM_PALETTE.ink}"><title>${e(point.label)}: ${e(exact)} ${e(figure.unit)}</title></rect><text x="${Math.min(390, 24 + Math.round((point.value / max) * 340) + 16)}" y="${y + 8}" text-anchor="start" fill="${PALIM_PALETTE.ink}">${e(displayed)}</text>`,
+          `<text x="420" y="${labelTop}" text-anchor="start" font-weight="600" fill="${PALIM_PALETTE.muted}">${e(displayed)}</text><rect x="24" y="${barY}" width="340" height="22" fill="${PALIM_PALETTE.inset}"/><rect x="24" y="${barY}" width="${width}" height="22" fill="${PALIM_PALETTE.ink}"><title>${e(point.label)}: ${e(exact)} ${e(figure.unit)}</title></rect>`,
         );
-        y += 64;
+        y = barY + 62;
       }
       svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="${y}" viewBox="0 0 560 ${y}" font-family="${e(PALIM_FONTS.reading)}" font-size="30"><rect width="560" height="${y}" fill="${PALIM_PALETTE.field}"/>${marks.join('')}</svg>`;
     }
@@ -170,30 +177,29 @@ export function coverSvg(
     if (line) lines.push(line);
     return lines;
   };
-  const titleLines = wrap(title, 9);
-  const subtitleLines = subtitle ? wrap(subtitle, 26) : [];
-  const authorLines = creator ? wrap(creator, 28) : [];
-  const titleSize = Math.min(
-    140,
-    1008 / Math.max(...titleLines.map((line) => Array.from(line).length)),
-    620 / (titleLines.length * 1.15),
-  );
-  const titleBottom = 240 + titleLines.length * titleSize * 1.15;
-  const authorTop = 1480 - Math.max(0, authorLines.length - 1) * 44;
-  const subtitleSize = Math.min(
-    36,
-    1008 / Math.max(1, ...subtitleLines.map((line) => Array.from(line).length)),
-    (authorTop - titleBottom - 160) / Math.max(1, subtitleLines.length * 1.3),
-  );
+  const titleLines = wrap(title, 10);
+  const subtitleLines = subtitle ? wrap(subtitle, 38) : [];
+  const authorLines = creator ? wrap(creator, 42) : [];
+  const longestTitle = Math.max(...titleLines.map((line) => Array.from(line).length));
+  const titleSize = Math.min(112, 1008 / longestTitle, 520 / (titleLines.length * 1.04));
+  const titleStep = titleSize * 1.04;
+  const longestSubtitle = Math.max(1, ...subtitleLines.map((line) => Array.from(line).length));
+  const subtitleSize = subtitleLines.length
+    ? Math.min(34, 1008 / longestSubtitle, 420 / (subtitleLines.length * 1.45))
+    : 0;
+  const subtitleStep = subtitleSize * 1.45;
+  const subtitleBlock = subtitleLines.length ? 112 + subtitleLines.length * subtitleStep : 0;
+  const contentHeight = titleLines.length * titleStep + subtitleBlock;
+  const titleFirst = Math.max(320, Math.min(680, 900 - contentHeight / 2));
+  const titleBottom = titleFirst + (titleLines.length - 1) * titleStep;
+  const stopRuleY = titleBottom + Math.max(46, titleSize * 0.52);
+  const subtitleFirst = stopRuleY + 72 + subtitleSize;
   const authorSize = Math.min(
-    32,
+    26,
     1008 / Math.max(1, ...authorLines.map((line) => Array.from(line).length)),
   );
-  const subtitleTop = titleBottom + 80;
-  const contentBottom = subtitleLines.length
-    ? subtitleTop + subtitleLines.length * subtitleSize * 1.3
-    : titleBottom;
-  const motifTop = Math.max(960, contentBottom + 80);
-  const motifHeight = Math.min(300, authorTop - motifTop - 100);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600"><rect width="1200" height="1600" fill="${PALIM_PALETTE.coverPaper}"/><path d="M96 96H1104" stroke="${PALIM_PALETTE.ink}" stroke-width="3"/><path d="M96 138H190M96 152H154" stroke="${PALIM_PALETTE.accent}" stroke-width="5"/>${titleLines.map((line, i) => `<text x="96" y="${240 + titleSize + i * titleSize * 1.15}" font-family="${e(PALIM_FONTS.reading)}" font-size="${titleSize}" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`).join('')}${subtitleLines.map((line, i) => `<text x="96" y="${subtitleTop + subtitleSize + i * subtitleSize * 1.3}" font-family="${e(PALIM_FONTS.reading)}" font-size="${subtitleSize}" fill="${PALIM_PALETTE.inkSoft}">${e(line)}</text>`).join('')}${motifHeight > 100 ? `<rect x="96" y="${motifTop}" width="1008" height="${motifHeight}" fill="${PALIM_PALETTE.accent}"/><path d="M96 ${motifTop}H700L${700 - motifHeight} ${motifTop + motifHeight}H96Z" fill="${PALIM_PALETTE.ink}"/><path d="M700 ${motifTop}L${700 - motifHeight} ${motifTop + motifHeight}" stroke="${PALIM_PALETTE.coverPaper}" stroke-width="3"/>` : ''}${authorLines.map((line, i) => `<text x="96" y="${authorTop + i * 44}" font-family="${e(PALIM_FONTS.reading)}" font-size="${authorSize}" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`).join('')}<path d="M96 1520H1104" stroke="${PALIM_PALETTE.line}" stroke-width="2"/></svg>`;
+  const authorStep = authorSize * 1.35;
+  const authorFirst = 1468 - Math.max(0, authorLines.length - 1) * authorStep;
+  const tracking = Math.max(1.2, titleSize * 0.032);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600"><rect width="1200" height="1600" fill="${PALIM_PALETTE.coverPaper}"/><rect x="48" y="48" width="1104" height="1504" fill="none" stroke="${PALIM_PALETTE.ink}" stroke-width="2"/><path d="M96 88h28l14 14h42M96 116h48l14 14h30M96 144h34" fill="none" stroke="${PALIM_PALETTE.accent}" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter"/>${titleLines.map((line, i) => `<text x="96" y="${titleFirst + i * titleStep}" font-family="${e(PALIM_FONTS.reading)}" font-weight="600" font-size="${titleSize}" letter-spacing="-${tracking}" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`).join('')}<path d="M96 ${stopRuleY}h264" stroke="${PALIM_PALETTE.accent}" stroke-width="6"/>${subtitleLines.map((line, i) => `<text x="96" y="${subtitleFirst + i * subtitleStep}" font-family="${e(PALIM_FONTS.reading)}" font-weight="400" font-size="${subtitleSize}" fill="${PALIM_PALETTE.inkSoft}">${e(line)}</text>`).join('')}<path d="M96 1380H1104" stroke="${PALIM_PALETTE.ink}" stroke-width="2"/> ${authorLines.map((line, i) => `<text x="96" y="${authorFirst + i * authorStep}" font-family="${e(PALIM_FONTS.reading)}" font-weight="650" font-size="${authorSize}" fill="${PALIM_PALETTE.ink}">${e(line)}</text>`).join('')}</svg>`;
 }

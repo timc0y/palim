@@ -219,7 +219,7 @@ test('browser mutations need the exact origin and a real session', async () => {
 test('authenticated workspace image upload produces an owned figure usable in a book', async () => {
   const f = await fixture();
   const cookie = await f.session();
-  const image = readFileSync(new URL('../public/images/sample-exposure.png', import.meta.url));
+  const image = readFileSync(new URL('../public/icons/create-book.png', import.meta.url));
   const response = await appFetch(
     new Request('https://palim.example/api/files?kind=image', {
       method: 'POST',

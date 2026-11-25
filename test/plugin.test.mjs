@@ -9,6 +9,8 @@ test('one Codex plugin contains one connection and branding, without obsolete sk
   const manifest = JSON.parse(await zip.file('.codex-plugin/plugin.json').async('text'));
   const config = JSON.parse(await zip.file('.mcp.json').async('text'));
   assert.equal(config.mcpServers.palim.url, 'https://palim.pages.dev/mcp');
+  assert.equal(manifest.interface.websiteURL, 'https://palim.pages.dev');
+  assert.equal(manifest.interface.privacyPolicyURL, 'https://palim.pages.dev/privacy');
   assert.equal(manifest.mcpServers, './.mcp.json');
   assert.equal(manifest.skills, undefined);
   assert.equal(manifest.extensions?.['com.openai']?.onboardingSkill, undefined);
@@ -35,11 +37,14 @@ test('one Codex plugin contains one connection and branding, without obsolete sk
   assert.equal((await packagePlugin()).sha256, built.sha256);
 });
 
-test('self-hosted bundles change only the actual endpoint and reject unsafe origins', async () => {
+test('self-hosted bundles use the actual endpoint and service URLs', async () => {
   const built = await packagePlugin('https://reading.operator.invalid');
   const zip = await JSZip.loadAsync(built.bytes);
+  const manifest = JSON.parse(await zip.file('.codex-plugin/plugin.json').async('text'));
   const config = JSON.parse(await zip.file('.mcp.json').async('text'));
   assert.equal(config.mcpServers.palim.url, 'https://reading.operator.invalid/mcp');
+  assert.equal(manifest.interface.websiteURL, 'https://reading.operator.invalid');
+  assert.equal(manifest.interface.privacyPolicyURL, 'https://reading.operator.invalid/privacy');
   for (const bad of [
     'http://reading.invalid',
     'https://user:secret@reading.invalid',

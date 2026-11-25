@@ -17,7 +17,7 @@ const req = (path: string, value: unknown, cookie = '') =>
   });
 const send = (email = 'new@example.invalid') =>
   req('/auth/email-otp/send-verification-otp', { email, type: 'sign-in' });
-const code = (text: string) => /code is (\d{6})/.exec(text)![1]!;
+const code = (text: string) => /^(\d{6})$/m.exec(text)![1]!;
 test('Better Auth encrypts codes, sets secure host-only session, consumes code and revokes logout', async () => {
   const f = await fixture();
   assert.equal((await authRoute(send(), f.env))?.status, 200);

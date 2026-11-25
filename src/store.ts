@@ -69,7 +69,7 @@ export class Store {
     if (!row)
       throw new PalimError(
         'DAILY_LIMIT',
-        `The ${kind} allowance is full. Completed books remain downloadable until expiry.`,
+        `The daily ${kind === 'render' ? 'book creation' : 'upload'} limit has been reached. Try again after midnight UTC. Files already on Shelf remain available until they expire.`,
         429,
       );
   }
@@ -241,7 +241,7 @@ export class Store {
         recipientHash,
         floor,
         recipientHash,
-        now - 60,
+        now - LIMITS.loginResendSeconds,
       )
       .first();
     return row ? id : null;
@@ -251,11 +251,11 @@ export class Store {
     const row = await this.db
       .prepare(
         `INSERT INTO reader_destinations(id,owner,label,email)
-      SELECT ?,id,?,? FROM users WHERE id=? AND disabled=0
+      SELECT ?,id,COALESCE(?,'My Kindle'),? FROM users WHERE id=? AND disabled=0
       AND ((SELECT COUNT(*) FROM reader_destinations WHERE owner=?)<5 OR EXISTS(SELECT 1 FROM reader_destinations WHERE owner=? AND email=?))
-      ON CONFLICT(owner,email) DO UPDATE SET label=excluded.label RETURNING *`,
+      ON CONFLICT(owner,email) DO UPDATE SET label=COALESCE(?,reader_destinations.label) RETURNING *`,
       )
-      .bind(crypto.randomUUID(), label, email, owner, owner, owner, email)
+      .bind(crypto.randomUUID(), label || null, email, owner, owner, owner, email, label || null)
       .first<ReaderDestination>();
     if (!row)
       throw new PalimError(

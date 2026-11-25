@@ -166,7 +166,7 @@ export async function fixture() {
         req('/auth/email-otp/send-verification-otp', { email, type: 'sign-in' }),
         authEnv,
       );
-      const code = /code is ([0-9]+)/.exec(captured[0]!.text)![1];
+      const code = /^(\d{6})$/m.exec(captured[0]!.text)![1];
       const response = await authRoute(
         req('/auth/sign-in/email-otp', { email, otp: code }),
         authEnv,

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { fixture, pdf, simpleBook, NOW } from './helpers.js';
 import { buildBook } from '../src/book.js';
-import { prepareEmail, messageBudget, canEmail } from '../src/mail.js';
+import { MAX_EMAIL_DOCUMENT_BYTES, prepareEmail, messageBudget, canEmail } from '../src/mail.js';
 import { LIMITS } from '../src/schema.js';
 import { sha256 } from '../src/xml.js';
 
@@ -124,12 +124,14 @@ test('tampered storage is detected before email submission', async () => {
   assert.equal(f.sent.length, 0);
 });
 test('encoded email budget is conservative and enforced before submission', async () => {
-  assert.ok(messageBudget(3 * 1024 * 1024) < LIMITS.message);
-  assert.equal(canEmail(4 * 1024 * 1024), false);
+  assert.ok(messageBudget(MAX_EMAIL_DOCUMENT_BYTES) <= LIMITS.message);
+  assert.equal(canEmail(MAX_EMAIL_DOCUMENT_BYTES), true);
+  assert.equal(canEmail(MAX_EMAIL_DOCUMENT_BYTES + 1), false);
   const f = await fixture();
-  const bytes = new Uint8Array(4 * 1024 * 1024);
+  const bytes = new Uint8Array(MAX_EMAIL_DOCUMENT_BYTES + 1);
   bytes.set(pdf());
   const a = await f.palim.upload('alice', bytes, 'large.pdf');
+  assert.equal((await f.palim.account('alice')).limits.emailUploadBytes, MAX_EMAIL_DOCUMENT_BYTES);
   assert.equal(a.emailEligible, false);
   await assert.rejects(f.palim.send('alice', a.artifactId), /too large/);
   assert.equal(f.sent.length, 0);
@@ -164,7 +166,7 @@ test('account creation allowance preserves attempts and other account and shared
   const f = await fixture();
   await f.palim.store.admit('alice', 'render');
   await f.palim.store.admit('alice', 'render');
-  await assert.rejects(f.palim.create('alice', simpleBook), /render allowance/);
+  await assert.rejects(f.palim.create('alice', simpleBook), /daily book creation limit/);
   f.sql.prepare('UPDATE users SET daily_render_limit=20 WHERE id=?').run('alice');
   assert.equal((await f.palim.account('alice')).limits.renders, 20);
   assert.equal((await f.palim.account('bob')).limits.renders, 2);
@@ -175,15 +177,15 @@ test('account creation allowance preserves attempts and other account and shared
     Array.from({ length: 20 }, () => f.palim.store.admit('alice', 'render')),
   );
   assert.equal(results.filter((r) => r.status === 'fulfilled').length, 17);
-  await assert.rejects(f.palim.create('alice', simpleBook), /render allowance/);
+  await assert.rejects(f.palim.create('alice', simpleBook), /daily book creation limit/);
   await f.palim.store.admit('bob', 'render');
   await f.palim.store.admit('bob', 'render');
-  await assert.rejects(f.palim.store.admit('bob', 'render'), /render allowance/);
+  await assert.rejects(f.palim.store.admit('bob', 'render'), /daily book creation limit/);
   await f.palim.store.upsertUser('third', 'Third');
   // Shared render admission is still capped at 160, regardless of an account's allowance.
   const insert = f.sql.prepare('INSERT INTO operations(id,owner,kind,created_at) VALUES(?,?,?,?)');
   for (let i = 22; i < 160; i++) insert.run(`shared-${i}`, 'bob', 'render', NOW);
-  await assert.rejects(f.palim.store.admit('third', 'render'), /render allowance/);
+  await assert.rejects(f.palim.store.admit('third', 'render'), /daily book creation limit/);
   assert.equal(
     f.sql.prepare("SELECT COUNT(*) n FROM operations WHERE kind='render'").get()!.n,
     160,
@@ -262,7 +264,7 @@ test('host-file download is denied before network work when upload allowance is 
       download_url: 'https://files.example/approved.epub',
       filename: 'approved.epub',
     }),
-    /allowance/,
+    /daily upload limit.*after midnight UTC/,
   );
 });
 

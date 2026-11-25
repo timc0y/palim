@@ -53,6 +53,9 @@ export async function packagePlugin(origin) {
     throw new Error('Supply a real HTTPS origin without a path, credentials or query.');
   config.mcpServers.palim.url = `${url.origin}/mcp`;
   files.set('.mcp.json', Buffer.from(JSON.stringify(config, null, 2) + '\n'));
+  manifest.interface.websiteURL = url.origin;
+  manifest.interface.privacyPolicyURL = `${url.origin}/privacy`;
+  files.set('.codex-plugin/plugin.json', Buffer.from(JSON.stringify(manifest, null, 2) + '\n'));
   const extension = { interface: manifest.interface };
   for (const path of [extension.interface.logo, extension.interface.composerIcon]) {
     if (!path?.startsWith('./') || !files.has(path.slice(2)))
@@ -81,7 +84,10 @@ export async function packagePlugin(origin) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const built = await packagePlugin(process.argv[2]);
+  const workerConfig = JSON.parse(await readFile(resolve(root, 'wrangler.jsonc'), 'utf8'));
+  const built = await packagePlugin(
+    process.argv[2] || process.env.PALIM_PLUGIN_ORIGIN || workerConfig.vars?.ORIGIN,
+  );
   for (const directory of ['public', 'artifacts']) {
     const path = resolve(root, directory, 'palim-plugin.zip');
     await mkdir(dirname(path), { recursive: true });

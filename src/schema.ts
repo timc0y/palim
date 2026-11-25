@@ -4,7 +4,7 @@ export const LIMITS = Object.freeze({
   upload: 20 * 1024 * 1024,
   manuscript: 240_000,
   output: 10 * 1024 * 1024,
-  message: 5 * 1024 * 1024,
+  message: 25 * 1024 * 1024,
   xml: 256 * 1024,
   entries: 4096,
   inflated: 128 * 1024 * 1024,
@@ -12,6 +12,7 @@ export const LIMITS = Object.freeze({
   retention: 86400,
   receiptRetention: 35 * 86400,
   uploads: 6,
+  loginResendSeconds: 60,
   globalDaily: 80,
   globalMonthly: 2400,
 });

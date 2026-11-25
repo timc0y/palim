@@ -77,6 +77,116 @@ fetch errors and retaining an unfinished draft after session expiry. These are
 source checks with mocked responses, not hosted account or mail evidence. This
 cleanup is included in this deployment.
 
+## Current working-tree retro-visual and truthfulness pass (not deployed)
+
+Home opens on a grayscale desktop inside a graphite bezel. The publishing
+window sits above Home and Shelf. Menu contains
+settings, agent connection, source and privacy links. Studio exposes its
+task switcher and Privacy link from its header menu.
+
+Studio uses the same physical shell, dark bezel, pale screen, and scanlines, but its screen is a
+viewport-fixed operational workspace rather than a long document. The machine remains within the
+viewport while sign-in, Create, Upload, result, receipt, shelf, Settings, and dialog content
+scroll inside the screen. The editor sits on the paper surface. Results,
+receipts, Shelf and Settings use separate panels. The Send and File info actions
+open native dialogs.
+
+Studio typography now has explicit roles rather than decorative monospace everywhere: IBM Plex
+Serif carries screen titles, artifact names, receipt headings, dialog headings and the file-picker
+prompt; IBM Plex Sans carries operational copy, labels, controls, forms, Settings and state
+messages; IBM Plex Mono is reserved for machine chrome, hashes, addresses, metadata and manuscript
+editing; Manrope remains the reading/preview face. Result actions group together instead of spreading across the card; reader/application
+rows use explicit action clusters; shelf actions form a deliberate full-width grid on narrow
+screens; first-use sending explains the Kindle-address and Amazon-sender prerequisites inside the
+Send dialog.
+
+The system is now neutral/grayscale rather than blue-led. `--accent` is ink; the compact mark and
+plugin asset use a grayscale ink tile; browser `theme-color` values match the outer warm grey.
+Delivery/account states remain distinguishable through neutral tones plus explicit text labels
+and are never encoded by colour alone. Generated covers remain typographic paper covers inside a
+thin editorial frame: stepped Palim device, optically centred title, subtitle, short ink stopped
+rule, creator, and bottom rule. The OG image reuses the real generated cover. Generated EPUB body
+text inherits the reading application's font and colours. Browser and standalone previews load
+Manrope only and use pale e-ink paper with neutral figure labels and rules.
+
+The reduction/correction work in the same unreleased tree remains in force: the
+`@ui-sdk/core`/`@ui-sdk/web` dependency and separate bundled `public/landing.js` build are removed;
+`public/kindle.js` is served directly; Studio uses a direct text `settings` link rather than a cog
+disclosure; result filenames/titles are plain read-only text rather than disabled inputs; and the
+small Palim mark is reserved for favicon/app-tile/plugin use rather than repeated inline branding.
+
+Review-driven corrections now included in the same unreleased tree:
+
+- Short-book browser previews open the contents list by default (six chapters or fewer); longer
+  books keep the disclosure collapsed. EPUB table layout is automatic rather than fixed so
+  reading systems can size narrow numeric columns.
+- The initial Studio account-read failure is visible outside the hidden sign-in/desk panels and
+  has a working Retry action. Signed-in refresh failures still report beside the visible desk.
+- First-send setup now labels the no-address action `Set up first send`, shows the Kindle-address
+  and Amazon personal-sender prerequisites in the first-use Send dialog and return banner, and
+  repeats that prerequisite in the Send dialog after the first address is saved. This is guidance
+  only; Palim still cannot verify Amazon approval.
+- The plugin ZIP derives its MCP endpoint, website URL and privacy URL from the Worker `ORIGIN`
+  in `wrangler.jsonc`; `npm run plugin -- <origin>` or a matching `PALIM_PLUGIN_ORIGIN` can build
+  the same package without deployment, while deployment preflight rejects a mismatched
+  `PALIM_PLUGIN_ORIGIN`. This addresses self-host package drift in source; no self-hosted remote
+  deployment has been exercised.
+- Cloudflare's currently documented Email Sending total message limit is 25 MiB including
+  attachments/encoding, so `LIMITS.message` is now 25 MiB rather than the stale 5 MiB boundary.
+  Studio file selection warns when an otherwise valid upload exceeds the server-reported
+  conservative raw-file threshold (`19,132,731` bytes at the current reserve) and points the user
+  to Amazon's web uploader without blocking a temporary private copy. This is documentation-derived
+  local enforcement only; no live Cloudflare acceptance of a near-limit message has been tested.
+- Public and Studio quota copy now says creation attempts where failed attempts consume the
+  render allowance. Forwarding copy separates storing an original from the later Send action;
+  preview copy no longer implies generated-preview URLs for uploaded originals. Send copy now says
+  that agents are instructed to send only when asked, rather than claiming the service technically
+  proves human intent.
+- README local setup includes the local D1 migration command, and agent setup includes a concrete
+  first no-send prompt. Local sign-in email capture remains a development-environment concern,
+  not hosted evidence.
+
+Local verification on this exact working tree:
+
+- `npm run build` passed. It regenerated `artifacts/palim-sample.epub` and
+  `public/sample.epub` at `131,896` bytes with SHA-256
+  `69b5388992e0d91ecbf4f2d9e6859c90e004ee02afc5e9c75543cd42fa67f28f` (`510` words, `0`
+  warnings), regenerated the browser preview/cover/diagram/OG assets, and produced
+  `public/palim-plugin.zip` at `2,402` bytes with SHA-256
+  `4358c29a3d5a32cbac82a514c60ae69cff3470b0901f4c62e2b72a35cda455ed`. Wrangler dry-run bundling
+  completed with the expected KV, D1, R2, email, rate-limit, origin and sender bindings.
+- `npm run format:check`, `npm run check` (`tsc --noEmit`, JavaScript syntax checks,
+  **106/106** behavioural tests), `npm audit --omit=dev --audit-level=high` (`0` vulnerabilities),
+  and `git diff --check` passed. After the final harder-separation CSS/copy pass, `npm run check`,
+  the Chromium runtime proof and `git diff --check` were run again and passed.
+- `uv run --with playwright python scripts/runtime-proof.py --browser` passed: plugin response
+  headers plus endpoint/website/privacy inspection, Better Auth OTP with captured synthetic mail,
+  OAuth consent/PKCE, seven-tool MCP discovery, creation/link refresh/download hash,
+  missing-destination refusal, personal MCP token lifecycle, `/api` isolation, strict
+  public/private CSP, packaged EPUB XHTML reflow in Chromium, visible startup failure plus Retry,
+  direct settings navigation, native landing copy-to-clipboard behaviour, first-send setup and
+  Amazon-sender reminder, open short-book contents, upload-time oversize email guidance, mobile
+  create/upload journeys, shelf touch targets, grayscale receipt-state distinction, account
+  isolation and logout revocation. The proof captured the Send-to-Kindle and File-details dialogs
+  as `artifacts/share-dialog-mobile.png` and `artifacts/file-info-dialog-mobile.png`. The mobile
+  workspace proof also asserted that shelf content
+  overflowed the internal workspace height by more than `100px`, that the physical shell stayed
+  within the `844px` viewport, and that the document itself did not become taller than the viewport;
+  it captured the scrolled bottom state as `artifacts/workspace-scrolled-mobile.png`. Rendered primary
+  and landing-header focus contrast both measured `10.78:1`; workspace focus contrast measured
+  `10.78:1`; placeholder contrast measured `6.92:1`.
+- `python3 scripts/runtime-proof.py --pages` passed against the real local Pages service binding,
+  preserving the canonical OAuth origin, cookies, bearer tokens, request bodies, private downloads
+  and wrong-origin refusal.
+
+These are disposable local proofs only. They did not deploy this working tree, sign in to the
+hosted service, submit provider email, prove the updated 25 MiB boundary with Cloudflare, import
+into Amazon, or inspect a physical Kindle. The public deployment recorded above still serves the
+earlier `142,171`-byte sample EPUB with SHA-256
+`28c27c0abf3d6350bdf8a9afdd31a40b297fb6427fc38d53b91f255a535856cb` and plugin SHA-256
+`dfbe1e22356aaf98a1fe07ec255dd5c2932a597f66d19ab4db5e1c31fa4f3062`; it is not in parity with this
+working tree.
+
 ## Interface checks
 
 ### Sample and MCP improvements
@@ -90,8 +200,8 @@ The sample is a 510-word field guide: choose movement, exchange a stop, then
 compare three frames. Its light-ratio chart precedes the aperture illustration,
 with essential values in reflowable prose. The illustration is rebuilt from its
 SVG source through the maintained rasterizer. Chart width is bounded on wide
-pages. The local HTML edition embeds CSS, fonts and licence notices and opens
-without a server or network.
+pages. The local HTML edition embeds CSS, its Manrope reading font and licence notice
+and opens without a server or network.
 
 Source renders checked the sample and actual packaged XHTML at phone/desktop
 widths and 200% text at 320px. Tests exercise maximum-length cover metadata,
@@ -113,7 +223,8 @@ alignment and targets chart/image figures by kind.
 The full local suite passed 98 tests, including the public-font response
 checks. Native Worker and Pages proofs exercised seven-tool discovery and matching
 structured/text results through OAuth and MCP. The browser proof also checks
-that both reading and mono fonts load inside the private preview's sandbox.
+that Manrope loads inside the private preview's sandbox and IBM Plex Mono is not
+loaded merely for metadata.
 Public WOFF2 assets allow anonymous font loading; other asset responses do not
 gain that permission.
 
@@ -137,10 +248,12 @@ These changes are included in the deployment recorded above; the hosted checks c
 
 ### Landing and studio
 
-The landing uses the MIT SPEC-01 hardware treatment and Apache-2.0 UI SDK
-0.1.0-beta.1. Its bundle, fonts and licences are self-hosted. Native connect
-content remains available without JavaScript; the enhanced copy control appears
-after loading. The SDK uses constructed stylesheets under the existing CSP.
+At the deployment recorded above, the landing used the MIT SPEC-01 hardware
+treatment and Apache-2.0 UI SDK 0.1.0-beta.1. Its bundle, fonts and licences
+were self-hosted. Native connect
+content remained available without JavaScript; the enhanced copy control appeared
+after loading. The SDK used constructed stylesheets under the existing CSP.
+The current working-tree pass supersedes this implementation as described above.
 
 Self-contained source renders covered 320px and 390px phones, tablet and desktop
 widths up to 1280px, and doubled text at 320px. Closed landing layouts also fit
@@ -172,15 +285,16 @@ loading states. The final handler proof passed after the spacing changes.
 These checks did not take control of the user's browser. Physical keyboard,
 clipboard and assistive-technology behaviour remain separate checks.
 
-The settings-cog source change replaces the header's two text links with one
-labelled native disclosure. Source checks covered 390px and 728px layouts and
+A since-superseded settings-cog source change replaced the header's two text
+links with one labelled native disclosure. Source checks covered 390px and 728px layouts and
 200% text at 320px, with the menu fitting the viewport. Handler checks exercised
 Settings navigation and heading focus, Escape and outside-click dismissal,
 signed-out Privacy access and draft retention. The Chromium acceptance script
-also checks keyboard opening and the actual Privacy-and-return journey. Now
-included in the 24 November 2026 deployment (`5528c90`).
+also checked keyboard opening and the actual Privacy-and-return journey. That
+menu was included in the 24 November 2026 deployment (`5528c90`); the current
+working tree replaces it with the direct text link verified above.
 
-The current studio source removes the manual Image upload and Copy ID list
+A further studio source change removed the manual Image upload and Copy ID list
 from Settings, including their handlers and styles. Agent image import and the
 illustrated example remain available. Local checks passed all 98 tests at that
 step; source-handler checks exercised book creation and Settings navigation, and
@@ -287,16 +401,60 @@ python3 scripts/runtime-proof.py
 python3 scripts/runtime-proof.py --pages
 ```
 
-Add `--browser` to either runtime command for its isolated Chromium checks.
+Add `--browser` to either runtime command for its isolated Chromium checks. If
+the system Python does not have Playwright installed, use
+`uv run --with playwright python scripts/runtime-proof.py --browser` (or the
+equivalent `--pages --browser` form).
 Runtime proofs use disposable local identities and storage and captured mail;
 they do not contact Amazon or submit provider email.
 
 Use `python3 scripts/runtime-proof.py --help` to list the modes. `--origin-only`
 and `--saved-addresses-only` select separate browser checks and cannot be combined.
+The saved-addresses check simulates an expired file at Send. In local Chromium,
+Escape returns focus to a remaining Shelf file. Once the last file expires,
+focus lands on Create a book and Enter opens the editor.
 Unknown flags are errors rather than a request to run the default proof.
 
 The optional `python3 scripts/file-network-proof.py` checks workerd's public-only
-outbound policy against a local private-network witness. Its positive check needs
-`public/sample.epub` from a build matching the hosted sample at the canonical
-Pages address. It performs public GETs but creates no identity, OAuth, storage or
+outbound policy against a local private-network witness. Its positive check verifies the W3C home icon against a pinned digest. It performs public GETs but creates no identity, OAuth, storage or
 email bindings.
+
+The local Chromium proof opens Create a book, Forward a file, Shelf and Settings
+from Home with a signed-in test account. Each launcher must reveal the named
+Studio view, and the Home link must return to the desktop. The proof exercises
+browser Back and Forward between the create and Settings windows. The proof also
+captures the Home screen at 390 and 1440 pixels wide.
+The illustrated launchers also loaded in local Chromium at 320, 390 and 1440
+pixels. The Home screen had no horizontal overflow at those widths.
+
+The local browser proof checks that the Home task titles stack on a shared left edge
+at seven widths from 320 to 1440 pixels. From 640 pixels, the tasks occupy the right
+column beside the landscape. It also checks that the Studio heading aligns with the
+first book field on mobile.
+
+In local Chromium, disconnecting the final app from the Connected applications link
+shows one confirmation. Opening that link with no apps shows the empty state.
+
+The local browser proof renders read-only consent at 320 and 1440 pixels and
+checks the permission list, a 512-byte upload label and draft badge contrast.
+It captures the mobile consent and privacy screens alongside the local fixture reader,
+settings, editor, result, dialogs and receipt.
+
+The local removal check requires HTTP 404 for the old sample preview, EPUB,
+JSON and two images. EPUB validation uses a local-only fixture.
+
+Local Chromium checks cover workspace loading and retry, sign-in recovery, busy creation, whitespace-only titles and manuscripts, chapter count and length errors, invalid uploads, a dedicated Shelf, and returning from first-send setup. Address management checks focus after changing the default, removing one of several addresses and removing the last address. An expired private link returns a recovery page for browser navigation and a JSON error for API access. The browser follows the recovery link back to Shelf. Synthetic receipts exercise submitting, submitted, rejected and unknown outcomes. The browser check opens a sent book for editing, returns to its receipt, then creates a second edition and checks that its result has no old receipt or additional email.
+
+Home was rendered in desktop WebKit with local assets at widths from 320 to 1024 pixels, including both sides of the 640-pixel layout change. The checks measured heading alignment and page width and exercised the agent menu and Escape dismissal. Physical iOS Safari remains unverified.
+
+The locally generated illustrated EPUB passed checksum-pinned EPUBCheck 5.4.0 with zero errors or warnings after adding navigation landmarks. Its contents follow spine order, and its title page, first chapter and bibliography links resolve inside the archive. Reader menu presentation and physical Kindle behaviour remain unverified for this build.
+
+The session-expiry browser check keeps a manuscript in memory while the author signs back in. It checks the blank sign-in state, restoration to the same account, and an empty editor after signing in as another account. Mail and rate-limit timing are simulated locally.
+
+Studio language validation was exercised with the metadata section closed. A corrected regional language was checked in both the private preview and the downloaded EPUB package.
+
+The local illustrated HTML preview was printed to A4 and US Letter PDF in Chromium. Both exports contained all chapter and source headings across three pages, with reader controls omitted. This checks PDF output, not a physical printer.
+
+The saved-address browser check uploads a PDF with accented Latin and Japanese characters in its filename, downloads it from Shelf, and checks the browser filename and exact original bytes. Unicode attachment names at a live mail provider remain unverified.
+
+The local Chromium Forward check uploads a 19 MiB synthetic PDF fixture and compares the downloaded file byte for byte with the original. It verifies that the upload result hides Send and that both the result and Shelf’s File details link to Amazon’s Send to Kindle. Amazon upload, import and device delivery remain unverified for this fixture.

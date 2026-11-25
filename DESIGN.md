@@ -1,146 +1,172 @@
 # Palim visual system
 
-Warm retro e-reader paired with fine editorial publishing: one palette and two
-typefaces across both independent journeys (create an illustrated EPUB; forward an
-original EPUB or PDF unchanged). Code owns exact literal values; this file owns
-surface boundaries, intent, and contracts.
+Palim uses a retro grayscale e-reader system: graphite and warm-grey device
+housing, dark display rims, neutral e-ink screens, tactile hardware keys, plain
+typographic reading surfaces, and standard operational controls inside application
+screens. The treatment is intentionally reminiscent
+of an early Kindle without copying Amazon branding or implying affiliation. It
+must stay subordinate to the two independent product journeys: create an
+illustrated EPUB; forward an original EPUB or PDF unchanged. Code owns exact
+literal values; this file owns surface boundaries, intent, and contracts.
 
 ## 1. Owners
 
-| File                  | Owns                                                                                                                                                                                    |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `public/hardware.css` | Shared CSS tokens (`:root`), `@font-face` declarations (`IBM Plex Mono`, `Manrope`), `.machine`, `.key`                                                                                 |
-| `public/kindle.css`   | Landing hardware frame (`@layer ui-sdk`), manual sections, colophon (`@import`s `hardware.css`)                                                                                         |
-| `public/studio.css`   | Studio workspace, create/upload forms, shelf cards, dialogs, Settings (`@import`s `hardware.css`)                                                                                       |
-| `public/style.css`    | Long-form reading & trust surfaces: `/privacy` and `/authorize` (`@import`s `hardware.css`)                                                                                             |
-| `public/mark.svg`     | Favicon tile variant (indigo rounded tile, white stroked glyph)                                                                                                                         |
-| `src/book-styles.ts`  | Canonical `PALIM_PALETTE`, `PALIM_FONTS`, EPUB `BOOK_CSS`, browser `PREVIEW_CSS`                                                                                                        |
-| `src/figures.ts`      | `coverSvg`, bar-chart SVGs, Mermaid `staticSvg` variable mapping                                                                                                                        |
-| `scripts/example.ts`  | Deterministically generates `public/reader.css`, `public/sample.html`, `public/sample.epub`, `public/images/sample-cover.png`, `public/images/sample-exposure.png`, and `public/og.png` |
+| File                     | Owns                                                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `public/theme.css`       | Shared CSS tokens (`:root`) and `@font-face` declarations (`IBM Plex Sans`, `IBM Plex Serif`, `IBM Plex Mono`, `Manrope`) |
+| `public/hardware.css`    | Shared machine shell and tactile key treatment adapted from SPEC-01 (MIT); no tokens or fonts                             |
+| `public/kindle.css`      | Single-device landing Kindle, in-screen home UI, connection menu and graphite bezel                                       |
+| `public/studio.css`      | Studio machine, workspace screen, create/upload forms, shelf rows, dialogs, Settings                                      |
+| `public/style.css`       | Long-form trust surfaces: `/privacy` and `/authorize`                                                                     |
+| `public/mark.svg`        | Compact grayscale favicon/app-tile mark                                                                                   |
+| `src/book-styles.ts`     | Canonical `PALIM_PALETTE`, `PALIM_FONTS`, EPUB `BOOK_CSS`, browser `PREVIEW_CSS`                                          |
+| `src/figures.ts`         | `coverSvg`, bar-chart SVGs, Mermaid `staticSvg` variable mapping                                                          |
+| `scripts/social-card.ts` | Generates the public Open Graph image.                                                                                    |
+| `scripts/example.ts`     | Generates local EPUB validation fixtures in `artifacts/`.                                                                 |
 
-Never edit generated outputs directly (`public/reader.css`, `public/sample.html`,
-`public/sample.epub`, `public/images/*`, `public/og.png`, `public/landing.js`);
-rebuild them with `npm run example` and `npm run ui`.
+## 2. Tokens and materials
 
-## 2. Tokens
-
-- **Canonical CSS tokens** live only in `public/hardware.css` `:root`; surface
+- **Canonical CSS tokens** live only in `public/theme.css` `:root`; surface
   stylesheets must not redefine hex literals or duplicate tokens.
 - **Canonical TS tokens** live only in `src/book-styles.ts` (`PALIM_PALETTE`,
-  `PALIM_FONTS`) and mirror the same paper, ink, muted, accent, surface, inset,
-  line, and field values.
-- **Decorative vs. essential rules:** `--line` carries subtle editorial dividers
-  only (about 1.48:1 on paper — never a sole essential control boundary).
-  `--control-line` carries inputs, buttons, and dropzone boundaries (>= 3:1
-  non-text contrast across `--field`, `--surface`, `--paper`, and `--inset`).
-- **Named intentional surface exceptions:** `--cover-paper` (`coverPaper`,
-  generated covers), `--preview-paper` (`previewPaper`, browser reading preview),
-  and `--screen` (`screen`, e-reader plate).
+  `PALIM_FONTS`) and mirror the same neutral paper, screen, ink, line, field,
+  machine, key, and bezel values.
+- **Palette discipline:** the interface is grayscale/neutral. `--accent` is ink,
+  not blue. Semantic delivery and account states use distinguishable neutral
+  tones, backgrounds, text labels, and layout rather than chromatic colour.
+  State is never encoded by colour alone.
+- **Materials:** `--paper` is outer plastic/page space; `--screen` is the pale
+  neutral-grey e-ink display; `--machine-*`, `--key-*`, `--bezel-*`, and
+  `--device-key-*` are reserved for device housing, keys, and display rims. Do
+  not use them as arbitrary card decoration.
+- **Scanlines:** subtle repeating 1px screen texture may appear inside device or
+  e-ink panels. It must remain low contrast and must not interfere with reading.
+- **Shape discipline:** machine housings and keys may be rounded because they are
+  physical objects. Application screens use one level of bordered operational cards
+  with small radii; reading and generated content remain rectangular, ruled, and
+  plain. Shadows are reserved for physical machine/key depth and true overlays,
+  not ordinary editorial cards.
 - **Scale tokens:** `--target` (`44px` minimum interactive size), `--space-1` to
-  `--space-5`, and radii `--radius-chip`, `--radius-control`, `--radius-panel`,
-  `--radius-pill`.
+  `--space-5`, and radius aliases remain shared compatibility tokens.
 
 ## 3. Typography
 
-- **IBM Plex Mono (400/500):** machine hero wordmark, hardware keys, studio UI,
-  long-form section headings, status metadata, and code chips.
-- **Manrope (400–700):** landing manual prose, Privacy/Consent body, reading
-  preview, and rasterized artwork (`src/raster.ts` embeds Manrope for all SVG
-  families).
-- **Studio label headings:** panel and dialog `h2` headings (`.settings-content h2`,
-  `.shelf-panel > h2`, `.receipt-panel h2`, `.dialog-heading h2`) use uppercase
-  tracked mono (`0.8125rem`, `0.06em` letter-spacing) so section structure separates
-  from body text without inflating layout.
-- **Icon vs. emblem counterpoint:** Studio action icons (`app.js` `.icon`) use
-  `20px`, `1.6` stroke, round caps; the wordmark emblem uses square caps and
-  miter joins.
+- **IBM Plex Serif (600):** Studio screen titles, artifact filenames, receipt and
+  dialog headings, and the file-picker prompt. It provides the editorial object
+  voice inside the machine; it is not a general body face.
+- **IBM Plex Sans (400/600):** Studio operational copy, labels, controls, forms,
+  settings, helper text, and state messages. This is the product-interface voice.
+- **IBM Plex Mono (400/500):** machine chrome, navigation, code, commands,
+  hashes, machine addresses, metadata, manuscript editing, tabular measurement,
+  and compact machine data. It is not decorative display type.
+- **Manrope (400–800):** long-form reading surfaces, generated EPUB browser
+  previews, covers, and generated artwork.
+- **Copy discipline:** Studio copy uses short, direct, slightly dry task-first sentences in the spirit
+  of PostHog: concrete, a little plain-spoken, never jokey at the expense of truth. Controls name
+  their object (`Create EPUB`, `Upload original`, `Set up first send`); statuses
+  say only what is known (`Not sent`, `Submitted`, `Not accepted`, `Status
+unknown`). Remove implementation residue, repeated orientation, and vague
+  system copy.
+- **Headings:** sentence case, strong scale, balanced wrapping. Ordinary body text
+  stays readable inside the portrait screen rather than being shrunk to fit.
 - Fonts are self-hosted in `public/fonts/`; notices are in `THIRD_PARTY.md`.
 
-## 4. Wordmark & emblem
+## 4. Wordmark & mark
 
-- **Geometry:** `viewBox="0 0 32 32"` with three stepped ink strokes
-  (`M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4`).
-- **In-page emblem (default):** bare `var(--ink)` stroke (`width: 1.75`,
-  `stroke-linecap: square; stroke-linejoin: miter`) on landing, Studio, Privacy,
-  OAuth consent, and `/sample.html`.
-- **Tile variant (standalone small avatars only):** `public/mark.svg` favicon and
-  the scaled `mark.svg` badge on `public/og.png`.
+- **In-page identity:** the lowercase text wordmark `palim` is sufficient. Studio,
+  Privacy and OAuth consent use text-only home links without a
+  repeated inline emblem.
+- **Compact mark:** `public/mark.svg` and the plugin asset use three stepped white
+  strokes on a grayscale ink tile. They are reserved for browser chrome, app tiles,
+  and plugin identity where the word cannot fit.
+- **Generated-cover device:** the small stepped Palim line device may appear once
+  on generated covers and the social card as a typographic colophon mark.
 
 ## 5. Web surfaces
 
-- **Landing (`/`):** retro e-reader hardware shell holding wordmark, tagline,
-  progressive-enhancement `connect an agent` disclosure (`/mcp` URL + Codex CLI),
-  and `sample` / `studio` / `source` keys, followed by calm ruled manual sections
-  and colophon.
-- **Studio (`/app`):** separate `Create` and `Upload` tasks behind a single cog
-  settings disclosure; native `<dialog>` sheets for Send to Kindle (always showing
-  the full selected Kindle email above `Send`) and File info; connected OAuth
-  agents and self-service deletion in Settings; errors live beside the failing
-  operation; labels remain visible.
-- **Privacy & Consent (`/privacy`, `/authorize`):** narrow readable column on
-  paper for Privacy; calm `--surface` trust panel on `/authorize` with a skip link,
-  signed-in account bar with `Switch account`, standalone inset mono `redirectHost`
-  chip, ruled scope rows, 30-day refresh disclosure, and external `/style.css`
-  (zero inline `<style>`/`<script>` under strict CSP).
-- **Interactive baseline:** `>= 44px` touch targets, unified `4px` `:focus-visible`
-  outline offset, `cursor: wait` on disabled/busy operations.
+- **Home (`/`):** the landscape sits above a full-width publishing desk. On wide screens, a graphite bezel frames two side-by-side actions. On phones, the page fills the screen and the two actions form a single list.
+  Home and Shelf share the bottom navigation; settings and agent setup live in Menu.
+  Studio uses the same book navigation and
+  opens the active task on paper, inset against the landscape on wide screens.
+- **Studio (`/app`):** the device frame contains a scrolling workspace.
+  The header menu switches tasks. The selected task opens directly below. The heading and form share a left edge. Editors use the paper
+  surface directly; separate surfaces hold results,
+  receipts, files, and Settings, and familiar monochrome primary/secondary/plain
+  controls. Results give the filename priority over status. Shelf has its own screen.
+  Fine rules separate its files and mark the headings in Settings. Native `<dialog>` sheets
+  handle Send to Kindle and File info. Settings cards stack in one column inside
+  the portrait screen. First-send setup names the wider task (`Set up first send`),
+  shows the Amazon sender prerequisite beside the return path, and repeats that
+  prerequisite after the first address is saved. Errors live beside the failing
+  operation. Initial account-load failure is a visible Studio-unavailable state
+  with Retry rather than a message hidden inside a closed panel.
+- **Privacy & Consent (`/privacy`, `/authorize`):** full-width paper on phones and framed panels on wider screens.
+  Both use the Palim mark as the home link. Consent uses ruled permission rows, a signed-in
+  account bar with `Switch account`, and a standalone inset mono `redirectHost`
+  chip. Strict CSP still forbids inline `<style>`/`<script>`.
+- **Interactive baseline:** every interactive control has a rendered hit area of
+  at least `44px` in both dimensions, including shelf Download/Preview/Send/Delete
+  actions. Focus uses a unified visible outline with a `4px` offset. Busy or
+  disabled operations use `cursor: wait`.
+- **Motion:** tactile key movement is limited to the existing short press
+  translation and is removed under `prefers-reduced-motion`. Do not add reveals,
+  page transitions, gestures, or other animation without using the Motion skill
+  first.
+
+Screen corners use the bezel radius less its inset. Controls, chips, panels
+and outer shells use the shared radius tokens in `public/theme.css`. Inverted
+panel headers follow the inner corner of their surrounding border.
 
 ## 6. Components
 
-- **Hardware keys & buttons:** `.machine` and `.key` in `hardware.css` keep local
-  named bevel/material tokens (`--machine-*`, `--key-*`, `--bezel-*`).
-- **Status pills & receipt states:** `.token-badge` and `.artifact-status` share
-  one semantic pill token family (`--neutral-*`, `--info-*`, `--success-*`,
-  `--warn-*`); delivery states preserve distinct computed colours for `submitted`,
-  `rejected`, and `unknown`, never implying device confirmation.
-- **File card bands:** title & status band, primary `Download` + preview/`Send`
-  transfer actions, and `--inset` footer metadata + info icon.
+- **Screen controls:** application buttons are familiar flat monochrome controls,
+  not physical keys. One dark filled primary action per view; secondary controls
+  use light outlined material. Plain destructive or low-emphasis actions remain
+  text-like but still receive the full 44px hit area.
+- **Status pills & receipt states:** `.token-badge`, `.artifact-status`, and
+  `.receipt-state` use neutral tones plus explicit text. `submitted`, `rejected`,
+  and `unknown` remain distinguishable in rendered grayscale; `submitted` never
+  implies Amazon import or device confirmation.
+- **File rows:** title, metadata, transfer actions, and destructive actions stay
+  scannable without nested cards. Read-only filenames/titles are plain text, not
+  disabled inputs pretending to be editable. Hairlines group related rows.
+- **Disclosures:** agent connection, metadata, tokens, and setup detail use
+  progressive disclosure rather than showing every control at once.
 
-## 7. Generated EPUB
+## 7. Generated EPUB, preview, cover, and social card
 
 - **`BOOK_CSS` invariants:** reflowable ordinary block flow (`max-width: 40em`),
-  `em`-relative sizing only, and **zero** hardcoded `color` or `background` rules on
-  prose so reader light, sepia, and dark themes inherit cleanly.
-- **Covers (`coverSvg`):** align title, subtitle, and author on `x="96"`, emit no
-  extra `<text>` nodes beyond `title + subtitle + creator`, wrap/scale metadata
-  within bounds, and use the `coverPaper` + ink rule + indigo fold motif.
-- **Charts, Mermaid & illustrations:** map through `PALIM_PALETTE` and `PALIM_FONTS`;
-  all EPUB figures are PNG-only via `rasterize()` (`@cf-wasm/resvg` + Manrope).
-- **Monochrome e-ink rule:** never encode meaning by colour alone — use direct text
-  labels, ring thickness, bar length, rule thickness, and bold labels so greyscale
-  displays stay legible.
+  `em`-relative sizing only, inherited reader body font, automatic table layout,
+  and **zero** hardcoded `color` or `background` rules on prose so reader fonts
+  plus light, sepia, and dark themes inherit cleanly.
+- **Covers (`coverSvg`):** monochrome typographic paper covers inside one thin
+  editorial frame. The small stepped Palim device is the only brand ornament;
+  title, subtitle, short ink stopped rule, creator, and bottom ink rule align in
+  an optically centred composition. There is no illustrative scene, colour block,
+  faux texture, or decorative imagery.
+- **Social card:** the same grayscale editorial system at 1200×630: paper,
+  stepped device, large wordmark, one factual line, domain and licence note.
+- **Browser preview:** pale e-ink paper, Manrope reading text, and compact mono
+  machine metadata. Contents are visible by default for books of six chapters or
+  fewer and collapse behind disclosure for longer books. Raster figures may keep
+  an opaque white plate because transparency and reader inversion are unreliable.
+- **Charts, Mermaid & illustrations:** map through `PALIM_PALETTE` and
+  `PALIM_FONTS`; all EPUB figures are PNG-only via `rasterize()` (`@cf-wasm/resvg`
+  - Manrope). Diagrams may use geometry because it communicates data or structure.
+- **Monochrome e-ink rule:** never encode meaning by colour alone — use direct
+  text labels, ring thickness, bar length, rule thickness, and bold labels so
+  grayscale displays stay legible.
 
-## 8. Responsive, accessibility & test contracts
+## 8. Responsive, accessibility & proof contracts
 
-Named automated invariants:
-
-- `test/chart-layout.test.ts`: bar-chart SVG keeps `width="560"`, `font-size="30"`,
-  `340` max bar width, `text-anchor="start"`, rounding formatting, exact `<title>`.
-- `test/book.test.ts`: `BOOK_CSS` has zero colour/background rules; `coverSvg` text
-  concatenates strictly to `title+subtitle+creator` within bounds (`x="96"`,
-  `y < 1520`); preview has one `<h1>`, no `<h4>`, no `.cover`; EPUB contains no
-  `.svg` files and sets `rendition:layout` to `reflowable`; `staticSvg` leaves no
-  unresolved `var(--_*)`.
-- `scripts/runtime-proof.py`: landing focus order (`Tab` -> `.skip` -> `.bar .logo`),
-  opaque backdrop focus contrast `>= 3:1`, `sample.html` `.preview-heading` 1px
-  left-edge alignment, `>= 18px` preview body font, rendered chart font `>= 14px`,
-  three distinct `.receipt-state` colours, `>= 44px` shelf targets, and zero
-  horizontal overflow at `390px`, `1440px`, and `200%` text zoom.
-
-## 9. Verification
-
-Local checks (`npm run check`, `npm run format:check`, `npm run build`,
-`npm audit --omit=dev --audit-level=high`, `npm run example`, CI EPUBCheck,
-`python3 scripts/runtime-proof.py`, `python3 scripts/runtime-proof.py --pages`,
-and greyscale artwork inspection) establish source and local-worker correctness
-only — never remote Cloudflare deployment, Amazon conversion, or physical Kindle
-rendering. Record evidence boundaries in [Verification](docs/verification.md).
-
-## 10. Changing the system
-
-1. Add or update CSS tokens in `public/hardware.css` and matching keys in
-   `PALIM_PALETTE` / `PALIM_FONTS` in `src/book-styles.ts`.
-2. Verify WCAG contrast (`>= 4.5:1` body text, `>= 3:1` essential controls).
-3. Run `npm run example && npm run format && npm run check && npm run build`.
-4. Run `python3 scripts/runtime-proof.py && python3 scripts/runtime-proof.py --pages`.
-5. Visually check desktop, mobile, zoom, dark-mode EPUB, and greyscale artwork.
+- Desktop machines should read as centered physical objects with generous outer
+  plastic margins; mobile machines may approach the viewport edges but must keep
+  the screen and controls inside the frame.
+- The landing Kindle approaches the viewport edges on narrow screens while its
+  fixed-height screen and in-device connection menu remain contained. Studio
+  forms, shelf rows, dialogs, and settings must remain usable at 390px wide.
+- Browser proof must continue to cover desktop/mobile landing and Studio,
+  create/upload journeys, strict CSP, focus contrast, placeholder contrast,
+  shelf target dimensions, account isolation, and reduced-motion behavior.
+- Visual evidence belongs in `artifacts/`; exact-tree claims belong in
+  `docs/verification.md`. Browser rendering is not physical Kindle rendering.

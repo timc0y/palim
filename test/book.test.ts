@@ -6,7 +6,7 @@ import { inspectDocument, inspectZip } from '../src/archive.js';
 import { BookSchema, LIMITS } from '../src/schema.js';
 import { parseXml } from '../src/xml.js';
 import { staticSvg, coverSvg } from '../src/figures.js';
-import { BOOK_CSS, PALIM_FONTS, PALIM_PALETTE } from '../src/book-styles.js';
+import { BOOK_CSS, PREVIEW_CSS, PALIM_FONTS, PALIM_PALETTE } from '../src/book-styles.js';
 import { simpleBook, pdf } from './helpers.js';
 const time = new Date('2026-10-25T00:00:00Z');
 test('EPUB has stored first mimetype and well-formed package, navigation and chapters', async () => {
@@ -20,10 +20,28 @@ test('EPUB has stored first mimetype and well-formed package, navigation and cha
   assert.equal(await zip.file('mimetype')!.async('text'), 'application/epub+zip');
   for (const name of Object.keys(zip.files).filter((n) => /\.(xhtml|xml|opf|svg)$/.test(n)))
     parseXml(await zip.file(name)!.async('text'));
+  const nav = await zip.file('EPUB/nav.xhtml')!.async('text');
+  assert.match(nav, /epub:type="bodymatter" href="chapter-1.xhtml"/);
+  assert.doesNotMatch(nav, /epub:type="bibliography"/);
   const info = await inspectDocument(book.bytes);
   assert.equal(info.title, simpleBook.title);
   assert.equal(info.creator, simpleBook.creator);
   assert.equal(info.sha256, book.hash);
+});
+test('reading direction follows the manuscript script in preview and EPUB', async () => {
+  for (const [language, rtl] of [
+    ['dv', true],
+    ['ar-Latn', false],
+    ['ff-Adlm', true],
+  ] as const) {
+    const book = await buildBook({ ...simpleBook, language });
+    const zip = await JSZip.loadAsync(book.bytes);
+    const opf = await zip.file('EPUB/package.opf')!.async('text');
+    const chapter = await zip.file('EPUB/chapter-1.xhtml')!.async('text');
+    assert.equal(/<html[^>]* dir="rtl"/.test(book.preview), rtl, language);
+    assert.equal(/<html[^>]* dir="rtl"/.test(chapter), rtl, language);
+    assert.equal(opf.includes('page-progression-direction="rtl"'), rtl, language);
+  }
 });
 test('same input and clock produce byte-identical books', async () => {
   const a = await buildBook(simpleBook, new Map(), time),
@@ -323,7 +341,7 @@ test('combined reading preview has one title and unique chapter anchors', async 
           markdown: 'Opening paragraph.\n\n## An explanation\n\nSome detail.',
         },
         {
-          title: 'Second chapter',
+          title: 'Reading $$ amounts',
           markdown: 'Another opening.\n\n## An explanation\n\nMore detail.',
         },
       ],
@@ -331,6 +349,7 @@ test('combined reading preview has one title and unique chapter anchors', async 
     new Map(),
     time,
   );
+  assert.ok(book.preview.includes('aria-label="Reading $$ amounts"'));
   assert.equal((book.preview.match(/<h1[ >]/g) || []).length, 1);
   const ids = [...book.preview.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length);
@@ -338,6 +357,30 @@ test('combined reading preview has one title and unique chapter anchors', async 
   assert.match(book.preview, /<h3 id="chapter-2-section-1"/);
   assert.doesNotMatch(book.preview, /<h4/);
   assert.doesNotMatch(book.preview, /class="cover"/);
+});
+
+test('preview omits redundant single-chapter contents and starts chapter lists closed', async () => {
+  const short = await buildBook(simpleBook, new Map(), time);
+  assert.doesNotMatch(short.preview, /id="contents"|href="#contents"/);
+  assert.match(short.preview, /href="#top">Back to top/);
+  assert.match(
+    short.preview,
+    /<h1 id="top" tabindex="-1">A useful guide<\/h1><p class="preview-meta">The author<\/p>/,
+  );
+  const untitledChapter = await buildBook({
+    ...simpleBook,
+    chapters: [
+      { title: simpleBook.title, markdown: 'Opening paragraph.\n\n## Next steps\n\nContinue.' },
+    ],
+  });
+  assert.doesNotMatch(untitledChapter.preview, /<header class="chapter-heading">/);
+  assert.match(untitledChapter.preview, /<h2[^>]*>Next steps</);
+  const chapters = Array.from({ length: 7 }, (_, index) => ({
+    title: `Chapter ${index + 1}`,
+    markdown: 'Enough text for a chapter.',
+  }));
+  const long = await buildBook({ ...simpleBook, chapters }, new Map(), time);
+  assert.match(long.preview, /<details><summary id="contents">Contents/);
 });
 
 test('cover retains maximum-length metadata without invalid or off-page text', () => {
@@ -359,6 +402,10 @@ test('cover retains maximum-length metadata without invalid or off-page text', (
 
 test('EPUB styles inherit reader colours and generated artwork uses canonical palette tokens', () => {
   assert.equal(/(^|[;{\s])(color|background(-color)?)\s*:/i.test(BOOK_CSS), false);
+  const bodyRule = /body \{([^}]+)\}/.exec(BOOK_CSS)?.[1] ?? '';
+  assert.equal(bodyRule.includes('font-family'), false);
+  assert.equal(PREVIEW_CSS.includes('IBM Plex Mono'), false);
+  assert.equal(/table\s*\{[^}]*table-layout/.test(BOOK_CSS), false);
 
   const cover = parseXml(coverSvg('Title', 'Sub', 'Author'));
   const texts = Array.from(cover.getElementsByTagName('text'));

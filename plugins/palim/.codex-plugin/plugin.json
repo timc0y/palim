@@ -13,7 +13,7 @@
   "interface": {
     "displayName": "Palim",
     "shortDescription": "Turn a conversation into an illustrated EPUB.",
-    "longDescription": "Connect once and sign in. The read-only get_guide tool explains creating illustrated EPUBs and forwarding originals safely. No installed skill is needed.",
+    "longDescription": "Connect a compatible client and sign in. The read-only get_guide tool explains creating illustrated EPUBs and forwarding originals safely. No installed skill is needed.",
     "developerName": "Tim Coy",
     "category": "Productivity",
     "brandColor": "#263FA9",

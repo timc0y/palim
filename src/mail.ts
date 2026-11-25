@@ -14,14 +14,13 @@ export interface EmailBinding {
 }
 export function safeFilename(value: string, type: string): string {
   const ext = type === 'application/pdf' ? '.pdf' : '.epub';
-  return (
-    (value
-      .replace(/\.(epub|pdf)$/i, '')
-      .replace(/[^a-zA-Z0-9._ -]/g, '_')
-      .replace(/^\.+/, '')
-      .slice(0, 100)
-      .trim() || 'reading') + ext
-  );
+  const stem = value
+    .normalize('NFC')
+    .replace(/\.(epub|pdf)$/i, '')
+    .replace(/[^\p{L}\p{M}\p{N}._ -]/gu, '_')
+    .trim()
+    .replace(/^\.+/, '');
+  return (Array.from(stem).slice(0, 100).join('').trim() || 'reading') + ext;
 }
 export function messageBudget(bytes: number): number {
   const encoded = 4 * Math.ceil(bytes / 3);
@@ -30,6 +29,16 @@ export function messageBudget(bytes: number): number {
 export function canEmail(bytes: number): boolean {
   return messageBudget(bytes) <= LIMITS.message;
 }
+export const MAX_EMAIL_DOCUMENT_BYTES = (() => {
+  let low = 0,
+    high = LIMITS.upload;
+  while (low < high) {
+    const middle = Math.floor((low + high + 1) / 2);
+    if (canEmail(middle)) low = middle;
+    else high = middle - 1;
+  }
+  return low;
+})();
 export async function prepareEmail(input: {
   bytes: Uint8Array;
   expectedHash: string;
@@ -47,7 +56,7 @@ export async function prepareEmail(input: {
   invariant(
     canEmail(input.bytes.length),
     'EMAIL_TOO_LARGE',
-    'The unchanged document exceeds Cloudflare’s 5 MiB encoded-message limit. Download it for Amazon’s web uploader instead.',
+    'The unchanged document exceeds Cloudflare’s 25 MiB total-message limit. Download it for Amazon’s web uploader instead.',
   );
   invariant(
     /^[^\s<>\r\n]+@[^\s<>\r\n]+$/.test(input.from) &&

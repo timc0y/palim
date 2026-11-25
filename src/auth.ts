@@ -3,8 +3,11 @@ import { z } from 'zod';
 import { PalimError, invariant } from './errors.js';
 import { checkOrigin, equalToken, hmac, readJson, json } from './http.js';
 import { escapeXml as e } from './xml.js';
+import { LIMITS } from './schema.js';
 import { Store } from './store.js';
 import type { Env } from './types.js';
+import { permissionLabel } from './permissions.js';
+
 export function returnPath(value: string | null): string {
   if (
     !value ||
@@ -33,10 +36,10 @@ async function currentSession(
 export async function session(request: Request, env: Env): Promise<string | null> {
   return (await currentSession(request, env))?.id ?? null;
 }
-export async function requireSession(request: Request, env: Env): Promise<string> {
-  const owner = await session(request, env);
-  if (!owner) throw new PalimError('SIGN_IN_REQUIRED', 'Sign in to Palim to continue.', 401);
-  return owner;
+export async function requireSession(request: Request, env: Env) {
+  const account = await currentSession(request, env);
+  if (!account) throw new PalimError('SIGN_IN_REQUIRED', 'Sign in to Palim to continue.', 401);
+  return account;
 }
 export async function authRoute(request: Request, env: Env): Promise<Response | null> {
   const url = new URL(request.url);
@@ -98,6 +101,7 @@ export async function authRoute(request: Request, env: Env): Promise<Response | 
         );
       }
       return json({
+        resendAfterSeconds: LIMITS.loginResendSeconds,
         message: 'If a code can be sent, it will arrive shortly. Check your inbox and spam folder.',
       });
     }
@@ -138,7 +142,8 @@ export async function authRoute(request: Request, env: Env): Promise<Response | 
       consent.headers.set('Content-Type', 'text/html; charset=utf-8');
       consent.headers.set('Cache-Control', 'no-store');
       const ownerProof = await hmac(env.SIGNING_SECRET, `${owner}\n${consent.handle}`);
-      const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Connect your agent · Palim</title><meta name="robots" content="noindex, nofollow"/><meta name="theme-color" content="#efefeb"/><link rel="icon" href="/mark.svg" type="image/svg+xml"/><link rel="stylesheet" href="/style.css"/></head><body><a class="skip-link" href="#main-content">Skip to content</a><main id="main-content" class="consent" tabindex="-1"><a class="wordmark" href="/"><svg class="wordmark__emblem" viewBox="0 0 32 32" aria-hidden="true"><path class="wordmark__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4"/></svg>palim</a><h1>Connect your agent</h1><div class="consent-account"><span>Signed in as <strong>${e(account.email || account.name)}</strong></span><form method="post" action="/auth/logout?returnTo=${e(encodeURIComponent(url.pathname + url.search))}"><button type="submit" class="plain-button">Switch account</button></form></div><p><strong>${e(details.clientName)}</strong> requests access to Palim.</p><p class="consent-label">Redirect destination</p><p><code class="consent-host">${e(details.redirectHost)}</code></p>${details.redirectIsLoopback ? '<p class="consent-warning">This is a local application; another local process could be listening.</p>' : ''}<p>The client name is supplied by the client. Verify the destination before continuing.</p><ul>${details.scope.map((s) => `<li>${e(s)}</li>`).join('')}</ul><p>Access can create and download your books, and send documents to your selected saved Kindle address when you ask. Sending permission also lets the agent read your saved Kindle labels to help select a recipient. Connected agents can refresh access for up to 30 days until you disconnect them in Settings → Agent. It does not grant access to your Amazon account.</p><form class="consent-actions" method="post" action="/authorize"><input type="hidden" name="handle" value="${e(consent.handle)}"/><input type="hidden" name="ownerProof" value="${ownerProof}"/><button name="decision" value="allow">Connect agent</button><button class="secondary" name="decision" value="deny">Cancel</button></form></main></body></html>`;
+      const destination = new URL(auth.redirectUri).host || details.redirectHost;
+      const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Connect your agent · Palim</title><meta name="robots" content="noindex, nofollow"/><meta name="theme-color" content="#efefeb"/><link rel="icon" href="/mark.svg" type="image/svg+xml"/><link rel="stylesheet" href="/style.css"/></head><body><a class="skip-link" href="#main-content">Skip to content</a><main id="main-content" class="consent" tabindex="-1"><a class="wordmark" href="/" aria-label="Palim home"><img src="/mark.svg" width="24" height="24" alt=""/>Palim</a><h1>Connect your agent</h1><div class="consent-account"><span>Signed in as <strong>${e(account.email || account.name)}</strong></span><form method="post" action="/auth/logout?returnTo=${e(encodeURIComponent(url.pathname + url.search))}"><button type="submit" class="plain-button">Switch account</button></form></div><section class="consent-destination"><h2>Application</h2><dl><dt>Name</dt><dd><bdi>${e(details.clientName)}</bdi></dd><dt>Destination</dt><dd><code class="consent-host">${e(destination)}</code></dd></dl><p>Check the destination. The application chooses its own name.</p>${details.redirectIsLoopback ? '<p>Another process on this device could be listening at this local destination.</p>' : ''}</section><section aria-labelledby="requested-access"><h2 id="requested-access">Requested permissions</h2><ul>${details.scope.map((s) => `<li>${e(permissionLabel(s))}</li>`).join('')}</ul><p><a href="/privacy#agent-access" target="_blank" rel="noreferrer" aria-label="Access lasts up to 30 days (opens in a new tab)">Access lasts up to 30 days</a>. Disconnect sooner under Connected applications in Settings.</p></section><form class="consent-actions" method="post" action="/authorize"><input type="hidden" name="handle" value="${e(consent.handle)}"/><input type="hidden" name="ownerProof" value="${ownerProof}"/><button name="decision" value="allow">Connect agent</button><button class="secondary" name="decision" value="deny">Cancel</button></form></main></body></html>`;
       return new Response(page, { headers: consent.headers });
     }
     if (request.method === 'POST') {

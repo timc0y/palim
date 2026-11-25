@@ -40,7 +40,7 @@ async function connect(
 
 test('MCP imports an owned image and creates an EPUB with repeated captions', async (t) => {
   const f = await fixture();
-  const image = readFileSync(new URL('../public/images/sample-exposure.png', import.meta.url));
+  const image = readFileSync(new URL('../public/icons/create-book.png', import.meta.url));
   t.mock.method(globalThis, 'fetch', async (_input: RequestInfo | URL, init?: RequestInit) => {
     assert.equal(init?.redirect, 'manual');
     assert.equal(init?.credentials, 'omit');
@@ -83,7 +83,7 @@ test('MCP imports an owned image and creates an EPUB with repeated captions', as
     assert.equal(
       (
         chapter.match(
-          /<figcaption><span class="figure-number">Figure 1\.<\/span> <span class="caption-text">A useful caption<\/span><\/figcaption>/g,
+          /<figcaption><span lang="en" xml:lang="en" dir="ltr" class="figure-number">Figure 1\.<\/span> <span class="caption-text">A useful caption<\/span><\/figcaption>/g,
         ) ?? []
       ).length,
       2,
@@ -156,6 +156,7 @@ test('MCP creation resumes after an account render increase without resetting at
     const blocked = await c.client.callTool({ name: 'create_book', arguments: simpleBook });
     assert.equal(blocked.isError, true);
     assert.equal(output(blocked).code, 'DAILY_LIMIT');
+    assert.match(String(output(blocked).message), /daily book creation limit.*after midnight UTC/);
     f.sql.prepare('UPDATE users SET daily_render_limit=20 WHERE id=?').run('alice');
     const created = await c.client.callTool({ name: 'create_book', arguments: simpleBook });
     assert.notEqual(created.isError, true);

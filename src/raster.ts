@@ -1,5 +1,5 @@
 import { Resvg } from '@cf-wasm/resvg';
-import { readingFont } from './reading-font.js';
+import { readingFonts } from './reading-fonts.js';
 import { invariant } from './errors.js';
 
 // Amazon's E016 guidance excludes SVG from reflowable documents. Only generated,
@@ -9,7 +9,7 @@ export async function rasterize(svg: string): Promise<Uint8Array> {
     fitTo: { mode: 'width', value: 1200 },
     background: '#ffffff',
     font: {
-      fontBuffers: [readingFont],
+      fontBuffers: readingFonts,
       defaultFontFamily: 'Manrope',
       serifFamily: 'Manrope',
       sansSerifFamily: 'Manrope',

@@ -70,7 +70,7 @@ export function authOptions(env: Env, claim?: string, delivery?: { failed: boole
               from: { email: env.SENDER, name: 'Palim' },
               to: email,
               subject: 'Your Palim sign-in code',
-              text: `Your Palim sign-in code is ${otp}. It expires in five minutes. If you did not request it, ignore this email.`,
+              text: `${otp}\n\nEnter this code in Palim within five minutes. If you did not request it, ignore this email.`,
               attachments: [],
               headers: {},
             });

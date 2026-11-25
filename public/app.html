@@ -5,381 +5,616 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Studio · Palim</title>
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#efefeb" />
+    <meta name="theme-color" content="#eeeeea" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/studio.css" />
     <link
       rel="preload"
-      href="/fonts/IBMPlexMono-Latin-400.woff2"
+      href="/fonts/IBMPlexSans-Latin-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/IBMPlexSerif-Latin-600.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
     <script type="module" src="/app.js"></script>
   </head>
-  <body class="workspace-page" data-skin="hardware">
+  <body class="workspace-page">
     <a class="skip-link" href="#main-content">Skip to studio</a>
-    <header class="nav wrap">
-      <a class="wordmark" href="/">
-        <svg class="wordmark__emblem" viewBox="0 0 32 32" aria-hidden="true">
-          <path class="wordmark__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
-        </svg>
-        palim
-      </a>
-      <details class="settings-menu" id="settings-menu">
-        <summary aria-label="Settings" title="Settings">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path
-              d="m10 3-.7 2.2-1.6 1-2.3-.4-2 3.4L5 11v2l-1.6 1.8 2 3.4 2.3-.4 1.6 1L10 21h4l.7-2.2 1.6-1 2.3.4 2-3.4L19 13v-2l1.6-1.8-2-3.4-2.3.4-1.6-1L14 3Z"
-            />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        </summary>
-        <nav class="settings-menu-links" aria-label="Settings">
-          <a class="settings-link" data-studio-view href="#studio-settings">Settings</a>
-          <a href="/privacy">Privacy</a>
-        </nav>
-      </details>
-    </header>
-    <main id="main-content" class="wrap workspace">
-      <div class="workspace-heading">
-        <h1 id="studio-title" tabindex="-1">studio</h1>
-        <nav class="job-choices" aria-label="Studio navigation">
-          <a class="button secondary" data-studio-view href="#create-panel">Create</a
-          ><a class="button secondary" data-studio-view href="#upload-panel">Upload</a>
-        </nav>
-      </div>
-      <section id="signin" class="signin-panel" hidden>
-        <h2>Sign in</h2>
-        <p class="field-help">
-          Passwordless sign-in via email code. Free to use — no password or Amazon login required.
-        </p>
-        <form id="login-email-form">
-          <label for="login-email">Email</label>
-          <input
-            id="login-email"
-            type="email"
-            autocomplete="email"
-            required
-            placeholder="you@example.com"
-          />
-          <button type="submit">Send code</button>
-        </form>
-        <form id="login-code-form" hidden>
-          <p id="login-sent" class="field-help"></p>
-          <label for="login-code">Code</label>
-          <input
-            id="login-code"
-            aria-describedby="login-sent"
-            inputmode="numeric"
-            autocomplete="one-time-code"
-            pattern="[0-9]{6}"
-            maxlength="6"
-            minlength="6"
-            required
-          />
-          <button type="submit">Sign in</button>
-          <button id="change-login-email" type="button" class="plain-button">Change email</button>
-          <button id="resend-login" type="button" class="plain-button">Resend code</button>
-        </form>
-        <p class="quiet">Code expires in 5 minutes.</p>
-      </section>
-      <div id="desk" class="desk" hidden>
-        <div class="desk-main" id="workbench">
-          <section class="panel task-panel" id="create-panel" aria-label="Create an EPUB">
-            <div class="editor" id="create-editor">
-              <form id="create-form">
-                <label for="title">Title</label>
-                <div class="title-field">
-                  <input
-                    id="title"
-                    name="title"
-                    maxlength="160"
-                    placeholder="Field notes on exposure"
-                    required
-                  />
-                  <button
-                    id="edit-title"
-                    type="button"
-                    class="secondary icon-button"
-                    aria-label="Edit title"
-                    title="Edit title"
-                  ></button>
-                </div>
-                <label for="manuscript">Manuscript</label
-                ><textarea
-                  id="manuscript"
-                  name="markdown"
-                  rows="7"
-                  maxlength="240000"
-                  placeholder="Write in Markdown — use # headings to split chapters, or try Example below."
-                  required
-                ></textarea>
-                <p class="field-help">
-                  Markdown supported: headings, lists, code, tables and blockquotes.
-                </p>
-                <p class="field-help" id="manuscript-count" hidden></p>
-                <p id="example-status" class="field-help" hidden>
-                  Figures and sources included.
-                  <button type="button" class="plain-button" id="remove-example">Remove</button>
-                </p>
-                <div class="actions">
-                  <button type="submit">Create EPUB</button>
-                  <button class="plain-button" type="button" id="example-button">Example</button>
-                  <button class="plain-button" type="button" id="back-created" hidden>
-                    Back to file
-                  </button>
-                </div>
-                <footer class="editor-footer">
+    <div class="studio-screen">
+      <header class="nav wrap">
+        <a class="wordmark" href="/" aria-label="Palim home"
+          ><img src="/mark.svg" width="24" height="24" alt="" />Palim</a
+        >
+        <details id="studio-menu">
+          <summary class="menu-toggle">Menu</summary>
+          <div class="studio-menu-content">
+            <nav class="job-choices" aria-label="Studio tasks">
+              <a class="button secondary" data-studio-view href="#create-panel">Create</a
+              ><a class="button secondary" data-studio-view href="#upload-panel">Forward</a>
+              <a class="button secondary" data-studio-view href="#studio-settings">Settings</a>
+            </nav>
+            <a
+              class="privacy-link"
+              href="/privacy"
+              target="_blank"
+              rel="noopener"
+              aria-label="Privacy (opens in a new tab)"
+              >Privacy</a
+            >
+          </div>
+        </details>
+      </header>
+      <main id="main-content" class="wrap workspace" tabindex="-1">
+        <div class="workspace-heading">
+          <div class="workspace-title">
+            <h1 id="studio-title" tabindex="-1">Studio</h1>
+            <p id="workspace-subtitle">If Studio doesn’t open, reload this page.</p>
+            <noscript>
+              <p id="studio-script-help">Enable JavaScript and reload to open Studio.</p>
+              <p>
+                <a href="https://github.com/timc0y/palim#connect-an-agent"
+                  >Use Palim with an agent</a
+                >
+              </p>
+            </noscript>
+          </div>
+        </div>
+        <section id="signin" class="signin-panel" aria-label="Email sign-in" hidden>
+          <form id="login-email-form">
+            <div>
+              <label for="login-email">Your regular email address</label>
+              <input
+                id="login-email"
+                enterkeyhint="go"
+                type="email"
+                autocomplete="email"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+              />
+            </div>
+            <button type="submit">Email me a code</button>
+          </form>
+          <form id="login-code-form" hidden>
+            <div class="login-recipient">
+              <p id="login-sent" class="field-help"></p>
+              <button id="change-login-email" type="button" class="plain-button">
+                Change email
+              </button>
+            </div>
+            <div>
+              <label for="login-code">Six-digit code</label>
+              <input
+                id="login-code"
+                enterkeyhint="go"
+                aria-describedby="login-sent login-expiry"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                pattern="[0-9]{6}"
+                maxlength="6"
+                minlength="6"
+                required
+              />
+              <p id="login-expiry" class="field-help">Expires five minutes after sending.</p>
+            </div>
+            <button type="submit">Sign in</button>
+            <button id="resend-login" type="button" class="plain-button">Resend code</button>
+          </form>
+        </section>
+        <section
+          id="startup"
+          class="signin-panel startup-panel"
+          aria-label="Studio unavailable"
+          hidden
+        >
+          <p id="startup-error" class="field-help" role="alert"></p>
+          <button id="retry-startup" class="secondary" type="button">Retry</button>
+        </section>
+        <div id="desk" class="desk" hidden>
+          <div class="desk-main" id="workbench">
+            <section class="panel task-panel" id="create-panel" aria-label="Create a book">
+              <div class="editor" id="create-editor">
+                <form id="create-form" novalidate>
+                  <p id="draft-recovery" class="field-help" role="status" hidden></p>
+                  <div>
+                    <label for="title">Book title</label>
+                    <input
+                      id="title"
+                      dir="auto"
+                      enterkeyhint="next"
+                      name="title"
+                      maxlength="160"
+                      required
+                    />
+                    <p class="field-help" id="title-error" hidden></p>
+                  </div>
+                  <div>
+                    <label for="manuscript">Manuscript</label>
+                    <p class="field-help" id="manuscript-help">
+                      Text or Markdown. Start chapters with a <code># Heading</code> line.
+                    </p>
+                    <textarea
+                      id="manuscript"
+                      dir="auto"
+                      name="markdown"
+                      rows="7"
+                      aria-describedby="manuscript-help"
+                      required
+                    ></textarea>
+                    <p class="field-help" id="manuscript-count" hidden></p>
+                  </div>
                   <details class="book-metadata">
-                    <summary>
-                      <span id="options-icon" aria-hidden="true"></span>Book options
+                    <summary aria-labelledby="metadata-label" aria-describedby="metadata-values">
+                      <span
+                        ><span id="metadata-label">Author and language</span
+                        ><small id="metadata-values" hidden
+                          ><bdi id="metadata-author"></bdi><span id="metadata-separator"> · </span
+                          ><bdi id="metadata-language"></bdi></small
+                      ></span>
                     </summary>
                     <div class="field-row">
                       <div>
-                        <label for="creator">Author (optional)</label>
-                        <input id="creator" name="creator" maxlength="160" />
+                        <label for="creator">Author <span>(optional)</span></label>
+                        <input
+                          id="creator"
+                          dir="auto"
+                          enterkeyhint="next"
+                          name="creator"
+                          maxlength="160"
+                        />
                       </div>
                       <div>
                         <label for="language">Language</label>
-                        <input id="language" name="language" value="en" maxlength="35" required />
+                        <input
+                          id="language"
+                          name="language"
+                          list="book-languages"
+                          autocapitalize="none"
+                          spellcheck="false"
+                          value="English"
+                          maxlength="35"
+                          required
+                        />
+                        <p class="field-help" id="language-error" hidden></p>
+                        <datalist id="book-languages">
+                          <option value="English" data-code="en"></option>
+                          <option value="British English" data-code="en-GB"></option>
+                          <option value="French" data-code="fr"></option>
+                          <option value="Canadian French" data-code="fr-CA"></option>
+                          <option value="German" data-code="de"></option>
+                          <option value="Spanish" data-code="es"></option>
+                          <option value="Italian" data-code="it"></option>
+                          <option value="Portuguese" data-code="pt"></option>
+                          <option value="Brazilian Portuguese" data-code="pt-BR"></option>
+                          <option value="Japanese" data-code="ja"></option>
+                          <option value="Chinese" data-code="zh"></option>
+                          <option value="Arabic" data-code="ar"></option>
+                          <option value="Hindi" data-code="hi"></option>
+                        </datalist>
                       </div>
                     </div>
                   </details>
-                </footer>
-              </form>
-            </div>
-            <div id="created" class="result" hidden></div>
-          </section>
-          <section class="panel task-panel" id="upload-panel" aria-label="Send an existing file">
-            <div class="editor" id="upload-editor">
-              <form id="upload-form">
-                <label class="file-drop" for="original"
-                  ><strong id="file-name">Drop an EPUB or PDF</strong
-                  ><span id="file-info">or choose · 20 MiB max · bytes kept unchanged</span
-                  ><input
-                    id="original"
-                    type="file"
-                    accept=".epub,.pdf,application/epub+zip,application/pdf"
-                    aria-describedby="file-error"
-                    required
-                /></label>
-                <p id="file-error" class="file-error" role="alert" hidden></p>
-                <div class="actions">
-                  <button type="submit">Upload unchanged</button
-                  ><button class="plain-button" type="button" id="back-uploaded" hidden>
-                    Back to file
-                  </button>
-                </div>
-              </form>
-            </div>
-            <div id="uploaded" class="result" hidden></div>
-          </section>
-          <section class="panel receipt-panel" id="receipt-panel" hidden>
-            <div id="receipt"></div>
-            <button type="button" class="secondary" id="refresh-receipt">Refresh receipt</button>
-          </section>
-          <section class="shelf-panel" id="files-panel" hidden>
-            <h2 id="files-heading">Files</h2>
-            <div id="shelf" class="shelf"></div>
-          </section>
-        </div>
-        <section class="settings" id="studio-settings" hidden>
-          <div class="setup-return" id="setup-return" hidden>
-            <div>
-              <strong id="setup-return-filename"></strong>
-            </div>
-            <button class="secondary" type="button" id="return-to-file">Back to file</button>
-          </div>
-          <div class="settings-content">
-            <section class="panel reader-panel">
-              <h2>Kindle addresses</h2>
-              <p id="destination-status">No addresses yet.</p>
-              <div id="reader-list"></div>
-              <section id="address-setup">
-                <p class="field-help">Saving sends no email.</p>
-                <p id="reader-limit" class="field-help" hidden>
-                  Five addresses saved. Remove one to add another.
-                </p>
-                <form id="destination-form">
-                  <label for="kindle-email">Kindle email</label>
-                  <input
-                    id="kindle-email"
-                    type="email"
-                    inputmode="email"
-                    required
-                    autocomplete="off"
-                    autocapitalize="none"
-                    spellcheck="false"
-                    maxlength="180"
-                    placeholder="name@kindle.com"
-                    aria-describedby="kindle-email-help"
-                  />
-                  <p id="kindle-email-help" class="field-help">
-                    Amazon’s Kindle address, not your inbox.
-                  </p>
-                  <label for="reader-label">Name (optional)</label>
-                  <input id="reader-label" maxlength="40" />
-                  <button type="submit" class="secondary">Save</button>
-                </form>
-              </section>
-            </section>
-            <section class="panel sender-panel">
-              <h2>Amazon setup</h2>
-              <p class="field-help">Approve this sender once in Amazon.</p>
-              <div class="sender-controls">
-                <strong id="sender-address"></strong>
-                <button
-                  id="copy-sender"
-                  aria-label="Copy sender"
-                  class="secondary"
-                  type="button"
-                  aria-describedby="copy-sender-status"
-                >
-                  Copy
-                </button>
-                <span id="copy-sender-status" class="field-help" role="status"></span>
-              </div>
-              <section class="amazon-setup">
-                <ol>
-                  <li>
-                    Open Manage Your Content and Devices on
-                    <a href="https://www.amazon.com/mycd" target="_blank" rel="noopener noreferrer"
-                      >Amazon.com</a
-                    >
-                    or
-                    <a
-                      href="https://www.amazon.co.uk/mycd"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      >Amazon.co.uk</a
-                    >
-                    → Preferences → Personal Document Settings.
-                  </li>
-                  <li>Approve the exact sender above, not its domain.</li>
-                  <li>Save your Send-to-Kindle email here.</li>
-                </ol>
-                <p class="field-help">
-                  <a
-                    href="https://www.amazon.com/gp/help/customer/display.html?nodeId=GX9XLEVV8G4DB28H"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >Send to Kindle help</a
-                  >
-                  · Use your local Amazon store.
-                </p>
-              </section>
-            </section>
-            <section class="panel connect-panel" id="connect-agent">
-              <h2>Agent</h2>
-              <div id="agent-setup">
-                <code id="mcp-url"></code
-                ><button
-                  type="button"
-                  id="copy-mcp"
-                  aria-label="Copy agent address"
-                  class="secondary"
-                >
-                  Copy
-                </button>
-                <p class="field-help">
-                  <a href="https://github.com/timc0y/palim#connect-an-agent">Setup</a>
-                  · <a href="/palim-plugin.zip">Codex package</a>
-                </p>
-              </div>
-              <details id="personal-token" class="token-disclosure" hidden>
-                <summary>
-                  <span>Personal MCP token</span>
-                  <span class="token-badge" id="token-badge">None</span>
-                </summary>
-                <div class="token-body">
-                  <p class="field-help">
-                    For MCP clients that take an <code>Authorization: Bearer</code> header. Grants
-                    read, create and send access on your account. Creating a new token replaces any
-                    previous one.
-                  </p>
-                  <div class="token-actions">
-                    <button type="button" id="create-token" class="secondary">Create token</button>
+                  <div class="actions">
+                    <button type="submit">Create EPUB</button>
                     <button
+                      class="plain-button"
                       type="button"
-                      id="revoke-token"
-                      class="plain-button token-revoke"
+                      id="back-created"
+                      aria-describedby="created-name"
                       hidden
                     >
-                      Revoke token
+                      Back to EPUB
                     </button>
                   </div>
-                  <div id="token-value" class="token-reveal" hidden>
-                    <label for="token-secret">Copy your token now — it is shown once.</label>
-                    <div class="token-secret-row">
-                      <input id="token-secret" readonly autocomplete="off" spellcheck="false" />
-                      <button type="button" id="copy-token" class="secondary">Copy</button>
-                    </div>
-                  </div>
-                  <p id="token-status" class="action-feedback" role="status"></p>
-                </div>
-              </details>
-              <div id="oauth-grants" class="grants-section">
-                <h3>Connected OAuth agents</h3>
-                <p id="grants-empty" class="field-help">No connected OAuth agents.</p>
-                <div id="grant-list"></div>
-              </div>
-            </section>
-            <section class="limits">
-              <h2>Limits</h2>
-              <p class="field-help" id="allowance"></p>
-              <p class="field-help">Email: 5 MiB encoded. Larger files: download only.</p>
-            </section>
-            <section class="account-panel">
-              <h2>Account</h2>
-              <p id="account-name"></p>
-              <div class="account-actions">
-                <form action="/auth/logout" method="post" id="logout" hidden>
-                  <button class="plain-button">Sign out</button>
                 </form>
-                <button type="button" class="plain-button token-revoke" id="delete-account" hidden>
-                  Delete account
-                </button>
-                <a href="/privacy">privacy</a>
-                <a href="https://github.com/timc0y/palim">source</a>
               </div>
+              <div id="created" class="result" hidden></div>
+            </section>
+            <section
+              class="panel task-panel"
+              id="upload-panel"
+              aria-label="Forward an existing file"
+            >
+              <div class="editor" id="upload-editor">
+                <form id="upload-form">
+                  <div class="upload-field">
+                    <label class="file-drop" for="original"
+                      ><strong id="file-name" dir="auto">Choose an EPUB or PDF</strong
+                      ><span id="file-info"
+                        ><span class="drop-hint">Drop a file here · </span>20 MiB maximum</span
+                      ><input
+                        id="original"
+                        aria-labelledby="file-name"
+                        aria-describedby="file-info"
+                        type="file"
+                        accept=".epub,.pdf,application/epub+zip,application/pdf"
+                        required
+                    /></label>
+                    <p id="file-error" class="file-error" role="alert" hidden></p>
+                    <p id="file-note" class="field-help" hidden>
+                      <span id="email-limit-note">This file is too large to email.</span> To send
+                      it, use
+                      <a
+                        href="https://www.amazon.com/sendtokindle"
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Amazon’s Send to Kindle (opens in a new tab)"
+                        >Amazon’s Send to Kindle</a
+                      >.
+                    </p>
+                  </div>
+                  <div class="actions">
+                    <button type="submit">Upload to Shelf</button
+                    ><button
+                      class="plain-button"
+                      type="button"
+                      id="back-uploaded"
+                      aria-describedby="uploaded-name"
+                      hidden
+                    >
+                      Back to file
+                    </button>
+                  </div>
+                </form>
+              </div>
+              <div id="uploaded" class="result" hidden></div>
+            </section>
+            <section class="panel receipt-panel" id="receipt-panel" hidden>
+              <div id="receipt"></div>
+              <button type="button" class="secondary" id="refresh-receipt">
+                Check email status
+              </button>
+            </section>
+            <section class="shelf-panel" id="files-panel" hidden>
+              <h2 id="files-heading">Files</h2>
+              <div id="shelf" class="shelf"></div>
+              <p class="field-help" id="empty-shelf-help" hidden>Your Shelf is empty.</p>
+              <nav id="empty-shelf-actions" class="actions" aria-label="Add a file" hidden>
+                <a class="button secondary" data-studio-view href="#create-panel">Create a book</a>
+                <a class="button secondary" data-studio-view href="#upload-panel">Forward a file</a>
+              </nav>
             </section>
           </div>
-        </section>
-      </div>
-    </main>
+          <section class="settings" id="studio-settings" hidden>
+            <div class="setup-return" id="setup-return" hidden>
+              <div>
+                <strong id="setup-return-filename" dir="auto"></strong>
+                <p class="field-help">
+                  Approve
+                  <a id="show-personal-sender" href="#sender-address">your personal sender</a> in
+                  Amazon before the first send.
+                </p>
+              </div>
+              <button
+                class="secondary"
+                type="button"
+                id="return-to-file"
+                aria-describedby="setup-return-filename"
+              >
+                Back to file
+              </button>
+            </div>
+            <div class="settings-content">
+              <section class="panel reader-panel">
+                <div class="reader-heading">
+                  <h2>Kindle addresses</h2>
+                  <p id="destination-status" role="status" tabindex="-1"></p>
+                </div>
+                <div id="reader-list"></div>
+                <section id="address-setup">
+                  <p id="reader-limit" class="field-help" role="status" hidden>
+                    Remove a saved address to add another.
+                  </p>
+                  <form id="destination-form">
+                    <div>
+                      <label for="kindle-email">Send-to-Kindle email address</label>
+                      <input
+                        id="kindle-email"
+                        enterkeyhint="next"
+                        type="email"
+                        inputmode="email"
+                        required
+                        autocomplete="off"
+                        autocapitalize="none"
+                        spellcheck="false"
+                        placeholder="name@kindle.com"
+                        aria-describedby="kindle-email-help"
+                      />
+                      <p id="kindle-email-help" class="field-help">
+                        Find it under Preferences → Personal Document Settings on
+                        <a
+                          href="https://www.amazon.com/mycd"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Amazon.com (opens in a new tab)"
+                          >Amazon.com</a
+                        >
+                        or
+                        <a
+                          href="https://www.amazon.co.uk/mycd"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Amazon.co.uk (opens in a new tab)"
+                          >Amazon.co.uk</a
+                        >.
+                      </p>
+                    </div>
+                    <div>
+                      <label for="reader-label">Kindle nickname (optional)</label>
+                      <input id="reader-label" enterkeyhint="done" dir="auto" maxlength="40" />
+                    </div>
+                    <button type="submit" class="secondary">Save address</button>
+                  </form>
+                </section>
+              </section>
+              <section class="panel sender-panel">
+                <h2>Approve your sender</h2>
+                <p class="field-help">Approve this address in Amazon before your first send.</p>
+                <div class="sender-controls">
+                  <strong id="sender-address"></strong>
+                  <button
+                    id="copy-sender"
+                    aria-live="polite"
+                    aria-label="Copy Palim sender address"
+                    class="secondary"
+                    type="button"
+                    aria-describedby="copy-sender-status"
+                  >
+                    Copy
+                  </button>
+                  <span
+                    id="copy-sender-status"
+                    class="action-feedback"
+                    role="status"
+                    tabindex="-1"
+                  ></span>
+                </div>
+                <details class="amazon-setup" id="amazon-steps">
+                  <summary>Amazon setup steps</summary>
+                  <ol>
+                    <li>
+                      Open your content and device settings on
+                      <a
+                        href="https://www.amazon.com/mycd"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Amazon.com (opens in a new tab)"
+                        >Amazon.com</a
+                      >
+                      or
+                      <a
+                        href="https://www.amazon.co.uk/mycd"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Amazon.co.uk (opens in a new tab)"
+                        >Amazon.co.uk</a
+                      >.
+                    </li>
+                    <li>
+                      Choose <strong>Preferences</strong>, then
+                      <strong>Personal Document Settings</strong>.
+                    </li>
+                    <li>Add your Palim sender address to the approved sender list.</li>
+                  </ol>
+                  <p class="field-help">
+                    <a
+                      href="https://www.amazon.com/gp/help/customer/display.html?nodeId=GX9XLEVV8G4DB28H"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      >Send to Kindle help</a
+                    >
+                  </p>
+                </details>
+              </section>
+              <section class="panel connect-panel" id="connect-agent">
+                <h2>Connect an agent</h2>
+                <div id="agent-setup">
+                  <code id="mcp-url"></code
+                  ><button
+                    type="button"
+                    id="copy-mcp"
+                    aria-live="polite"
+                    aria-label="Copy agent address"
+                    aria-describedby="copy-mcp-status"
+                    class="secondary"
+                  >
+                    Copy
+                  </button>
+                  <p id="copy-mcp-status" class="action-feedback" role="status" tabindex="-1"></p>
+                  <p class="field-help connection-links">
+                    <a
+                      href="https://github.com/timc0y/palim#connect-an-agent"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Connection guide (opens in a new tab)"
+                      >Connection guide</a
+                    >
+                    <a href="/palim-plugin.zip" download
+                      >Download Codex plugin (ZIP)<span class="plugin-host">
+                        for palim.pages.dev</span
+                      ></a
+                    >
+                  </p>
+                </div>
+                <details id="personal-token" class="token-disclosure" hidden>
+                  <summary aria-labelledby="token-heading" aria-describedby="token-badge">
+                    <span id="token-heading">Personal MCP token</span>
+                    <span class="token-badge" id="token-badge">None</span>
+                  </summary>
+                  <div class="token-body">
+                    <p class="field-help">
+                      Clients can use this token to read your files, create books and send documents
+                      to your saved Kindle addresses. Use it in the
+                      <code>Authorization: Bearer</code> header.
+                    </p>
+                    <div class="token-actions">
+                      <button type="button" id="create-token" class="secondary">
+                        Create token
+                      </button>
+                      <button
+                        type="button"
+                        id="revoke-token"
+                        class="plain-button token-revoke"
+                        hidden
+                      >
+                        Revoke token
+                      </button>
+                    </div>
+                    <div id="token-value" class="token-reveal" hidden>
+                      <label for="token-secret">Copy your token before closing this section.</label>
+                      <div class="token-secret-row">
+                        <input
+                          id="token-secret"
+                          aria-describedby="token-status"
+                          readonly
+                          autocomplete="off"
+                          spellcheck="false"
+                        />
+                        <button
+                          type="button"
+                          id="copy-token"
+                          aria-live="polite"
+                          aria-label="Copy personal token"
+                          class="secondary"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                    <p id="token-status" class="action-feedback" role="status"></p>
+                  </div>
+                </details>
+                <div id="oauth-grants" class="grants-section" hidden>
+                  <h3 id="grants-heading" tabindex="-1">Connected applications</h3>
+                  <div id="grant-list"></div>
+                </div>
+              </section>
+              <section class="account-panel">
+                <h2>Account</h2>
+                <p id="account-name"></p>
+                <div class="account-actions">
+                  <form action="/auth/logout" method="post" id="logout" hidden>
+                    <button class="secondary" aria-describedby="account-name">Sign out</button>
+                  </form>
+                  <button
+                    type="button"
+                    class="plain-button token-revoke"
+                    id="delete-account"
+                    aria-describedby="account-name"
+                    hidden
+                  >
+                    Delete account
+                  </button>
+                </div>
+                <details class="limits">
+                  <summary>File sizes and daily limits</summary>
+                  <div id="allowance" hidden>
+                    <h3 id="daily-limits">
+                      Daily limits reset at <time id="daily-reset">00:00 UTC</time>
+                    </h3>
+                    <dl aria-labelledby="daily-limits">
+                      <div>
+                        <dt>Book creation attempts</dt>
+                        <dd id="limit-renders"></dd>
+                      </div>
+                      <div>
+                        <dt>File uploads</dt>
+                        <dd id="limit-uploads"></dd>
+                      </div>
+                      <div>
+                        <dt>Kindle email submissions</dt>
+                        <dd id="limit-sends"></dd>
+                      </div>
+                    </dl>
+                    <p class="field-help">
+                      Shelf accepts files up to 20 MiB and keeps them for
+                      <span id="limit-retention"></span>.
+                    </p>
+                  </div>
+                  <p class="field-help" id="email-limit">
+                    <span id="email-size-limit">Email size depends on encoding.</span>
+                    For larger files, use
+                    <a
+                      href="https://www.amazon.com/sendtokindle"
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="Amazon’s Send to Kindle (opens in a new tab)"
+                      >Amazon’s Send to Kindle</a
+                    >.
+                  </p>
+                </details>
+              </section>
+              <nav class="settings-links" aria-label="Palim links">
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Privacy (opens in a new tab)"
+                  >Privacy</a
+                >
+                <a
+                  href="https://github.com/timc0y/palim"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Source code (MIT) (opens in a new tab)"
+                  >Source code (MIT)</a
+                >
+              </nav>
+            </div>
+          </section>
+        </div>
+      </main>
+      <nav class="reader-tabs reader-navigation" aria-label="Reader navigation">
+        <a href="/">Home</a><a data-studio-view href="#files-panel">Shelf</a>
+      </nav>
+    </div>
     <dialog id="share-dialog" class="studio-dialog" aria-labelledby="share-heading">
       <header class="dialog-heading">
         <h2 id="share-heading">Send to Kindle</h2>
         <form method="dialog">
-          <button
-            class="secondary icon-button close-dialog"
-            aria-label="Close share options"
-            title="Close"
-          ></button>
+          <button class="plain-button close-dialog" aria-label="Close Send to Kindle">Close</button>
         </form>
       </header>
-      <p id="share-filename" class="dialog-filename"></p>
+      <p id="share-filename" dir="auto" class="dialog-filename" tabindex="-1"></p>
       <div id="share-content" class="result-send">
-        <div class="reader-picker" id="reader-choice" hidden>
-          <label for="send-reader">Kindle</label>
-          <select id="send-reader" data-reader-choice></select>
+        <div class="send-destination">
+          <div class="reader-picker" id="reader-choice" hidden>
+            <label for="send-reader">Choose a Kindle</label>
+            <select id="send-reader" data-reader-choice></select>
+          </div>
+          <p id="share-empty" class="field-help" hidden>
+            You’ll confirm the address before sending.
+          </p>
+          <p id="send-target" class="send-target"></p>
         </div>
-        <p class="send-target"></p>
-        <button id="share-send" class="send-action" type="button">
+        <button
+          id="share-send"
+          class="send-action"
+          type="button"
+          aria-describedby="share-filename send-target"
+        >
           <span class="btn-label">Send</span>
         </button>
       </div>
     </dialog>
-    <dialog id="file-info-dialog" class="studio-dialog" aria-labelledby="file-info-heading">
+    <dialog
+      id="file-info-dialog"
+      class="studio-dialog"
+      aria-labelledby="file-info-heading"
+      aria-describedby="file-info-name"
+    >
       <header class="dialog-heading">
-        <h2 id="file-info-heading">File info</h2>
+        <h2 id="file-info-heading">File details</h2>
         <form method="dialog">
-          <button
-            class="secondary icon-button close-dialog"
-            aria-label="Close file info"
-            title="Close"
-          ></button>
+          <button class="plain-button close-dialog" aria-label="Close file info" title="Close">
+            Close
+          </button>
         </form>
       </header>
       <div id="file-info-content"></div>

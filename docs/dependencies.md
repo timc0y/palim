@@ -5,8 +5,6 @@ The production versions are fixed in package.json and the committed lockfile. Th
 - `@cf-wasm/resvg`: bounded SVG-to-PNG rendering with its resvg WASM dependency. MPL-2.0; see `THIRD_PARTY.md`.
 - `@cloudflare/workers-oauth-provider`: MCP OAuth, consent, PKCE and token storage. MIT.
 - `@modelcontextprotocol/sdk`: MCP schemas, client contract and HTTP transport. MIT.
-- `@ui-sdk/core` and `@ui-sdk/web` 0.1.0-beta.1: the landing's copy control. Apache-2.0;
-  inspected from the installed packages on 15 November 2026. See `THIRD_PARTY.md`.
 - `better-auth` 1.7.12: email-code identity, native D1 sessions, encrypted OTP storage and database rate limiting. MIT.
 - `@xmldom/xmldom`: bounded XML metadata and generated-XHTML parsing. MIT.
 - `jszip`: ZIP creation and bounded entry streaming. MIT or GPL-3.0-or-later; Palim uses the MIT option.
@@ -14,7 +12,7 @@ The production versions are fixed in package.json and the committed lockfile. Th
 - `pele`: Mermaid parsing and SVG layout. MIT.
 - `zod`: input and boundary validation. MIT.
 
-Dependencies retain their own notices. The website self-hosts Manrope variable WOFF2 for reading, including its Latin-extended subset, from Google Fonts under the included SIL Open Font License (`public/fonts/Manrope-OFL.txt`), and IBM Plex Mono for the landing and studio (`public/fonts/IBMPlexMono-OFL.txt`). Controls retain local font fallbacks. Generated artwork uses embedded OFL Manrope Regular; reflowable book text remains XHTML. esbuild bundles the landing module at build time. GitHub Actions downloads a checksum-pinned EPUBCheck distribution for validation, not for inclusion in the Worker.
+Dependencies retain their own notices. The website self-hosts Manrope variable WOFF2 for reading, including its Latin-extended subset, from Google Fonts under the included SIL Open Font License (`public/fonts/Manrope-OFL.txt`), and IBM Plex Mono for the landing and studio (`public/fonts/IBMPlexMono-OFL.txt`). Controls retain local font fallbacks. Generated artwork uses embedded OFL Manrope static instances at weights 400, 600 and 800; reflowable book text remains XHTML. The landing enhancement is served directly as `public/kindle.js` without a bundling step. GitHub Actions downloads a checksum-pinned EPUBCheck distribution for validation, not for inclusion in the Worker.
 
 `npm audit --omit=dev --audit-level=high` is a blocking CI check, not a substitute for source review or a guarantee against future vulnerabilities.
 

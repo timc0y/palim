@@ -15,6 +15,22 @@ if (
   failures.push('Set ORIGIN to the real canonical HTTPS origin.');
 if (!config.vars?.SENDER || /example|your-verified/.test(config.vars.SENDER))
   failures.push('Set SENDER to an address on your verified Cloudflare Email domain.');
+if (process.env.PALIM_PLUGIN_ORIGIN) {
+  try {
+    const pluginOrigin = new URL(process.env.PALIM_PLUGIN_ORIGIN);
+    if (
+      pluginOrigin.origin !== origin.origin ||
+      pluginOrigin.pathname !== '/' ||
+      pluginOrigin.search ||
+      pluginOrigin.hash ||
+      pluginOrigin.username ||
+      pluginOrigin.password
+    )
+      failures.push('PALIM_PLUGIN_ORIGIN must match the canonical ORIGIN used by the Worker.');
+  } catch {
+    failures.push('PALIM_PLUGIN_ORIGIN must be a valid URL matching ORIGIN.');
+  }
+}
 for (const db of config.d1_databases ?? [])
   if (!db.database_id || /^0[-0]*$/.test(db.database_id))
     failures.push('Configure the real Palim D1 database ID.');

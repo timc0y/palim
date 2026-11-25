@@ -1,70 +1,58 @@
-# palim
+# Palim
 
-Turn a conversation or Markdown draft into an illustrated EPUB, or forward an existing EPUB or PDF
-to a Kindle address without changing a byte of it. Free, MIT-licensed open-source software with no
-AI model inside the service.
+Make an EPUB from your writing, or send an existing EPUB or PDF to your Kindle unchanged.
+Use Palim in your browser or with your agent. The software is free and MIT-licensed.
 
 [![Checks](https://github.com/timc0y/palim/actions/workflows/checks.yml/badge.svg)](https://github.com/timc0y/palim/actions/workflows/checks.yml)
-[![Licence: MIT](https://img.shields.io/badge/licence-MIT-263fa9.svg)](LICENSE)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-242521.svg)](LICENSE)
 
 [Website](https://palim.pages.dev/) · [Studio](https://palim.pages.dev/app) ·
-[Sample](https://palim.pages.dev/sample.html) · [Connect an agent](#connect-an-agent) ·
+[Connect an agent](#connect-an-agent) ·
 [Self-host](#self-host-on-cloudflare)
 
-![Palim — Illustrated EPUBs and unchanged Kindle delivery](public/og.png)
+![Palim — Create an EPUB. Forward a file to Kindle.](public/og.png)
 
 Independent open-source software by [Tim Coy](https://timcoy.uk). Not affiliated with Amazon or
 Kindle.
 
-## Two independent paths
+## Create a book or forward a file
 
-- **Create an illustrated EPUB** — Pass chapters in Markdown from an AI agent or the web studio.
-  Palim builds a reflowable EPUB 3 with an automatic paper cover, table of contents, bounded Mermaid
-  diagrams, labelled bar charts, imported PNG/JPEG figures, and source notes.
-- **Forward an original unchanged** — Upload an EPUB or PDF in the studio or pass one from an
-  agent. Palim inspects bounded metadata, verifies the SHA-256 digest, and attaches those exact
-  original bytes to email. No repair, recompression, watermark, or metadata rewrite.
-- **Private & temporary** — Every file expires after 24 hours, signed download links expire after
-  15 minutes, and minimal delivery receipts are kept for 35 days. Saving up to five labelled Kindle
-  addresses sends no mail.
+- **[Create a book](https://palim.pages.dev/app#create-panel).** Enter a title and write or paste plain text or Markdown. Palim builds an EPUB with a
+  cover and table of contents. Preview it in the browser or download it to read. Your agent can
+  also supply illustrations, diagrams, charts and source notes.
+- **[Forward a file](https://palim.pages.dev/app#upload-panel).** Choose an EPUB or PDF and select **Upload to Shelf**. When you’re ready to send,
+  select **Send**, check the Kindle address and confirm. You can also forward a file through your agent.
+  The emailed attachment contains the exact bytes you uploaded.
+
+You can create and download a book before setting up a Kindle address. Files expire after 24 hours,
+private download links after 15 minutes, and delivery receipts after 35 days. If a link expires
+while the file is still on your Shelf, open the file there for a fresh link.
 
 ## Try the publisher locally
 
-Use Node 22.16 or later. No AI key, Cloudflare account, or email sending is needed to generate the
-sample book:
+Use Node 22.16 or later.
 
 ```sh
 git clone https://github.com/timc0y/palim.git
 cd palim
 npm ci
 npm run check
-npm run example
-```
-
-`npm run example` builds `artifacts/palim-sample.epub`, a self-contained HTML preview
-(`artifacts/palim-sample.html` that opens directly without a server), and an editable JSON
-manuscript (`artifacts/manuscript.json`). The sample chart displays calculated exposure ratios, not
-measured camera data.
-
-To run the full Worker locally:
-
-```sh
 cp .dev.vars.example .dev.vars
 npm run build    # bundle Worker and public assets without deploying
-npm run dev      # local HTTPS site at https://localhost:8787 (sign-in email uses local wrangler dev)
+npx wrangler d1 migrations apply palim --local
+npm run dev      # local HTTPS site at https://localhost:8787
 ```
 
 ## Connect an agent
 
-Connect once and sign in. Your agent reads `get_guide`, then creates a reading edition or forwards
-an original unchanged when you ask.
+Connect your client using the instructions below and sign in. Your agent writes the manuscript.
+Palim turns it into a book without running another AI model.
 
-- There is no skill to install and no setup hook.
-- Creating and downloading EPUBs require no Kindle setup.
-- Save up to five labelled Kindle addresses with a default; saving sends no mail.
-- Approve your account’s exact personal Palim sender once in Amazon’s Personal Document Settings.
-  Palim asks for no Kindle code.
-- Sending is always a separate, explicitly requested action.
+> Turn this conversation into a short EPUB. Give me the preview and download links.
+
+When you want to send a file, save a Kindle address in Studio and approve your personal Palim
+sender in Amazon’s Personal Document Settings. You can save up to five addresses and choose a
+default. Sending is a separate action.
 
 ### ChatGPT
 
@@ -95,8 +83,9 @@ Palim connection. Client discovery and actual authenticated use are separate che
 [Download the complete plugin ZIP](https://palim.pages.dev/palim-plugin.zip) ·
 [SHA-256](https://palim.pages.dev/palim-plugin.sha256)
 
-The archive is an inspectable Codex compatibility package containing no credentials. For a
-self-hosted deployment, generate the same bundle with your actual origin:
+The archive is an inspectable Codex compatibility package containing no credentials. Normal
+builds and deployments derive its endpoint, website and privacy links from the Worker `ORIGIN`.
+To build a bundle without deploying, pass that same canonical origin explicitly:
 
 ```sh
 npm run plugin -- https://your-real-palim-host
@@ -155,11 +144,11 @@ library. See [architecture](docs/architecture.md).
 
 ## Limits worth knowing
 
-Uploads are capped at 20 MiB; Cloudflare’s ordinary email limit is 5 MiB including MIME encoding and
-headers, so some valid uploads are download-only. A generated book holds at most 24 chapters and 12
+Uploads are capped at 20 MiB; Cloudflare’s total email limit is 25 MiB including MIME encoding
+and headers, so some valid uploads are download-only. A generated book holds at most 24 chapters and 12
 figures, with PNG/JPEG assets capped at four million pixels each and 8 MiB per book. Files expire
-after 24 hours and download links after 15 minutes. Hosted accounts default to 2 generated books, 6
-uploads, and 3 email submissions per UTC day, with shared daily and monthly ceilings.
+after 24 hours and download links after 15 minutes. Hosted accounts default to 2 creation attempts,
+6 uploads, and 3 email submissions per UTC day, with shared daily and monthly ceilings.
 
 There is no server-side writing model and no repository crawler. Read the full statement in
 [privacy and limits](https://palim.pages.dev/privacy).
@@ -180,19 +169,19 @@ the exact proof boundary.
 ```sh
 npm run check         # tsc --noEmit, JS syntax checks, and behavioural test suite
 npm run format:check  # Prettier formatting check
-npm run build         # build UI module, sample book/assets, plugin ZIP, and Worker bundle
+npm run build         # build the social card, plugin ZIP and Worker bundle
 ```
 
 ## Repository map
 
 - `src/book.ts`, `figures.ts`, `archive.ts` — EPUB creation, artwork, and original-file inspection.
-- `src/book-styles.ts` — shared EPUB and browser-preview styles, also used by the sample build.
+- `src/book-styles.ts` — shared EPUB and browser-preview styles, also used by the EPUB validation fixture.
 - `src/service.ts`, `store.ts`, `mail.ts` — publishing, ownership, allowances, and delivery.
 - `src/index.ts`, `routes.ts`, `mcp.ts`, `auth.ts`, `login.ts`, `personal-token.ts` — HTTP, MCP,
   OAuth, email OTP identity, and personal bearer tokens.
-- `public/` — landing page, studio, privacy page, self-hosted fonts, and sample assets.
+- `public/` — landing page, studio, privacy page, self-hosted fonts and desktop artwork.
 - `pages/` — the thin Pages front door; `migrations/` — the D1 schema (`0001`–`0008`).
-- `test/`, `scripts/`, `examples/` — behavioural checks, local runtime proofs, and the sample book.
+- `test/`, `scripts/`, `examples/` — behavioural checks, local runtime proofs, and EPUB validation fixtures.
 - `plugins/palim/` — the optional Codex connection package.
 
 [Architecture](docs/architecture.md) · [Authoring](docs/authoring.md) ·

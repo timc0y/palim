@@ -4,29 +4,89 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Privacy and limits · Palim</title>
-    <meta name="description" content="Privacy, data retention, and real limits for Palim." />
-    <meta name="theme-color" content="#efefeb" />
+    <meta
+      name="description"
+      content="How long Palim keeps files and receipts, how private links work, and the limits on uploads and Kindle email."
+    />
+    <meta name="theme-color" content="#eeeeea" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="wrap nav">
-      <a class="wordmark" href="/">
-        <svg class="wordmark__emblem" viewBox="0 0 32 32" aria-hidden="true">
-          <path class="wordmark__stroke" d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
-        </svg>
-        palim
-      </a>
-      <a class="nav-privacy" href="/app">studio</a>
+      <a class="wordmark" href="/" aria-label="Palim home"
+        ><img src="/mark.svg" width="24" height="24" alt="" />Palim</a
+      >
+      <a class="nav-privacy" href="/app">Studio</a>
     </header>
     <main id="main-content" class="prose" tabindex="-1">
       <h1>Privacy &amp; limits</h1>
-      <p>
-        Palim is independent open-source software by Tim Coy. Each self-hosted instance has its own
-        operator and Cloudflare account. This page describes the software’s defaults.
-      </p>
-      <h2>What is processed</h2>
+      <h2 id="retention">How long files, links and receipts last</h2>
+      <dl class="policy-limits">
+        <div>
+          <dt>Files and previews</dt>
+          <dd>
+            <strong>24 hours.</strong> Uploaded files, generated books, source manuscripts and
+            previews become inaccessible at expiry. Scheduled cleanup removes the stored bytes. To
+            delete a file sooner, <a href="/app#files-panel">open your Shelf</a> and choose Delete.
+          </dd>
+        </div>
+        <div>
+          <dt>Private download links</dt>
+          <dd>
+            <strong>15 minutes.</strong> Anyone with the link can download the file until the link
+            or file expires. Until the file expires, you can get a fresh link from your
+            <a href="/app#files-panel">Shelf</a>.
+          </dd>
+        </div>
+        <div>
+          <dt>Delivery receipts</dt>
+          <dd>
+            <strong>35 days.</strong> Palim then removes receipts during scheduled cleanup. Deleting
+            your account removes them sooner.
+          </dd>
+        </div>
+      </dl>
+      <h2 id="file-limits" tabindex="-1">Default file and account limits</h2>
+      <dl class="policy-limits">
+        <div id="file-upload-limit" tabindex="-1" role="group" aria-labelledby="file-upload-label">
+          <dt id="file-upload-label">File upload</dt>
+          <dd>
+            <strong>20 MiB per EPUB or PDF.</strong>
+          </dd>
+        </div>
+        <div>
+          <dt>Email attachment</dt>
+          <dd>
+            <strong>About 18.2 MiB per file.</strong> Forward checks the size when you choose a
+            file. The encoded email, including the attachment, must fit within 25 MiB.
+          </dd>
+        </div>
+        <div>
+          <dt>Generated books</dt>
+          <dd>
+            <strong>10 MiB per finished EPUB.</strong> Limits also apply to manuscript length,
+            figure complexity and image dimensions.
+          </dd>
+        </div>
+        <div>
+          <dt>Daily allowance</dt>
+          <dd>
+            <strong>2 creation attempts, 6 uploads and 3 email submissions</strong> per account by
+            default. Allowances reset at midnight UTC. Shared limits also apply across accounts.
+            Sign-in codes have a smaller allowance and count towards the shared email limit.
+          </dd>
+        </div>
+        <div>
+          <dt>Kindle addresses</dt>
+          <dd>
+            <strong>5 saved addresses per account.</strong> Removing an address leaves previously
+            submitted emails with the provider.
+          </dd>
+        </div>
+      </dl>
+      <h2>What Palim processes</h2>
       <p>
         Your inbox email identifies your Palim account. Better Auth manages short-lived email codes
         and browser sessions using this deployment’s private database. Palim does not request
@@ -39,47 +99,55 @@
         registered Amazon document address. Amazon controls conversion, archiving and Kindle library
         access. Your agent platform and both providers have their own data practices.
       </p>
-      <h2>What is retained</h2>
+      <h2>Account data and deletion</h2>
       <p>
-        Uploaded files, generated books, source manuscripts and previews expire after 24 hours.
-        Access is denied after expiry even before scheduled cleanup removes their stored bytes.
-        Private download links expire after 15 minutes. They are bearer links: anyone you share one
-        with can download until it expires.
+        To delete your account, open <a href="/app#studio-settings">Settings</a> and choose
+        <strong>Delete account</strong> under <strong>Account</strong>. You can also ask the
+        operator to remove your account. Your account settings stay saved until deletion.
       </p>
       <p>
-        Account settings persist until you delete your account in
-        <strong>Settings → Account</strong>
-        or ask the operator to remove them. Self-service deletion immediately removes your account
-        rows, active browser sessions, stored files and previews, saved Kindle addresses, personal
-        MCP token, and connected OAuth agent grants; provider-side logs and any book already emailed
-        to Amazon follow those providers’ policies. If you create an optional Personal MCP token,
-        only its SHA-256 digest is stored until you replace or revoke it; the token grants read,
-        create and send access on your account. OAuth-connected agents can refresh access for up to
-        30 days until disconnected in Settings. Browser sessions last seven days. Sign-in codes
-        expire after five minutes and allow three attempts. Codes are encrypted in the database;
-        expired codes and sessions are removed by scheduled cleanup. Session records include the
-        connecting IP address and browser user agent. Short-lived authentication rate counters are
-        removed after an hour of inactivity. Minimal delivery records are removed with your account;
-        keyed 35-day mail-attempt counters remain temporarily to enforce sending ceilings.
-        Manuscripts, raw destinations and provider error text are not application logs.
+        Deleting your account immediately removes its records, active browser sessions, stored files
+        and previews, saved Kindle addresses, personal MCP token and connected OAuth agent grants.
+        Provider logs and books already emailed to Amazon follow those providers’ policies.
       </p>
-      <h2>Originals remain original</h2>
+      <p>
+        Browser sessions last seven days. Sign-in codes expire after five minutes and allow three
+        attempts. Codes are encrypted in the database; expired codes and sessions are removed by
+        scheduled cleanup. Session records include the connecting IP address and browser user agent.
+        Short-lived authentication rate counters are removed after an hour of inactivity.
+      </p>
+      <p>
+        Palim keeps separate mail-attempt counters for 35 days to enforce sending limits.
+        Application logs exclude manuscripts, raw destinations and provider error text.
+      </p>
+      <h2 id="agent-access">Agent access</h2>
+      <dl class="policy-limits">
+        <div>
+          <dt>Connected applications</dt>
+          <dd>
+            <strong>Access lasts up to 30 days.</strong> Review the permissions the app requests
+            before you connect it. You can disconnect it at any time under
+            <a href="/app#oauth-grants">Connected applications</a> in Settings.
+          </dd>
+        </div>
+        <div>
+          <dt>Personal MCP token</dt>
+          <dd>
+            <strong>Until you replace or revoke it.</strong> This optional token grants read, create
+            and send access. Palim stores only its SHA-256 digest.
+          </dd>
+        </div>
+      </dl>
+      <h2>Forwarded files</h2>
       <p>
         The forwarding path reads bounded metadata but does not rewrite, repair, recompress or
         watermark your EPUB or PDF. A hash verifies the submitted attachment. Amazon may convert the
         file it imports; Palim does not control that representation.
       </p>
-      <h2>Real limits</h2>
       <p>
-        Uploads are limited to 20 MiB. Cloudflare’s ordinary email limit is 5 MiB including encoding
-        and headers, so some valid uploads cannot be emailed. Generated guides are bounded in
-        length, figure complexity and image dimensions. The default account allowance is two
-        renders, six uploads and three email submissions per UTC day, with a shared service ceiling.
-        Sign-in codes also count toward the shared email ceiling, with their own smaller allowance.
-        Up to five labelled Kindle addresses may be saved privately; removing an address does not
-        recall an email already submitted. Each account has a stable personal sending address to
-        approve in Amazon. Palim does not require a Kindle verification code; Amazon may apply its
-        own checks.
+        Approve your <a href="/app#sender-address">personal sender address</a> in Amazon before your
+        first send. Palim does not require a Kindle verification code. Amazon may apply its own
+        checks.
       </p>
       <p>
         An accepted email submission is not confirmed Kindle delivery. A timeout is not permission
@@ -88,14 +156,21 @@
       </p>
       <h2>Operator responsibilities</h2>
       <p>
-        Before opening a hosted instance to other people, configure provider retention and disable
+        Palim is independent open-source software by Tim Coy. Each self-hosted instance has its own
+        operator and Cloudflare account.
+      </p>
+      <p>
+        Follow the
+        <a href="https://github.com/timc0y/palim/blob/main/docs/deployment.md">deployment guide</a>
+        before opening a hosted instance to other people. Configure provider retention and disable
         Cloudflare email-preview storage, verify account limits and run the deployment and device
         checks. Keep private buckets private, and do not put credentials into the repository.
       </p>
       <p>
-        Security reports and operator setup instructions are in the
-        <a href="https://github.com/timc0y/palim">Palim repository</a>. Use this service only for
-        material you are entitled to send.
+        To report a security issue, follow the
+        <a href="https://github.com/timc0y/palim/blob/main/SECURITY.md"
+          >private reporting instructions</a
+        >. Use this service only for material you are entitled to send.
       </p>
     </main>
   </body>

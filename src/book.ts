@@ -58,7 +58,7 @@ function renderChapter(
       `<figure class="figure-${image.kind}">`,
       `<img src="${image.filename}" alt="${e(image.alt)}"/>`,
       '<figcaption>',
-      `<span class="figure-number">Figure ${number}.</span> `,
+      `<span lang="en" xml:lang="en" dir="ltr" class="figure-number">Figure ${number}.</span> `,
       `<span class="caption-text">${e(image.caption)}</span>`,
       '</figcaption></figure>\n',
     ].join('');
@@ -101,7 +101,7 @@ function renderChapter(
     html: [
       `<section class="chapter" id="chapter-${index + 1}">`,
       '<header class="chapter-heading">',
-      `<p class="chapter-number">Chapter ${index + 1}</p>`,
+      `<p lang="en" xml:lang="en" dir="ltr" class="chapter-number">Chapter ${index + 1}</p>`,
       `<h1>${e(chapter.title)}</h1>`,
       '</header>',
       body,
@@ -112,30 +112,35 @@ function renderChapter(
   };
 }
 
-function readingPreview(book: Book, body: string): string {
+function readingPreview(book: Book, body: string, rtl: boolean): string {
+  const byline = [book.creator, book.edition].filter(Boolean).join(' · ');
   const contents = book.chapters.map(
     (chapter, index) => `<li><a href="#chapter-${index + 1}">${e(chapter.title)}</a></li>`,
   );
   if (book.sources.length)
-    contents.push('<li><a href="#sources">Sources and further reading</a></li>');
+    contents.push('<li><a lang="en" href="#sources">Sources and further reading</a></li>');
   return [
     '<!doctype html>',
-    `<html lang="${e(book.language)}">`,
+    `<html lang="${e(book.language)}"${rtl ? ' dir="rtl"' : ''}>`,
     '<head><meta charset="utf-8"/>',
     '<meta name="viewport" content="width=device-width,initial-scale=1"/>',
     `<title>${e(book.title)}</title>`,
     `<style>${PREVIEW_CSS}</style>`,
     '</head><body>',
-    '<div class="preview-tools"><a href="/app">Back to studio</a></div>',
+    '<a lang="en" class="preview-skip" href="#reading-text">Skip to book text</a>',
+    '<div lang="en" class="preview-tools"><a href="/app#files-panel">Open Shelf</a></div>',
     '<header class="preview-header"><div class="preview-heading">',
-    `<p class="preview-meta">${e(book.edition || 'Reading edition')}${book.creator ? ` · ${e(book.creator)}` : ''}</p>`,
-    `<h1>${e(book.title)}</h1>`,
+    `<h1 id="top" tabindex="-1">${e(book.title)}</h1>`,
     book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : '',
+    byline ? `<p class="preview-meta">${e(byline)}</p>` : '',
     '</div></header>',
-    '<nav class="preview-contents" aria-label="Contents"><details><summary>Contents</summary><ol>',
-    contents.join(''),
-    '</ol></details></nav>',
-    `<main>${body}</main>`,
+    contents.length > 1
+      ? `<nav lang="en" class="preview-contents" aria-label="Contents"><details><summary id="contents">Contents</summary><ol lang="${e(book.language)}">${contents.join('')}</ol></details></nav>`
+      : '',
+    `<main id="reading-text" tabindex="-1">${body}</main>`,
+    contents.length > 1
+      ? '<footer lang="en" class="preview-tools"><a href="#contents">Back to contents</a></footer>'
+      : '<footer lang="en" class="preview-tools"><a href="#top">Back to top</a></footer>',
     '</body></html>',
   ].join('');
 }
@@ -155,6 +160,10 @@ export async function buildBook(
         .slice(0, 2000),
     );
   const book: Book = parsed.data;
+  const script = new Intl.Locale(book.language).maximize().script;
+  const rtl = ['Adlm', 'Arab', 'Hebr', 'Mand', 'Nkoo', 'Rohg', 'Samr', 'Syrc', 'Thaa'].includes(
+    script ?? '',
+  );
   const source = JSON.stringify(book, null, 2),
     identifier = `urn:sha256:${await sha256(source)}`;
   const modified = now.toISOString().replace(/\.\d{3}Z$/, 'Z'),
@@ -197,15 +206,25 @@ export async function buildBook(
     warnings: string[] = [];
   const addPage = (id: string, title: string, body: string) => {
     const href = `${id}.xhtml`;
-    const xml = xhtml(title, book.language, body);
+    const xml = xhtml(title, book.language, body, rtl);
     parseXml(xml);
     file(`EPUB/${href}`, xml);
     manifest.push({ id, href, type: 'application/xhtml+xml', properties: '' });
     spine.push(id);
     toc.push({ title, href });
-    if (id !== 'title')
+    if (id === 'title') return;
+    const previewBody = body
+      .replace('<section ', () => `<section tabindex="-1" aria-label="${e(title)}" `)
+      .replace(/<table>([\s\S]*?)<\/thead>/g, (header: string) => {
+        const wide = (header.match(/<th[ >]/g) || []).length >= 5;
+        return `<div class="preview-table"${wide ? ' tabindex="0"' : ''}>${header}`;
+      })
+      .replaceAll('</table>', '</table></div>');
+    if (id === 'chapter-1' && book.chapters.length === 1 && title === book.title) {
+      preview.push(previewBody.replace(/<header class="chapter-heading">[\s\S]*?<\/header>/, ''));
+    } else
       preview.push(
-        body.replace(
+        previewBody.replace(
           /<(\/?)h([1-5])(\s[^>]*)?>/g,
           (_, close: string, level: string, attrs: string = '') =>
             `<${close}h${Number(level) + 1}${attrs}>`,
@@ -218,7 +237,7 @@ export async function buildBook(
     book.title,
     [
       '<section class="title-page">',
-      `<h1>${e(book.title)}</h1>`,
+      `<h1 id="top" tabindex="-1">${e(book.title)}</h1>`,
       book.subtitle ? `<p class="subtitle">${e(book.subtitle)}</p>` : '',
       book.creator ? `<p class="author">${e(book.creator)}</p>` : '',
       book.description ? `<p class="description">${e(book.description)}</p>` : '',
@@ -248,11 +267,11 @@ export async function buildBook(
       'sources',
       'Sources and further reading',
       [
-        '<section class="source-section" id="sources">',
-        '<h1>Sources and further reading</h1><ol>',
+        '<section class="source-section" id="sources" lang="en">',
+        `<h1 dir="ltr">Sources and further reading</h1><ol lang="${e(book.language)}">`,
         ...book.sources.map(
           (entry) =>
-            `<li><p><a href="${e(entry.url)}">${e(entry.title)}</a>${entry.note ? ` — ${e(entry.note)}` : ''}</p></li>`,
+            `<li><p><a href="${e(entry.url)}">${e(entry.title)}</a></p>${entry.note ? `<p>${e(entry.note)}</p>` : ''}</li>`,
         ),
         '</ol></section>',
       ].join(''),
@@ -261,8 +280,16 @@ export async function buildBook(
     'EPUB/nav.xhtml',
     xhtml(
       'Contents',
-      book.language,
-      `<nav epub:type="toc" id="toc"><h1>Contents</h1><ol>${toc.map((t) => `<li><a href="${t.href}">${e(t.title)}</a></li>`).join('')}</ol></nav>`,
+      'en',
+      `<nav epub:type="toc" id="toc"><h1>Contents</h1><ol lang="${e(book.language)}" xml:lang="${e(book.language)}">${toc.map((t) => `<li><a href="${t.href}"${t.href === 'sources.xhtml' ? ' lang="en" xml:lang="en"' : ''}>${e(t.title)}</a></li>`).join('')}</ol></nav>` +
+        '<nav epub:type="landmarks" hidden="hidden"><h2>Book navigation</h2><ol>' +
+        '<li><a epub:type="titlepage" href="title.xhtml">Title page</a></li>' +
+        '<li><a epub:type="bodymatter" href="chapter-1.xhtml">Start reading</a></li>' +
+        (book.sources.length
+          ? '<li><a epub:type="bibliography" href="sources.xhtml">Sources and further reading</a></li>'
+          : '') +
+        '</ol></nav>',
+      rtl,
     ),
   );
   file(
@@ -283,7 +310,7 @@ export async function buildBook(
         (item) =>
           `<item id="${item.id}" href="${item.href}" media-type="${item.type}"${item.properties ? ` properties="${item.properties}"` : ''}/>`,
       ),
-      '</manifest><spine>',
+      rtl ? '</manifest><spine page-progression-direction="rtl">' : '</manifest><spine>',
       ...spine.map((id) => `<itemref idref="${id}"/>`),
       '</spine></package>',
     ].join(''),
@@ -310,7 +337,7 @@ export async function buildBook(
   return {
     bytes,
     source,
-    preview: readingPreview(book, inlinePreview),
+    preview: readingPreview(book, inlinePreview, rtl),
     filename: safeFilename(book.title, 'application/epub+zip'),
     hash: await sha256(bytes),
     wordCount: book.chapters.reduce(

@@ -4,18 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="csp-nonce" />
-    <title>Palim — Illustrated EPUBs &amp; unchanged Kindle delivery</title>
+    <title>Palim — Create an EPUB or forward a file to Kindle</title>
     <meta
       name="description"
-      content="Turn AI conversations or Markdown into illustrated EPUBs, or forward existing EPUB and PDF files to Kindle unchanged. Free, MIT open source, no AI model inside."
+      content="Create an EPUB from text or Markdown, or send an existing EPUB or PDF to your Kindle unchanged. Free and open source."
     />
     <link rel="canonical" href="https://palim.pages.dev/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Palim" />
-    <meta property="og:title" content="Palim — Illustrated EPUBs &amp; unchanged Kindle delivery" />
+    <meta property="og:title" content="Palim — Create an EPUB or forward a file to Kindle" />
     <meta
       property="og:description"
-      content="Turn AI conversations or Markdown into illustrated EPUBs, or forward existing EPUB and PDF files to Kindle unchanged. Free, MIT open source, no AI model inside."
+      content="Create an EPUB from text or Markdown, or send an existing EPUB or PDF to your Kindle unchanged. Free and open source."
     />
     <meta property="og:url" content="https://palim.pages.dev/" />
     <meta property="og:image" content="https://palim.pages.dev/og.png" />
@@ -23,292 +23,168 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Palim retro e-reader frame beside the One stop of light illustrated cover"
+      content="A grayscale mountain landscape above the words “Palim. Create an EPUB. Forward a file to Kindle.”"
     />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Palim — Illustrated EPUBs &amp; unchanged Kindle delivery"
-    />
+    <meta name="twitter:title" content="Palim — Create an EPUB or forward a file to Kindle" />
     <meta
       name="twitter:description"
-      content="Turn AI conversations or Markdown into illustrated EPUBs, or forward existing EPUB and PDF files to Kindle unchanged. Free, MIT open source, no AI model inside."
+      content="Create an EPUB from text or Markdown, or send an existing EPUB or PDF to your Kindle unchanged. Free and open source."
+    />
+    <meta
+      name="twitter:image:alt"
+      content="A grayscale mountain landscape above the words “Palim. Create an EPUB. Forward a file to Kindle.”"
     />
     <meta name="twitter:image" content="https://palim.pages.dev/og.png" />
-    <meta name="theme-color" content="#efefeb" />
+    <meta name="theme-color" content="#eeeeea" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/kindle.css" />
     <link
       rel="preload"
-      href="/fonts/IBMPlexMono-Latin-400.woff2"
+      href="/fonts/IBMPlexSerif-Latin-600.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
-    <link rel="preload" href="/fonts/Manrope-Latin.woff2" as="font" type="font/woff2" crossorigin />
-    <script type="module" src="/landing.js"></script>
+    <script type="module" src="/kindle.js"></script>
   </head>
   <body>
-    <a class="skip" href="#page">Skip to content</a>
-    <main id="page" tabindex="-1">
-      <section class="hero" aria-label="Palim">
-        <div class="machine" data-skin="hardware">
-          <header class="bar">
-            <a class="logo" href="/" aria-label="Home">
-              <svg viewBox="0 0 32 32" aria-hidden="true">
-                <path d="M7 10h7l2-2h9M7 16h11l2-2h5M7 22h4" />
-              </svg>
-            </a>
-            <a class="privacy" href="/privacy">privacy</a>
-          </header>
-          <div class="bezel" data-kit="display-bezel">
-            <div class="plate" data-kit="display-screen">
-              <h1 class="word">palim<span class="caret" aria-hidden="true"></span></h1>
-              <p class="tagline">
-                Turn conversations into illustrated EPUBs, or send existing books to Kindle
-                unchanged.
-              </p>
-              <details class="connect">
-                <summary>
-                  connect an agent<span class="connect__indicator" aria-hidden="true"></span>
-                </summary>
-                <div class="connect__body">
-                  <div class="line-group">
-                    <span class="line__label">MCP URL (ChatGPT, Claude &amp; MCP clients)</span>
-                    <div class="line">
-                      <pre
-                        class="line__commands"
-                        aria-label="Palim MCP address"
-                      ><code>https://palim.pages.dev/mcp</code></pre>
-                      <ui-button
-                        data-copy
-                        data-copy-label="MCP address"
-                        pending-announcement="Copying MCP address"
-                      >
-                        <button class="key line__copy" data-kit="button" type="button">copy</button>
-                      </ui-button>
-                    </div>
-                  </div>
-                  <div class="line-group">
-                    <span class="line__label">Codex plugin</span>
-                    <div class="line">
-                      <pre
-                        class="line__commands"
-                        aria-label="Codex installation commands"
-                      ><code>codex plugin marketplace add timc0y/palim --ref main
-codex plugin add palim@palim</code></pre>
-                      <ui-button
-                        data-copy
-                        data-copy-label="Codex commands"
-                        pending-announcement="Copying Codex commands"
-                      >
-                        <button class="key line__copy" data-kit="button" type="button">copy</button>
-                      </ui-button>
-                    </div>
-                  </div>
-                  <div class="connect__links">
-                    <a
-                      class="connect__guide"
-                      href="https://github.com/timc0y/palim#connect-an-agent"
-                      rel="noreferrer"
-                      >Connection guide (OAuth &amp; token)<span aria-hidden="true">↗</span></a
-                    >
-                    <a class="connect__guide" href="/palim-plugin.zip">Codex ZIP</a>
-                  </div>
-                </div>
-              </details>
-            </div>
-          </div>
-          <p class="sr-only" id="copy-status" role="status"></p>
-          <nav class="deck" aria-label="Primary">
-            <a class="key" data-kit="button" href="/sample.html">sample</a>
-            <a class="key key--go" data-kit="button" data-tone="primary" href="/app">studio</a>
-            <a class="key" data-kit="button" href="https://github.com/timc0y/palim" rel="noreferrer"
-              >source</a
+    <a class="skip" href="#publishing-desk">Skip to content</a>
+    <main id="page" class="home" tabindex="-1">
+      <div class="home-screen">
+        <section class="screen-ui" aria-label="Palim">
+          <header class="desk-bar">
+            <span class="desk-brand"
+              ><img src="/mark.svg" width="24" height="24" alt="" />Palim</span
             >
-          </nav>
-        </div>
-      </section>
-
-      <div class="manual">
-        <section class="manual-section" id="paths">
-          <h2>Two independent paths</h2>
-          <div class="manual-body paths-grid">
-            <div class="path-block">
-              <h3>Create an illustrated EPUB</h3>
-              <p>
-                Pass chapters in Markdown from an AI conversation or the web studio. Palim builds a
-                valid, reflowable EPUB 3 with an automatic paper cover, table of contents, bounded
-                Mermaid diagrams, labelled bar charts, PNG/JPEG figures, and source notes.
-              </p>
-              <p class="manual-note">
-                Deterministic packaging only — no language model runs inside Palim.
-              </p>
-            </div>
-            <div class="path-block">
-              <h3>Forward an original unchanged</h3>
-              <p>
-                Upload an existing EPUB or PDF in the studio or pass one from your agent. Palim
-                verifies bounded metadata and SHA-256 integrity, then emails the exact original
-                bytes to your selected Kindle address.
-              </p>
-              <p class="manual-note">No repair, recompression, watermark, or metadata rewrite.</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="manual-section" id="specimen">
-          <h2>Live specimen</h2>
-          <div class="manual-body specimen-grid">
-            <img
-              class="specimen-cover"
-              src="/images/sample-cover.png"
-              width="1200"
-              height="1600"
-              alt="Generated EPUB cover for One stop of light: A field guide to shutter speed and exposure"
-              loading="lazy"
-            />
-            <div class="specimen-copy">
-              <h3>One stop of light</h3>
-              <p>
-                A 510-word field guide to shutter speed and exposure, generated directly from a
-                single JSON manuscript. Includes a rasterized bar chart, an aperture-exchange
-                diagram, tabular settings, and source citations, validated in CI with EPUBCheck.
-              </p>
-              <p class="manual-note">
-                Chart values are calculated exposure ratios, not measured camera data. Browser
-                previews test layout, not physical Kindle rendering.
-              </p>
-              <div class="manual-links">
-                <a href="/sample.html">Read the web sample</a>
-                <a href="/sample.epub">Download sample EPUB</a>
+            <details class="home-menu">
+              <summary class="menu-toggle">Menu</summary>
+              <div class="menu-content">
+                <nav class="menu-destinations" aria-label="Studio">
+                  <a class="launcher" href="/app#studio-settings">Settings</a>
+                </nav>
+                <div class="screen-footer">
+                  <details class="connect">
+                    <summary>Connect an agent</summary>
+                    <div class="connect__body">
+                      <div class="line">
+                        <span class="line__label" id="mcp-label">MCP path on this site</span>
+                        <pre
+                          class="line__commands"
+                          aria-labelledby="mcp-label"
+                        ><code id="mcp-address">/mcp</code></pre>
+                        <button
+                          class="line__copy"
+                          data-copy
+                          data-copy-label="MCP address"
+                          id="copy-mcp"
+                          aria-labelledby="copy-mcp mcp-label"
+                          aria-describedby="mcp-copy-feedback"
+                          type="button"
+                          hidden
+                        >
+                          Copy
+                        </button>
+                        <p id="mcp-copy-feedback" class="line__feedback sr-only" role="status"></p>
+                      </div>
+                      <div class="line">
+                        <span class="line__label" id="codex-label"
+                          >Codex commands for palim.pages.dev</span
+                        >
+                        <pre
+                          class="line__commands"
+                          aria-label="Codex installation commands"
+                        ><code><span class="command">codex plugin marketplace add timc0y/palim --ref main</span>
+<span class="command">codex plugin add palim@palim</span></code></pre>
+                        <button
+                          class="line__copy"
+                          data-copy
+                          data-copy-label="Codex commands"
+                          id="copy-codex"
+                          aria-labelledby="copy-codex codex-label"
+                          aria-describedby="codex-copy-feedback"
+                          type="button"
+                          hidden
+                        >
+                          Copy
+                        </button>
+                        <p
+                          id="codex-copy-feedback"
+                          class="line__feedback sr-only"
+                          role="status"
+                        ></p>
+                      </div>
+                      <div class="connect__links">
+                        <a
+                          class="connect__guide"
+                          href="https://github.com/timc0y/palim#connect-an-agent"
+                          rel="noreferrer"
+                          >Connection guide</a
+                        >
+                        <a class="connect__guide" href="/palim-plugin.zip" download
+                          >Download Codex plugin (ZIP)<span class="plugin-host">
+                            for palim.pages.dev</span
+                          ></a
+                        >
+                      </div>
+                    </div>
+                  </details>
+                  <nav class="screen-links" aria-label="Palim links">
+                    <a href="https://github.com/timc0y/palim">Source code (MIT)</a>
+                    <a class="privacy" href="/privacy">Privacy</a>
+                  </nav>
+                </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="manual-section" id="use">
-          <h2>Connect &amp; use</h2>
-          <div class="manual-body stack-list">
-            <div class="stack-row">
-              <h3>Web Studio</h3>
-              <p>
-                Sign in with a six-digit email code — no password or Amazon credentials required.
-                Draft multi-chapter Markdown books with <code>#</code> headings, drop an EPUB or PDF
-                to send unchanged, preview files privately in the browser, and manage saved Kindle
-                addresses.
-              </p>
-              <p><a href="/app">Open studio</a></p>
-            </div>
-            <div class="stack-row">
-              <h3>Any MCP client</h3>
-              <p>
-                Connect over OAuth at <code>/mcp</code> from ChatGPT or Codex, or generate a
-                Personal MCP token in <strong>Settings → Agent</strong> for clients that take an
-                <code>Authorization: Bearer</code> header. Seven focused tools handle guides,
-                images, book creation, link recovery, destination labels, sending, and delivery
-                receipts. Drafts never send mail.
-              </p>
-              <p>
-                <a href="https://github.com/timc0y/palim#connect-an-agent" rel="noreferrer"
-                  >Client setup steps<span aria-hidden="true"> ↗</span></a
+            </details>
+          </header>
+          <div class="desk-windows">
+            <div class="desktop-window">
+              <h1 id="publishing-desk" tabindex="-1">Publishing desk</h1>
+              <nav class="launchers" aria-label="Publishing tasks">
+                <a
+                  class="launcher launcher-job"
+                  href="/app#create-panel"
+                  aria-labelledby="create-name"
+                  aria-describedby="create-description"
+                  ><img
+                    class="desk-art"
+                    src="/icons/create-book.png"
+                    width="68"
+                    height="46"
+                    alt=""
+                  /><span
+                    ><strong id="create-name">Create a book</strong
+                    ><small id="create-description"
+                      >Turn text or Markdown into an EPUB.</small
+                    ></span
+                  ></a
+                ><a
+                  class="launcher launcher-job"
+                  href="/app#upload-panel"
+                  aria-labelledby="forward-name"
+                  aria-describedby="forward-description"
+                  ><img
+                    class="desk-art"
+                    src="/icons/forward-file.png"
+                    width="68"
+                    height="46"
+                    alt=""
+                  /><span
+                    ><strong id="forward-name">Forward a file</strong
+                    ><small id="forward-description"
+                      >Send the original EPUB or PDF to Kindle.</small
+                    ></span
+                  ></a
                 >
-              </p>
-            </div>
-            <div class="stack-row">
-              <h3>Amazon setup once</h3>
-              <p>
-                Each account receives a unique personal sending address on the configured sending
-                domain. Approve that exact address once in Amazon’s Personal Document Settings, then
-                save up to five labelled Kindle addresses. Saving addresses sends no mail; every
-                delivery requires an explicit request.
-              </p>
+              </nav>
             </div>
           </div>
-        </section>
-
-        <section class="manual-section" id="limits">
-          <h2>Honest limits &amp; privacy</h2>
-          <div class="manual-body">
-            <dl class="spec-list">
-              <div class="spec-row">
-                <dt>Licence</dt>
-                <dd>
-                  Free and MIT open source by Tim Coy. Independent software; not affiliated with
-                  Amazon or Kindle.
-                </dd>
-              </div>
-              <div class="spec-row">
-                <dt>Retention</dt>
-                <dd>
-                  Books, uploads, manuscripts, and previews expire after 24 hours; signed links
-                  expire after 15 minutes; minimal delivery receipts stay 35 days.
-                </dd>
-              </div>
-              <div class="spec-row">
-                <dt>Sizes &amp; quotas</dt>
-                <dd>
-                  Uploads up to 20 MiB; Cloudflare Email limit 5 MiB encoded (larger files remain
-                  downloadable). Hosted defaults: 2 generated books, 6 uploads, and 3 email
-                  submissions per account per UTC day, with shared ceilings.
-                </dd>
-              </div>
-              <div class="spec-row">
-                <dt>Receipts</dt>
-                <dd>
-                  <code>submitted</code> means Cloudflare accepted the email — never inferred as
-                  Amazon conversion, library import, or physical Kindle receipt.
-                </dd>
-              </div>
-            </dl>
-            <div class="manual-links">
-              <a href="/privacy">Privacy &amp; limits</a>
-              <a
-                href="https://github.com/timc0y/palim/blob/main/docs/verification.md"
-                rel="noreferrer"
-                >Verification record<span aria-hidden="true"> ↗</span></a
-              >
-            </div>
-          </div>
-        </section>
-
-        <section class="manual-section" id="self-host">
-          <h2>Self-host on Cloudflare</h2>
-          <div class="manual-body">
-            <p>
-              Run your own private instance on a Cloudflare Workers Paid account using one Worker,
-              D1, private R2, KV, outbound Email Sending, and a thin Pages front door. Try the local
-              publisher without any cloud account or secrets:
-            </p>
-            <pre class="manual-code"><code>git clone https://github.com/timc0y/palim.git
-cd palim &amp;&amp; npm ci &amp;&amp; npm run example</code></pre>
-            <div class="manual-links">
-              <a
-                href="https://github.com/timc0y/palim/blob/main/docs/deployment.md"
-                rel="noreferrer"
-                >Deployment guide<span aria-hidden="true"> ↗</span></a
-              >
-              <a
-                href="https://github.com/timc0y/palim/blob/main/docs/architecture.md"
-                rel="noreferrer"
-                >Architecture<span aria-hidden="true"> ↗</span></a
-              >
-            </div>
-          </div>
+          <nav class="desk-tabs reader-navigation" aria-label="Reader navigation">
+            <a href="/" aria-current="page">Home</a>
+            <a href="/app#files-panel">Shelf</a>
+          </nav>
         </section>
       </div>
     </main>
-    <footer class="colophon">
-      <div class="colophon__inner">
-        <span>palim · MIT open source</span>
-        <nav aria-label="Footer">
-          <a href="/app">studio</a>
-          <a href="/sample.html">sample</a>
-          <a href="/privacy">privacy</a>
-          <a href="https://github.com/timc0y/palim" rel="noreferrer">github</a>
-          <a href="https://timcoy.uk" rel="noreferrer">tim coy</a>
-        </nav>
-      </div>
-    </footer>
   </body>
 </html>

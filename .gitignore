@@ -12,11 +12,13 @@ playwright-report/
 test-results/
 .local/
 artifacts/
+output/
+__pycache__/
+.playwright-cli/
 public/sample.epub
 public/sample.html
 public/example.json
 public/reader.css
-public/landing.js
 public/palim-plugin.zip
 public/palim-plugin.sha256
 

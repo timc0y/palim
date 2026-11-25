@@ -1,9 +1,16 @@
+import { permissionLabel } from './permissions.js';
 import { buildBook } from './book.js';
 import { publicFileUrl } from './file-url.js';
 import { inspectDocument } from './archive.js';
 import { BookSchema, DestinationSchema, LIMITS, type Book } from './schema.js';
 import { invariant, PalimError } from './errors.js';
-import { canEmail, maskAddress, prepareEmail, safeFilename } from './mail.js';
+import {
+  MAX_EMAIL_DOCUMENT_BYTES,
+  canEmail,
+  maskAddress,
+  prepareEmail,
+  safeFilename,
+} from './mail.js';
 import { equalToken, hmac, readBytes } from './http.js';
 import { sha256 } from './xml.js';
 import { Store } from './store.js';
@@ -136,6 +143,7 @@ export class Palim {
           id: grant.id,
           clientName: storedName || (await this.lookupClientName(grant.clientId)),
           scope: grant.scope,
+          permissions: grant.scope.map(permissionLabel),
           createdAt: new Date(grant.createdAt * 1000).toISOString(),
         };
       }),
@@ -224,6 +232,7 @@ export class Palim {
   async account(owner: string) {
     const user = await this.store.user(owner);
     return {
+      id: owner,
       name: user.name,
       destination: user.destination ? maskAddress(user.destination) : null,
       defaultDestinationId: user.default_destination_id,
@@ -240,6 +249,7 @@ export class Palim {
         renders: user.daily_render_limit,
         sends: user.daily_send_limit,
         uploads: LIMITS.uploads,
+        emailUploadBytes: MAX_EMAIL_DOCUMENT_BYTES,
         retentionHours: 24,
       },
       artifacts: await Promise.all(
@@ -320,12 +330,15 @@ export class Palim {
       'Referrer-Policy': 'no-referrer',
       'X-Content-Type-Options': 'nosniff',
     });
-    if (part !== 'preview')
+    if (part !== 'preview') {
+      const name = part === 'source' ? 'manuscript.json' : a.filename;
+      const ascii = name.replace(/[^a-zA-Z0-9._ -]/gu, '_');
       headers.set(
         'Content-Disposition',
-        `attachment; filename="${part === 'source' ? 'manuscript.json' : a.filename}"`,
+        `attachment; filename="${ascii}"` +
+          (name === ascii ? '' : `; filename*=UTF-8''${encodeURIComponent(name)}`),
       );
-    else
+    } else
       headers.set(
         'Content-Security-Policy',
         `sandbox; default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src ${this.env.ORIGIN}/fonts/; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`,
@@ -527,7 +540,7 @@ export class Palim {
       }
       throw new PalimError(
         'SEND_LIMIT',
-        'The sending allowance is full or the destination changed. Nothing new was submitted.',
+        'No new email was sent. Check the saved Kindle address. If it’s correct, the sending allowance may be full. Try again later.',
         429,
       );
     }
@@ -578,13 +591,13 @@ export class Palim {
     if (!parsed.success)
       throw new PalimError('KINDLE_ADDRESS', 'Enter your Amazon @kindle.com document address.');
     invariant(
-      label.trim().length > 0 && label.trim().length <= 40,
+      label.trim().length <= 40,
       'READER_LABEL',
-      'Give this reader a name of up to 40 characters.',
+      'Use up to 40 characters for the Kindle nickname.',
     );
     return { email: parsed.data.email, label: label.trim() };
   }
-  async saveDestination(owner: string, email: unknown, label = 'My reader') {
+  async saveDestination(owner: string, email: unknown, label = '') {
     const value = this.readerInput(email, label);
     const saved = await this.store.saveReader(owner, value.email, value.label);
     return {

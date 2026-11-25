@@ -49,6 +49,7 @@ test('saved addresses remain private and bounded to five, including concurrent s
   const renamed = await f.palim.saveDestination('alice', saved.email, 'Renamed');
   assert.equal(renamed.id, saved.id);
   assert.equal(renamed.label, 'Renamed');
+  assert.deepEqual(await f.palim.saveDestination('alice', saved.email, '  '), renamed);
   await assert.rejects(
     f.palim.saveDestination('alice', 'other@example.com', 'Other'),
     rejects('KINDLE_ADDRESS'),

@@ -1,6 +1,5 @@
 """Isolated workerd public-network proof. No identity, OAuth, storage or email bindings."""
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import socket
@@ -67,9 +66,9 @@ try:
     def probe(url):
         with urllib.request.urlopen(base + '?url=' + urllib.parse.quote(url, safe=''), timeout=15) as r:
             return json.load(r)
-    positive = probe('https://palim.pages.dev/sample.epub')
+    positive = probe('https://www.w3.org/Icons/w3c_home.png')
     assert positive.get('status') == 200, positive
-    assert positive['hash'] == hashlib.sha256((ROOT / 'public/sample.epub').read_bytes()).hexdigest()
+    assert positive['hash'] == '590608bf256237f22d84bbab2a0a1afc0d4f20db6350bbac2c6841f1f3e13b01'
     negatives = []
     for host in ['127.0.0.1', '127.0.0.1.nip.io', '[::1]', '[::ffff:127.0.0.1]',
                  '10.0.0.1', '169.254.169.254', '[fc00::1]', '[fe80::1]']:
