@@ -114,7 +114,7 @@
           hidden
         >
           <p id="startup-error" class="field-help" role="alert"></p>
-          <button id="retry-startup" class="secondary" type="button">Retry</button>
+          <button id="retry-startup" type="button">Retry</button>
         </section>
         <div id="desk" class="desk" hidden>
           <div class="desk-main" id="workbench">
@@ -135,7 +135,10 @@
                     <p class="field-help" id="title-error" hidden></p>
                   </div>
                   <div>
-                    <label for="manuscript">Manuscript</label>
+                    <div class="manuscript-label-row">
+                      <label for="manuscript">Manuscript</label>
+                      <span class="file-tag" id="manuscript-chapters" hidden></span>
+                    </div>
                     <p class="field-help" id="manuscript-help">
                       Text or Markdown. Start chapters with a <code># Heading</code> line.
                     </p>
@@ -445,7 +448,7 @@
                 <details id="personal-token" class="token-disclosure" hidden>
                   <summary aria-labelledby="token-heading" aria-describedby="token-badge">
                     <span id="token-heading">Personal MCP token</span>
-                    <span class="token-badge" id="token-badge">None</span>
+                    <span class="token-badge" id="token-badge" data-state="none">None</span>
                   </summary>
                   <div class="token-body">
                     <p class="field-help">

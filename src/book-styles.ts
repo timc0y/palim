@@ -61,7 +61,8 @@ li { margin-bottom: .5em; }
 
 // Every preview section uses the same label column, gutter and reading column.
 export const PREVIEW_CSS = `
-@font-face { font-family: Manrope; src: url(/fonts/Manrope-Latin.woff2) format("woff2"); font-weight: 400 800; font-display: swap; }
+@font-face { font-family: Manrope; src: url(/fonts/Manrope-Extended.woff2) format("woff2"); font-weight: 400 800; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Manrope; src: url(/fonts/Manrope-Latin.woff2) format("woff2"); font-weight: 400 800; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 * { box-sizing: border-box; }
 html { color-scheme: light; background: ${PALIM_PALETTE.previewPaper}; background-image: repeating-linear-gradient(0deg, rgb(0 0 0 / 1.5%) 0 1px, transparent 1px 3px); color: ${PALIM_PALETTE.ink}; scroll-behavior: smooth; }
 body {
@@ -78,7 +79,8 @@ body {
 h1, h2, h3, h4, h5, h6, p, figure, blockquote, pre, ul, ol { margin: 0; }
 h1, h2, h3, h4, h5, h6 { font-weight: 500; line-height: 1.25; letter-spacing: -.025em; }
 h1 { font-size: 3rem; line-height: 1.1; letter-spacing: -.035em; overflow-wrap: anywhere; }
-a { color: ${PALIM_PALETTE.accent}; text-underline-offset: .2em; }
+a { color: ${PALIM_PALETTE.accent}; text-decoration: underline; text-decoration-color: var(--reader-rule); text-decoration-thickness: 1px; text-underline-offset: .22em; }
+a:hover, a:focus-visible { text-decoration-color: currentColor; text-decoration-thickness: 1.5px; }
 a:focus-visible, summary:focus-visible, .preview-table:focus-visible { outline: 2px solid ${PALIM_PALETTE.accent}; outline-offset: 4px; }
 ::selection { background: ${PALIM_PALETTE.accent}; color: ${PALIM_PALETTE.field}; }
 strong { font-weight: 650; }
@@ -87,12 +89,12 @@ strong { font-weight: 650; }
 .preview-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--reader-rule); font-size: .875rem; line-height: 1.5; }
 .preview-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; }
 footer.preview-tools { margin-top: 2rem; padding: .5rem 0 0; border-bottom: 0; border-top: 1px solid var(--reader-rule); }
-.preview-tools a { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; color: inherit; text-decoration: none; }
-.preview-tools a:hover, .preview-tools a:focus-visible { color: ${PALIM_PALETTE.accent}; text-decoration: underline; }
+.preview-tools a { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding-inline: .5rem; margin-inline: -.5rem; border-radius: .375rem; color: inherit; text-decoration: none; }
+.preview-tools a:hover, .preview-tools a:focus-visible { background: ${PALIM_PALETTE.inset}; color: ${PALIM_PALETTE.accent}; text-decoration: underline; text-decoration-thickness: 1px; }
 .preview-header, .preview-contents, main > section, .chapter-heading, figure, figcaption { display: grid; grid-template-columns: var(--reader-columns); column-gap: var(--reader-gap); }
 .preview-header { padding-block: 2.5rem 2rem; }
 .preview-heading { grid-column: var(--reader-content); min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
-.preview-meta, .chapter-number, .figure-number { font-size: .8125rem; line-height: 1.5; color: ${PALIM_PALETTE.muted}; }
+.preview-meta, .chapter-number, .figure-number { font-family: ui-monospace, monospace; font-size: .8125rem; line-height: 1.5; font-variant-numeric: tabular-nums; color: ${PALIM_PALETTE.muted}; }
 .preview-header .subtitle { font-size: 1.125rem; line-height: 1.6; color: ${PALIM_PALETTE.muted}; }
 .preview-contents { padding-block: .5rem; border-block: 1px solid var(--reader-rule); font-size: .875rem; }
 .preview-contents details { grid-column: var(--reader-content); min-width: 0; }

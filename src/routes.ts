@@ -36,7 +36,7 @@ export async function appFetch(request: Request, env: Env): Promise<Response> {
         ? '<div class="consent-actions"><a class="button secondary" href="/app#create-panel">Recreate from manuscript</a><a class="button secondary" href="/app#upload-panel">Upload original file</a></div><p class="shared-link-help">If someone shared this file with you, ask them for another copy.</p>'
         : `<a class="button" href="/app?file=${download[1]}&amp;part=${download[2]}#files-panel">${shelfAction}</a><p class="shared-link-help">For a shared file, ask the sender for a new link.</p>`;
       return new Response(
-        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} · Palim</title><link rel="stylesheet" href="/style.css"></head><body><main class="consent file-recovery"><a class="wordmark" href="/" aria-label="Palim home"><img src="/mark.svg" width="24" height="24" alt="">Palim</a><h1>${title}</h1><p>${guidance}</p>${actions}</main></body></html>`,
+        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} · Palim</title><meta name="theme-color" content="#eeeeea"><link rel="icon" href="/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css"></head><body><main class="consent file-recovery"><a class="wordmark" href="/" aria-label="Palim home"><img src="/mark.svg" width="24" height="24" alt="">Palim</a><h1>${title}</h1><p>${guidance}</p>${actions}</main></body></html>`,
         {
           status: error.status,
           headers: {

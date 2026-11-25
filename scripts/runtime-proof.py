@@ -1910,7 +1910,8 @@ try:
             browser_page.locator('#create-form button[type=submit]').click()
             expect(browser_page.locator('#manuscript')).to_be_focused()
             expect(count).to_have_text('Write or paste your manuscript.')
-            expect(count).to_have_css('border-inline-start-width', '3px')
+            expect(count).to_have_css('border-top-width', '1px')
+            expect(count).to_have_css('border-inline-start-width', '1px')
             assert browser_page.locator('#manuscript').evaluate('''field => {
                 const style = getComputedStyle(field);
                 const ring = parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth);
@@ -2203,7 +2204,10 @@ try:
             assert expired_response.headers['referrer-policy'] == 'no-referrer'
             assert 'no-store' in expired_response.headers['cache-control']
             preview_page.screenshot(path=str(ARTIFACTS / 'expired-file-mobile.png'))
-            preview_page.get_by_role('link', name='Find preview on Shelf').click()
+            recovery_cta = preview_page.get_by_role('link', name='Find preview on Shelf')
+            recovery_fg, recovery_bg = recovery_cta.evaluate('el => { const s = getComputedStyle(el); return [s.color, s.backgroundColor]; }')
+            assert contrast(recovery_fg, recovery_bg) >= 4.5, (recovery_fg, recovery_bg)
+            recovery_cta.click()
             expect(preview_page.get_by_role('link', name='Preview Field notes.epub (opens in a new tab)', exact=True)).to_be_focused()
             expect(preview_page).to_have_url(ORIGIN + '/app#files-panel')
             with context.expect_page() as restored_preview:

@@ -11,18 +11,18 @@ literal values; this file owns surface boundaries, intent, and contracts.
 
 ## 1. Owners
 
-| File                     | Owns                                                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `public/theme.css`       | Shared CSS tokens (`:root`) and `@font-face` declarations (`IBM Plex Sans`, `IBM Plex Serif`, `IBM Plex Mono`, `Manrope`) |
-| `public/hardware.css`    | Shared machine shell and tactile key treatment adapted from SPEC-01 (MIT); no tokens or fonts                             |
-| `public/kindle.css`      | Single-device landing Kindle, in-screen home UI, connection menu and graphite bezel                                       |
-| `public/studio.css`      | Studio machine, workspace screen, create/upload forms, shelf rows, dialogs, Settings                                      |
-| `public/style.css`       | Long-form trust surfaces: `/privacy` and `/authorize`                                                                     |
-| `public/mark.svg`        | Compact grayscale favicon/app-tile mark                                                                                   |
-| `src/book-styles.ts`     | Canonical `PALIM_PALETTE`, `PALIM_FONTS`, EPUB `BOOK_CSS`, browser `PREVIEW_CSS`                                          |
-| `src/figures.ts`         | `coverSvg`, bar-chart SVGs, Mermaid `staticSvg` variable mapping                                                          |
-| `scripts/social-card.ts` | Generates the public Open Graph image.                                                                                    |
-| `scripts/example.ts`     | Generates local EPUB validation fixtures in `artifacts/`.                                                                 |
+| File                     | Owns                                                                                                                                                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `public/theme.css`       | Shared CSS tokens (`:root`), `@font-face` declarations (`IBM Plex Sans`, `IBM Plex Serif`, `IBM Plex Mono`, `Manrope`), and canonical button, text-link, tag/chip, menu-toggle, and bottom-nav primitives |
+| `public/hardware.css`    | Shared machine shell and tactile key treatment adapted from SPEC-01 (MIT); no tokens or fonts                                                                                                             |
+| `public/kindle.css`      | Single-device landing Kindle, in-screen home UI, connection menu and graphite bezel                                                                                                                       |
+| `public/studio.css`      | Studio machine, workspace screen, create/upload forms, shelf rows, dialogs, Settings                                                                                                                      |
+| `public/style.css`       | Long-form trust surfaces: `/privacy` and `/authorize`                                                                                                                                                     |
+| `public/mark.svg`        | Compact grayscale favicon/app-tile mark                                                                                                                                                                   |
+| `src/book-styles.ts`     | Canonical `PALIM_PALETTE`, `PALIM_FONTS`, EPUB `BOOK_CSS`, browser `PREVIEW_CSS`                                                                                                                          |
+| `src/figures.ts`         | `coverSvg`, bar-chart SVGs, Mermaid `staticSvg` variable mapping                                                                                                                                          |
+| `scripts/social-card.ts` | Generates the public Open Graph image.                                                                                                                                                                    |
+| `scripts/example.ts`     | Generates local EPUB validation fixtures in `artifacts/`.                                                                                                                                                 |
 
 ## 2. Tokens and materials
 
@@ -119,14 +119,36 @@ panel headers follow the inner corner of their surrounding border.
 
 ## 6. Components
 
-- **Screen controls:** application buttons are familiar flat monochrome controls,
-  not physical keys. One dark filled primary action per view; secondary controls
-  use light outlined material. Plain destructive or low-emphasis actions remain
-  text-like but still receive the full 44px hit area.
-- **Status pills & receipt states:** `.token-badge`, `.artifact-status`, and
-  `.receipt-state` use neutral tones plus explicit text. `submitted`, `rejected`,
-  and `unknown` remain distinguishable in rendered grayscale; `submitted` never
-  implies Amazon import or device confirmation.
+- **Buttons (owned by `public/theme.css`):** four consistent monochrome roles
+  across Home, Studio, Privacy, and Consent, each with `44px` hit areas,
+  instant zero-motion `:active` feedback, and `cursor: wait` while busy:
+  1. **Primary** (default `button` / `.button`): solid `--accent` fill, `--field`
+     text, one primary action per view.
+  2. **Secondary** (`.secondary`, `.line__copy`): `--surface` fill with
+     `--control-line` border, shifting to `--inset` on hover and `--control-press`
+     on press.
+  3. **Plain** (`.plain-button`): transparent quiet action with a subtle
+     `--line` underline at rest, shifting to `--inset` and dark ink on hover.
+  4. **Destructive plain** (`.delete-trigger`, `.token-revoke`): quiet at rest,
+     gaining a `--control-line` frame and `--danger` ink on hover/press.
+  - Copy actions share unified `[data-result='copied']` (inverted ink) and
+    `[data-result='selected']` (inset framed) feedback across Home and Studio.
+- **Text links (owned by `public/theme.css`):** two clear tiers:
+  1. **Inline prose & utility links:** always visibly underlined at rest with a
+     `1px` `--control-line` hairline (`0.22em` offset), darkening to `1.5px`
+     `--ink` on hover/focus.
+  2. **Navigation & shelf action links:** un-underlined at rest (positioned by
+     chrome/row layout), `44px` minimum height, gaining `--inset` fill and
+     crisp `1px` underline on hover.
+- **Tags, status pills & chips (owned by `public/theme.css`):** compact `0.75rem`
+  tabular mono stamps (`--radius-chip`) encoding four grayscale tiers through
+  border style, border weight, fill tone, and ink inversion (never colour alone):
+  1. **Neutral** (`draft`, `none`, `.file-tag` such as `Copy 1 of 2` or chapter count): `--paper` fill, `1px solid var(--line)`, `--ink-soft`.
+  2. **Pending / Uncertain** (`submitting`, `unknown`): `--inset` fill, `1px dashed var(--control-line)`, `--ink`.
+  3. **Active / Confirmed / Default** (`submitted`, `active`, `.default-address`): inverted `--ink` fill, `--surface` text.
+  4. **Attention / Limit / Rejected** (`rejected`, `.file-tag--warn` such as `Too large to email`): `--warn-bg` fill, `1px solid var(--ink)`, bold `--danger`.
+  - `.consent-host` renders as an inset mono chip (`--inset`, `1px solid var(--line)`).
+  - `submitted` never implies Amazon import or device confirmation.
 - **File rows:** title, metadata, transfer actions, and destructive actions stay
   scannable without nested cards. Read-only filenames/titles are plain text, not
   disabled inputs pretending to be editable. Hairlines group related rows.

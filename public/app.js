@@ -805,7 +805,7 @@ function openFileInfo(artifact, displayName = artifact.filename) {
   heading.className = 'checksum-heading';
   const copy = document.createElement('button');
   copy.type = 'button';
-  copy.className = 'plain-button';
+  copy.className = 'secondary';
   copy.textContent = 'Copy';
   copy.setAttribute('aria-label', 'Copy SHA-256 checksum');
   const notice = document.createElement('p');
@@ -968,6 +968,7 @@ function showShelf(artifacts) {
     size.textContent = fileSize(a.bytes);
     if (copyLabel) {
       const copy = document.createElement('small');
+      copy.className = 'file-tag';
       copy.setAttribute('aria-hidden', 'true');
       copy.textContent = copyLabel;
       title.append(copy);
@@ -975,6 +976,7 @@ function showShelf(artifacts) {
     info.append(size, expiryTime(a.expiresAt));
     if (a.emailEligible === false) {
       const limit = document.createElement('span');
+      limit.className = 'file-tag file-tag--warn';
       limit.textContent = 'Too large to email';
       info.append(limit);
     }
@@ -1666,6 +1668,11 @@ const updateManuscriptCount = () => {
         CHAPTER_LIMIT,
       );
   }
+  const chaptersBadge = $('manuscript-chapters');
+  if (chaptersBadge) {
+    chaptersBadge.hidden = chapters.length < 2;
+    chaptersBadge.textContent = chapters.length >= 2 ? `${chapters.length} chapters` : '';
+  }
   manuscriptCount.hidden = !message;
   $('manuscript').setAttribute(
     'aria-describedby',
@@ -1981,6 +1988,7 @@ function resetCopy(button) {
   }
   clearTimeout(copyTimers.get(button));
   button.textContent = 'Copy';
+  delete button.dataset.result;
   button.setAttribute('aria-label', button.dataset.copyLabel);
 }
 function enableCopy(button, source, notice) {
@@ -2017,6 +2025,7 @@ function enableCopy(button, source, notice) {
       )
         return;
       button.textContent = 'Copied';
+      button.dataset.result = 'copied';
       button.setAttribute('aria-label', `Copied ${item}`);
     } catch {
       if (
@@ -2044,6 +2053,7 @@ function enableCopy(button, source, notice) {
       }
       manualCopy = { button, source, notice, range };
       button.textContent = 'Selected';
+      button.dataset.result = 'selected';
       button.setAttribute('aria-label', `Selected ${item}`);
       notice.textContent = 'Copy unavailable. Copy the selected text manually.';
     } finally {
@@ -2282,11 +2292,13 @@ function syncTokenState(hasToken) {
   const badge = $('token-badge');
   if (hasToken === null) {
     badge.textContent = 'Unknown';
+    badge.dataset.state = 'unknown';
     $('create-token').textContent = 'Check token status';
     $('revoke-token').hidden = true;
     return;
   }
   badge.textContent = hasToken ? 'Active' : 'None';
+  badge.dataset.state = hasToken ? 'active' : 'none';
   $('create-token').textContent = hasToken ? 'Replace token' : 'Create token';
   $('revoke-token').hidden = !hasToken;
 }
