@@ -4,18 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="csp-nonce" />
-    <title>Palim — Create an EPUB or forward a file to Kindle</title>
+    <title>Palim — Ship a thing to a Kindle</title>
     <meta
       name="description"
-      content="Create an EPUB from text or Markdown, or send an existing EPUB or PDF to your Kindle unchanged. Free and open source."
+      content="Give your agent an MCP tool to turn deep dives and diagrams into Kindle books — or forward any EPUB or PDF unchanged. Free and open source."
     />
     <link rel="canonical" href="https://palim.pages.dev/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Palim" />
-    <meta property="og:title" content="Palim — Create an EPUB or forward a file to Kindle" />
+    <meta property="og:title" content="Palim — Ship a thing to a Kindle" />
     <meta
       property="og:description"
-      content="Create an EPUB from text or Markdown, or send an existing EPUB or PDF to your Kindle unchanged. Free and open source."
+      content="Give your agent an MCP tool to turn deep dives and diagrams into Kindle books — or forward any EPUB or PDF unchanged. Free and open source."
     />
     <meta property="og:url" content="https://palim.pages.dev/" />
     <meta property="og:image" content="https://palim.pages.dev/og.png" />
@@ -23,22 +23,29 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="A grayscale mountain landscape above the words “Palim. Create an EPUB. Forward a file to Kindle.”"
+      content="Palim — Ship a thing to a Kindle. MCP server and web workspace for illustrated EPUBs and unchanged EPUB or PDF forwarding."
     />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Palim — Create an EPUB or forward a file to Kindle" />
+    <meta name="twitter:title" content="Palim — Ship a thing to a Kindle" />
     <meta
       name="twitter:description"
-      content="Create an EPUB from text or Markdown, or send an existing EPUB or PDF to your Kindle unchanged. Free and open source."
+      content="Give your agent an MCP tool to turn deep dives and diagrams into Kindle books — or forward any EPUB or PDF unchanged. Free and open source."
     />
     <meta
       name="twitter:image:alt"
-      content="A grayscale mountain landscape above the words “Palim. Create an EPUB. Forward a file to Kindle.”"
+      content="Palim — Ship a thing to a Kindle. MCP server and web workspace for illustrated EPUBs and unchanged EPUB or PDF forwarding."
     />
     <meta name="twitter:image" content="https://palim.pages.dev/og.png" />
-    <meta name="theme-color" content="#eeeeea" />
+    <meta name="theme-color" content="#151514" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/kindle.css" />
+    <link
+      rel="preload"
+      href="/fonts/IBMPlexSerif-Latin-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <link
       rel="preload"
       href="/fonts/IBMPlexSerif-Latin-600.woff2"
@@ -50,167 +57,319 @@
   </head>
   <body>
     <a class="skip" href="#publishing-desk">Skip to content</a>
-    <main id="page" class="home" tabindex="-1">
-      <div class="home-screen">
-        <section class="screen-ui" aria-label="Palim">
-          <header class="desk-bar">
-            <span class="desk-brand"
-              ><img src="/mark.svg" width="24" height="24" alt="" />Palim</span
-            >
-            <details class="home-menu">
-              <summary class="menu-toggle">Menu</summary>
-              <div class="menu-content">
-                <nav class="menu-destinations" aria-label="Studio">
-                  <a class="launcher" href="/app#studio-settings">Settings</a>
-                </nav>
-                <div class="screen-footer">
-                  <details class="connect">
-                    <summary>Connect an agent</summary>
-                    <div class="connect__body">
-                      <div class="line">
-                        <span class="line__label" id="mcp-label">MCP path on this site</span>
-                        <pre
-                          class="line__commands"
-                          aria-labelledby="mcp-label"
-                        ><code id="mcp-address">/mcp</code></pre>
-                        <button
-                          class="line__copy"
-                          data-copy
-                          data-copy-label="MCP address"
-                          id="copy-mcp"
-                          aria-labelledby="copy-mcp mcp-label"
-                          aria-describedby="mcp-copy-feedback"
-                          type="button"
-                          hidden
-                        >
-                          Copy
-                        </button>
-                        <p id="mcp-copy-feedback" class="line__feedback sr-only" role="status"></p>
-                      </div>
-                      <div class="line">
-                        <span class="line__label" id="codex-label"
-                          >Codex commands for palim.pages.dev</span
-                        >
-                        <pre
-                          class="line__commands"
-                          aria-label="Codex installation commands"
-                        ><code><span class="command">codex plugin marketplace add timc0y/palim --ref main</span>
-<span class="command">codex plugin add palim@palim</span></code></pre>
-                        <button
-                          class="line__copy"
-                          data-copy
-                          data-copy-label="Codex commands"
-                          id="copy-codex"
-                          aria-labelledby="copy-codex codex-label"
-                          aria-describedby="codex-copy-feedback"
-                          type="button"
-                          hidden
-                        >
-                          Copy
-                        </button>
-                        <p
-                          id="codex-copy-feedback"
-                          class="line__feedback sr-only"
-                          role="status"
-                        ></p>
-                      </div>
-                      <div class="connect__links">
-                        <a
-                          class="connect__guide"
-                          href="https://github.com/timc0y/palim#connect-an-agent"
-                          rel="noreferrer"
-                          >Connection guide</a
-                        >
-                        <a class="connect__guide" href="/palim-plugin.zip" download
-                          >Download Codex plugin (ZIP)<span class="plugin-host">
-                            for palim.pages.dev</span
-                          ></a
-                        >
-                      </div>
-                    </div>
-                  </details>
-                  <nav class="screen-links" aria-label="Palim links">
-                    <a href="https://github.com/timc0y/palim">Source code (MIT)</a>
-                    <a class="privacy" href="/privacy">Privacy</a>
-                  </nav>
-                </div>
-              </div>
-            </details>
-          </header>
-          <div class="desk-windows">
-            <div class="desktop-window">
-              <h1 id="publishing-desk" tabindex="-1">Publishing desk</h1>
-              <nav class="launchers" aria-label="Publishing tasks">
-                <a
-                  class="launcher launcher-job"
-                  href="/app#create-panel"
-                  aria-labelledby="create-name"
-                  aria-describedby="create-description"
-                  ><img
-                    class="desk-art"
-                    src="/icons/create-book.png"
-                    width="68"
-                    height="46"
-                    alt="" /><span
-                    ><strong id="create-name">Create a book</strong
-                    ><small id="create-description"
-                      >Turn text or Markdown into an EPUB.</small
-                    ></span
-                  ><svg
-                    class="launcher-cue"
-                    viewBox="0 0 16 16"
-                    width="16"
-                    height="16"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M6 3.5L10.5 8 6 12.5"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    /></svg></a
-                ><a
-                  class="launcher launcher-job"
-                  href="/app#upload-panel"
-                  aria-labelledby="forward-name"
-                  aria-describedby="forward-description"
-                  ><img
-                    class="desk-art"
-                    src="/icons/forward-file.png"
-                    width="68"
-                    height="46"
-                    alt="" /><span
-                    ><strong id="forward-name">Forward a file</strong
-                    ><small id="forward-description"
-                      >Send the original EPUB or PDF to Kindle.</small
-                    ></span
-                  ><svg
-                    class="launcher-cue"
-                    viewBox="0 0 16 16"
-                    width="16"
-                    height="16"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M6 3.5L10.5 8 6 12.5"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    /></svg
-                ></a>
-              </nav>
+
+    <div class="crossing-scene" aria-hidden="true">
+      <img class="scene-cloud" src="/icons/cloud.svg" alt="" width="1440" height="350" />
+      <img
+        class="scene-tide scene-tide--top"
+        src="/icons/tide.svg"
+        alt=""
+        width="1440"
+        height="186"
+      />
+      <img
+        class="scene-tide scene-tide--mid"
+        src="/icons/tide.svg"
+        alt=""
+        width="1440"
+        height="186"
+      />
+      <img
+        class="scene-tide scene-tide--low"
+        src="/icons/tide.svg"
+        alt=""
+        width="1440"
+        height="186"
+      />
+      <img class="scene-boat scene-boat--1" src="/icons/boat.svg" alt="" width="56" height="42" />
+      <img class="scene-boat scene-boat--2" src="/icons/boat.svg" alt="" width="56" height="42" />
+      <img class="scene-boat scene-boat--3" src="/icons/boat.svg" alt="" width="56" height="42" />
+      <img class="scene-boat scene-boat--4" src="/icons/boat.svg" alt="" width="56" height="42" />
+    </div>
+
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="/">palim</a>
+        <nav class="top-nav" aria-label="Primary">
+          <a href="/app#create-panel">Studio</a>
+          <a href="#mcp-dock">MCP</a>
+          <a href="https://github.com/timc0y/palim" rel="noreferrer">GitHub</a>
+        </nav>
+      </header>
+
+      <main id="page" class="home" tabindex="-1">
+        <section class="hero" aria-labelledby="publishing-desk">
+          <h1 id="publishing-desk" tabindex="-1">Ship a thing to a Kindle</h1>
+          <p class="hero-lead">
+            Give your agent an MCP tool to turn deep dives and diagrams into Kindle books — or
+            forward any EPUB or PDF unchanged.
+          </p>
+          <div class="hero-actions">
+            <a class="cta-primary" href="#mcp-dock">Connect an agent</a>
+            <a class="cta-secondary" href="/app#upload-panel">Forward a file</a>
+          </div>
+          <p class="hero-meta">Free · MIT open source · MCP + Web</p>
+        </section>
+
+        <section class="showcase" aria-label="Example agent to Kindle flow">
+          <div class="trace-card">
+            <p class="trace-prompt">
+              <span class="trace-caret" aria-hidden="true">›</span>
+              “Explain Durable Objects — storage, input gates, and alarms. Add a diagram and send to
+              Kindle.”
+            </p>
+            <div class="trace-tools" aria-label="MCP tool sequence">
+              <span class="trace-tool">create_book</span>
+              <span class="trace-tool">send_document</span>
             </div>
           </div>
-          <nav class="desk-tabs reader-navigation" aria-label="Reader navigation">
-            <a href="/" aria-current="page">Home</a>
-            <a href="/app#files-panel">Shelf</a>
-          </nav>
+
+          <div class="trace-stem" aria-hidden="true"></div>
+
+          <figure class="book-frame" aria-label="Preview of an illustrated Palim Kindle edition">
+            <div class="book-spread">
+              <div class="book-page book-page--cover">
+                <div class="book-cover-copy">
+                  <p class="book-cover-title">Durable Objects,<br />Inside Out</p>
+                  <p class="book-cover-subtitle">
+                    Single-threaded state, SQLite storage, and alarm scheduling
+                  </p>
+                </div>
+                <div class="book-cover-mark" aria-hidden="true">
+                  <span class="mark-frame"></span>
+                  <span class="mark-frame"></span>
+                  <span class="mark-frame"></span>
+                  <span class="mark-frame mark-frame--solid"></span>
+                </div>
+              </div>
+
+              <div class="book-page book-page--chapter">
+                <p class="book-chapter-heading">One actor, one queue</p>
+                <p class="book-prose">
+                  Every request for the same object ID enters one isolate. Input gates pause
+                  concurrent fetches while writes commit, so memory and disk never drift apart.
+                </p>
+
+                <div class="book-diagram">
+                  <svg
+                    viewBox="0 0 360 118"
+                    width="360"
+                    height="118"
+                    role="img"
+                    aria-label="Diagram: Worker sends requests through a serialised Input Gate into a DO Isolate backed by SQLite and Alarm storage."
+                  >
+                    <rect
+                      x="6"
+                      y="32"
+                      width="68"
+                      height="32"
+                      rx="3"
+                      fill="#f7f5ef"
+                      stroke="#2a2926"
+                      stroke-width="1.2"
+                    />
+                    <text
+                      x="40"
+                      y="52"
+                      text-anchor="middle"
+                      font-size="11"
+                      font-family="IBM Plex Mono, monospace"
+                      fill="#1a1a18"
+                    >
+                      Worker
+                    </text>
+
+                    <line x1="74" y1="48" x2="104" y2="48" stroke="#2a2926" stroke-width="1.2" />
+                    <path d="M99 44l5 4-5 4" fill="none" stroke="#2a2926" stroke-width="1.2" />
+
+                    <rect
+                      x="106"
+                      y="24"
+                      width="92"
+                      height="48"
+                      rx="3"
+                      fill="#f7f5ef"
+                      stroke="#52524c"
+                      stroke-width="1.2"
+                      stroke-dasharray="4 3"
+                    />
+                    <text
+                      x="152"
+                      y="45"
+                      text-anchor="middle"
+                      font-size="11"
+                      font-weight="600"
+                      font-family="IBM Plex Mono, monospace"
+                      fill="#1a1a18"
+                    >
+                      Input Gate
+                    </text>
+                    <text
+                      x="152"
+                      y="60"
+                      text-anchor="middle"
+                      font-size="9.5"
+                      font-family="IBM Plex Mono, monospace"
+                      fill="#6a6860"
+                    >
+                      serialised
+                    </text>
+
+                    <line x1="198" y1="48" x2="228" y2="48" stroke="#2a2926" stroke-width="1.2" />
+                    <path d="M223 44l5 4-5 4" fill="none" stroke="#2a2926" stroke-width="1.2" />
+
+                    <rect
+                      x="230"
+                      y="10"
+                      width="118"
+                      height="34"
+                      rx="3"
+                      fill="#1d1c1a"
+                      stroke="#1d1c1a"
+                      stroke-width="1.2"
+                    />
+                    <text
+                      x="289"
+                      y="31"
+                      text-anchor="middle"
+                      font-size="11"
+                      font-weight="600"
+                      font-family="IBM Plex Mono, monospace"
+                      fill="#f7f5ef"
+                    >
+                      DO Isolate
+                    </text>
+
+                    <line x1="289" y1="44" x2="289" y2="66" stroke="#2a2926" stroke-width="1.2" />
+                    <path d="M285 61l4 5 4-5" fill="none" stroke="#2a2926" stroke-width="1.2" />
+
+                    <rect
+                      x="230"
+                      y="68"
+                      width="118"
+                      height="32"
+                      rx="3"
+                      fill="#f7f5ef"
+                      stroke="#2a2926"
+                      stroke-width="1.2"
+                    />
+                    <text
+                      x="289"
+                      y="88"
+                      text-anchor="middle"
+                      font-size="10.5"
+                      font-family="IBM Plex Mono, monospace"
+                      fill="#1a1a18"
+                    >
+                      SQLite + Alarm
+                    </text>
+                  </svg>
+                  <p class="book-diagram-caption">
+                    Fig. 1 — Turn isolation and durable commit path
+                  </p>
+                </div>
+
+                <p class="book-prose">
+                  When an alarm fires hours later, it queues behind the same gate — no distributed
+                  lock needed.
+                </p>
+
+                <div class="book-running-foot" aria-hidden="true">
+                  <span>Durable Objects, Inside Out</span>
+                  <span>07</span>
+                </div>
+              </div>
+            </div>
+          </figure>
         </section>
-      </div>
-    </main>
+
+        <section id="mcp-dock" class="mcp-dock" tabindex="-1" aria-labelledby="dock-title">
+          <div class="dock-head">
+            <div class="dock-title-row">
+              <span class="mcp-badge">MCP</span>
+              <h2 id="dock-title">Connect your coding agent</h2>
+            </div>
+            <span class="dock-auth">OAuth or token</span>
+          </div>
+
+          <div class="line line--primary">
+            <span class="line__label sr-only" id="mcp-label">MCP path on this site</span>
+            <pre
+              class="line__commands"
+              aria-labelledby="mcp-label"
+            ><code id="mcp-address">/mcp</code></pre>
+            <button
+              class="line__copy"
+              data-copy
+              data-copy-label="MCP address"
+              id="copy-mcp"
+              aria-labelledby="copy-mcp mcp-label"
+              aria-describedby="mcp-copy-feedback"
+              type="button"
+              hidden
+            >
+              Copy
+            </button>
+            <p id="mcp-copy-feedback" class="line__feedback sr-only" role="status"></p>
+          </div>
+
+          <details class="connect">
+            <summary>
+              <span class="connect-clients">Codex · Claude Code · Cursor · ChatGPT</span>
+              <span class="connect-more">Plugin &amp; CLI setup</span>
+            </summary>
+            <div class="connect__body">
+              <div class="line">
+                <span class="line__label" id="codex-label">Codex commands for palim.pages.dev</span>
+                <pre
+                  class="line__commands"
+                  aria-label="Codex installation commands"
+                ><code><span class="command">codex plugin marketplace add timc0y/palim --ref main</span>
+<span class="command">codex plugin add palim@palim</span></code></pre>
+                <button
+                  class="line__copy"
+                  data-copy
+                  data-copy-label="Codex commands"
+                  id="copy-codex"
+                  aria-labelledby="copy-codex codex-label"
+                  aria-describedby="codex-copy-feedback"
+                  type="button"
+                  hidden
+                >
+                  Copy
+                </button>
+                <p id="codex-copy-feedback" class="line__feedback sr-only" role="status"></p>
+              </div>
+              <div class="connect__links">
+                <a
+                  class="connect__guide"
+                  href="https://github.com/timc0y/palim#connect-an-agent"
+                  rel="noreferrer"
+                  >Connection guide</a
+                >
+                <a class="connect__guide" href="/palim-plugin.zip" download
+                  >Download Codex plugin (ZIP)<span class="plugin-host">
+                    for palim.pages.dev</span
+                  ></a
+                >
+              </div>
+            </div>
+          </details>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p class="footer-note">
+          Independent open-source software. Not affiliated with Amazon or Kindle
+        </p>
+        <nav class="footer-links" aria-label="Palim links">
+          <a href="/app#create-panel">Create</a>
+          <a href="/app#files-panel">Shelf</a>
+          <a href="/app#studio-settings">Settings</a>
+          <a class="privacy" href="/privacy">Privacy</a>
+          <a href="https://github.com/timc0y/palim" rel="noreferrer">MIT Source</a>
+        </nav>
+      </footer>
+    </div>
   </body>
 </html>

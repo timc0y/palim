@@ -126,7 +126,7 @@ export function makeMcp(env: Env, owner: string, scopes: string[]) {
     {
       title: 'Create an illustrated EPUB',
       description:
-        'Create a private illustrated EPUB from the supplied manuscript. Example: {"title":"A short guide","language":"en","chapters":[{"title":"Start","markdown":"A clear first page."}]}. Returns artifact ID, private links, expiry and warnings. Never sends mail.',
+        'Create a private illustrated EPUB from the supplied manuscript, with optional minimal monochrome figures (plot, graph, trace, anatomy, equation, table, mermaid, bars, image) and native EPUB3 footnotes. Example: {"title":"A short guide","language":"en","chapters":[{"title":"Start","markdown":"A clear first page."}]}. Returns artifact ID, private links, expiry and warnings. Never sends mail.',
       inputSchema: BookSchema.describe(
         'The complete manuscript and optional metadata/figures used to render a new EPUB. The supplied manuscript is authored by the agent; Palim does not infer or add content.',
       ),

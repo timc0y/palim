@@ -29,10 +29,22 @@ function renderChapter(
   chapter: Book['chapters'][number],
   index: number,
   rendered: ReadonlyMap<string, RenderedFigure>,
+  assignedFigureIds: Set<string>,
 ) {
   const usedFigures = new Set<string>();
+  const firstFigureChapters: { id: string; number: number; caption: string }[] = [];
   const warnings: string[] = [];
   const figureOrder = [...rendered.keys()];
+  const notes: { id: string; num: number; text: string }[] = [];
+  const chapterNoteById = new Map((chapter.footnotes ?? []).map((fn) => [fn.id, fn.text]));
+
+  const addNote = (text: string): { id: string; num: number } => {
+    const num = notes.length + 1;
+    const id = `fn-c${index + 1}-${num}`;
+    notes.push({ id, num, text });
+    return { id, num };
+  };
+
   const md = new MarkdownIt({ html: false, xhtmlOut: true, linkify: false, typographer: false });
   md.validateLink = (href: string) => {
     if (href.startsWith('figure:')) return true;
@@ -54,12 +66,22 @@ function renderChapter(
     );
     usedFigures.add(image.id);
     const number = figureOrder.indexOf(image.id) + 1;
+    const isFirst = !assignedFigureIds.has(image.id);
+    if (isFirst) {
+      assignedFigureIds.add(image.id);
+      firstFigureChapters.push({ id: image.id, number, caption: image.caption });
+    }
+    let noteRef = '';
+    if (image.footnote) {
+      const note = addNote(image.footnote);
+      noteRef = `<a epub:type="noteref" class="noteref" href="#${note.id}">${note.num}</a>`;
+    }
     return [
-      `<figure class="figure-${image.kind}">`,
+      `<figure${isFirst ? ` id="fig-${image.id}"` : ''} class="figure-${image.kind}">`,
       `<img src="${image.filename}" alt="${e(image.alt)}"/>`,
       '<figcaption>',
       `<span lang="en" xml:lang="en" dir="ltr" class="figure-number">Figure ${number}.</span> `,
-      `<span class="caption-text">${e(image.caption)}</span>`,
+      `<span class="caption-text">${e(image.caption)}${noteRef}</span>`,
       '</figcaption></figure>\n',
     ].join('');
   };
@@ -96,7 +118,23 @@ function renderChapter(
       tokens[at + 1]!.hidden = true;
     }
   }
-  const body = md.renderer.render(tokens, md.options, {});
+  let body = md.renderer.render(tokens, md.options, {});
+  if (chapterNoteById.size > 0) {
+    body = body.replace(/\[\^([a-z0-9-]{1,24})\]/g, (match, noteKey: string) => {
+      const noteText = chapterNoteById.get(noteKey);
+      if (!noteText) return match;
+      const note = addNote(noteText);
+      return `<a epub:type="noteref" class="noteref" href="#${note.id}">${note.num}</a>`;
+    });
+  }
+  const footnotesHtml = notes.length
+    ? `<div class="footnotes">${notes
+        .map(
+          (note) =>
+            `<aside epub:type="footnote" id="${note.id}" class="footnote"><p>${note.num}. ${e(note.text)}</p></aside>`,
+        )
+        .join('')}</div>`
+    : '';
   return {
     html: [
       `<section class="chapter" id="chapter-${index + 1}">`,
@@ -105,9 +143,11 @@ function renderChapter(
       `<h1>${e(chapter.title)}</h1>`,
       '</header>',
       body,
+      footnotesHtml,
       '</section>',
     ].join(''),
     usedFigures,
+    firstFigureChapters,
     warnings,
   };
 }
@@ -202,6 +242,7 @@ export async function buildBook(
   }
   const spine: string[] = [],
     toc: { title: string; href: string }[] = [],
+    loi: { title: string; href: string }[] = [],
     preview: string[] = [],
     warnings: string[] = [];
   const addPage = (id: string, title: string, body: string) => {
@@ -249,10 +290,17 @@ export async function buildBook(
     ].join(''),
   );
   const used = new Set<string>();
+  const assignedFigureIds = new Set<string>();
   for (const [index, chapter] of book.chapters.entries()) {
-    const chapterPage = renderChapter(chapter, index, rendered);
+    const chapterPage = renderChapter(chapter, index, rendered, assignedFigureIds);
     addPage(`chapter-${index + 1}`, chapter.title, chapterPage.html);
     for (const id of chapterPage.usedFigures) used.add(id);
+    for (const fig of chapterPage.firstFigureChapters) {
+      loi.push({
+        title: `Figure ${fig.number}. ${fig.caption}`,
+        href: `chapter-${index + 1}.xhtml#fig-${fig.id}`,
+      });
+    }
     warnings.push(...chapterPage.warnings);
   }
 
@@ -276,12 +324,16 @@ export async function buildBook(
         '</ol></section>',
       ].join(''),
     );
+  const loiNav = loi.length
+    ? `<nav epub:type="loi" id="loi"><h2>Artifacts</h2><ol lang="${e(book.language)}" xml:lang="${e(book.language)}">${loi.map((item) => `<li><a href="${item.href}">${e(item.title)}</a></li>`).join('')}</ol></nav>`
+    : '';
   file(
     'EPUB/nav.xhtml',
     xhtml(
       'Contents',
       'en',
       `<nav epub:type="toc" id="toc"><h1>Contents</h1><ol lang="${e(book.language)}" xml:lang="${e(book.language)}">${toc.map((t) => `<li><a href="${t.href}"${t.href === 'sources.xhtml' ? ' lang="en" xml:lang="en"' : ''}>${e(t.title)}</a></li>`).join('')}</ol></nav>` +
+        loiNav +
         '<nav epub:type="landmarks" hidden="hidden"><h2>Book navigation</h2><ol>' +
         '<li><a epub:type="titlepage" href="title.xhtml">Title page</a></li>' +
         '<li><a epub:type="bodymatter" href="chapter-1.xhtml">Start reading</a></li>' +

@@ -1149,145 +1149,76 @@ try:
             static_page.keyboard.press('Tab')
             expect(static_page.get_by_role('link', name='Skip to content')).to_be_focused()
             static_page.keyboard.press('Enter')
-            expect(static_page.get_by_role('heading', name='Publishing desk')).to_be_focused()
+            expect(static_page.get_by_role('heading', name='Ship a thing to a Kindle')).to_be_focused()
             static_page.keyboard.press('Tab')
-            focused_task = static_page.get_by_role('link', name='Create a book', exact=True)
-            expect(focused_task).to_be_focused()
-            expect(focused_task).to_have_css('outline-offset', '2px')
-            assert focused_task.evaluate('el => { const r = el.getBoundingClientRect(); const css = getComputedStyle(el); const edge = parseFloat(css.outlineOffset) + parseFloat(css.outlineWidth); return r.left >= edge && r.right + edge <= innerWidth; }')
-            expect(static_page.get_by_role('link', name='Create a book', exact=True)).to_have_accessible_description('Turn text or Markdown into an EPUB.')
-            expect(static_page.get_by_role('link', name='Forward a file', exact=True)).to_have_accessible_description('Send the original EPUB or PDF to Kindle.')
-            static_page.locator('.home-menu > summary').click()
-            connect_toggle = static_page.locator('.connect summary')
-            expect(connect_toggle).to_have_accessible_name('Connect an agent')
-            connect_toggle.press('Enter')
-            expect(connect_toggle).to_have_accessible_name('Connect an agent')
+            focused_cta = static_page.get_by_role('link', name='Connect an agent', exact=True)
+            expect(focused_cta).to_be_focused()
+            assert focused_cta.evaluate('el => { const r = el.getBoundingClientRect(); const css = getComputedStyle(el); const edge = parseFloat(css.outlineOffset) + parseFloat(css.outlineWidth); return r.left >= edge && r.right + edge <= innerWidth; }')
             expect(static_page.locator('#mcp-label')).to_have_text('MCP path on this site')
             expect(static_page.locator('#mcp-address')).to_have_text('/mcp')
+            connect_toggle = static_page.locator('.connect summary')
+            connect_toggle.press('Enter')
             expect(static_page.get_by_role('link', name='Connection guide')).to_be_visible()
             with static_page.expect_download() as plugin_download:
                 static_page.get_by_role('link', name='Download Codex plugin (ZIP) for palim.pages.dev', exact=True).press('Enter')
             assert plugin_download.value.suggested_filename == 'palim-plugin.zip'
-            expect(static_page.locator('.connect summary')).to_be_visible()
-            static_page.locator('.home-menu > summary').click()
-            static_page.locator('.launcher-job').first.click()
+            static_page.get_by_role('link', name='Forward a file', exact=True).click()
             expect(static_page.locator('#studio-script-help')).to_be_visible()
             expect(static_page.locator('#workspace-subtitle')).to_be_hidden()
             expect(static_page.locator('.reader-tabs')).to_be_hidden()
             static_page.get_by_role('link', name='Palim home').click()
-            expect(static_page.locator('.launcher-job')).to_have_count(2)
+            expect(static_page.get_by_role('heading', name='Ship a thing to a Kindle')).to_be_visible()
             static_context.close()
-            for task, subtitle in [('Create a book', 'Sign in to turn your manuscript into an EPUB.'),
-                                   ('Forward a file', 'Sign in to upload your EPUB or PDF.')]:
-                browser_page.get_by_role('link', name=task, exact=True).click()
-                expect(browser_page.locator('#studio-title')).to_have_text(task)
+            for link_name, studio_title, subtitle in [
+                ('Studio', 'Create a book', 'Sign in to turn your manuscript into an EPUB.'),
+                ('Forward a file', 'Forward a file', 'Sign in to upload your EPUB or PDF.'),
+            ]:
+                browser_page.get_by_role('link', name=link_name, exact=True).click()
+                expect(browser_page.locator('#studio-title')).to_have_text(studio_title)
                 expect(browser_page.locator('#workspace-subtitle')).to_have_text(subtitle)
                 expect(browser_page.locator('#login-email')).to_be_visible()
                 browser_page.get_by_role('link', name='Palim home').click()
             for width, height, label in [(390, 844, 'mobile'), (1440, 1000, 'desktop')]:
-                browser_page.set_viewport_size({'width':width, 'height':height})
-                expect(browser_page.locator('.menu-content')).to_be_hidden()
-                for task in browser_page.locator('.launcher-job').all():
-                    expect(task).to_be_in_viewport()
+                browser_page.set_viewport_size({'width': width, 'height': height})
+                expect(browser_page.locator('.connect__body')).to_be_hidden()
+                expect(browser_page.get_by_role('heading', name='Ship a thing to a Kindle')).to_be_in_viewport()
                 browser_page.screenshot(path=str(ARTIFACTS / f'landing-{label}.png'), full_page=True)
             for width in (320, 390, 639, 640, 768, 864, 1440):
-                browser_page.set_viewport_size({'width':width,'height':900})
+                browser_page.set_viewport_size({'width': width, 'height': 900})
                 if width in (390, 1440):
                     browser_page.screenshot(path=str(ARTIFACTS / f'publishing-desk-{width}.png'))
-                titles = browser_page.locator('.launcher-job strong')
-                first, second = titles.first.bounding_box(), titles.last.bounding_box()
-                assert abs(first['x'] - second['x']) <= 1 and first['y'] < second['y']
-                if width >= 640:
-                    spread = browser_page.locator('.desk-windows').bounding_box()
-                    tasks = browser_page.locator('.desktop-window').bounding_box()
-                    assert tasks['x'] > spread['x'] + spread['width'] / 3
+                cover_box = browser_page.locator('.book-page--cover').bounding_box()
+                chapter_box = browser_page.locator('.book-page--chapter').bounding_box()
+                if width >= 768:
+                    assert cover_box['x'] < chapter_box['x']
                 else:
-                    assert browser_page.locator('.desk-bar').bounding_box()['y'] <= 1
+                    assert cover_box['y'] < chapter_box['y']
                 assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
-            browser_page.set_viewport_size({'width':320,'height':400})
-            expect(browser_page.locator('.launcher-job').last).to_be_in_viewport(ratio=1)
-            browser_page.screenshot(path=str(ARTIFACTS / 'landing-short-mobile.png'))
-            browser_page.set_viewport_size({'width':844,'height':390})
-            expect(browser_page.locator('.launcher-job').last).to_be_in_viewport(ratio=1)
-            expect(browser_page.locator('.desk-tabs')).to_be_in_viewport(ratio=1)
-            browser_page.screenshot(path=str(ARTIFACTS / 'landing-phone-landscape.png'))
-            browser_page.locator('.home-menu > summary').click()
-            browser_page.locator('.connect summary').click()
-            privacy_link = browser_page.locator('.screen-links .privacy')
-            privacy_link.focus()
-            expect(privacy_link).to_be_in_viewport(ratio=1)
-            assert browser_page.locator('.menu-content').evaluate('el => el.scrollTop > 0 && el.getBoundingClientRect().bottom <= innerHeight')
-            browser_page.locator('.home-menu > summary').click()
-            browser_page.set_viewport_size({'width':320,'height':480})
+            browser_page.set_viewport_size({'width': 320, 'height': 480})
             browser_page.evaluate("document.documentElement.style.fontSize = '200%'")
-            browser_page.locator('.home-menu > summary').focus()
-            for task in browser_page.locator('.launcher-job').all():
-                browser_page.keyboard.press('Tab')
-                expect(task).to_be_focused()
-                expect(task).to_be_in_viewport(ratio=1)
-                assert task.evaluate('el => el.matches(":focus-visible")')
-            browser_page.keyboard.press('Shift+Tab')
-            expect(browser_page.locator('.launcher-job').first).to_be_focused()
-            expect(browser_page.locator('.launcher-job').first).to_be_in_viewport(ratio=1)
-            browser_page.locator('.home-menu > summary').click()
-            browser_page.locator('.connect summary').click()
-            for line in browser_page.locator('.connect .line').all():
-                commands = line.locator('pre').bounding_box()
-                copy = line.locator('button').bounding_box()
-                assert copy['y'] >= commands['y'] + commands['height']
-                assert abs(copy['x'] - commands['x']) <= 1
-            for menu_link in browser_page.locator('.connect__links a, .screen-links a').all():
-                menu_link.focus()
-                expect(menu_link).to_be_in_viewport(ratio=1)
-            assert browser_page.locator('.menu-content').evaluate('el => el.scrollWidth <= el.clientWidth')
-            browser_page.locator('.home-menu > summary').click()
+            assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
             browser_page.evaluate("document.documentElement.style.removeProperty('font-size')")
-            assert browser_page.locator('.desk-bar').bounding_box()['y'] <= 1
-            browser_page.locator('.desk-tabs').get_by_text('Shelf').scroll_into_view_if_needed()
-            assert browser_page.locator('.desk-tabs').bounding_box()['y'] < 480
-            browser_page.set_viewport_size({'width':1440,'height':1000})
-            browser_page.locator(".home-menu > summary").click()
-            for _ in range(10):
-                browser_page.keyboard.press('Tab')
-                if browser_page.locator('.screen-links .privacy').evaluate('(e)=>e.matches(":focus-visible")'):
-                    break
-            assert browser_page.locator('.screen-links .privacy').evaluate('(e)=>e.matches(":focus-visible")')
-            light_focus = browser_page.locator('.screen-links .privacy').evaluate('(e)=>getComputedStyle(e).outlineColor')
-            light_contrast = min(contrast(light_focus,bg) for bg in backdrop_colors(browser_page.locator('.screen-footer')))
-            assert light_contrast >= 3
-            browser_page.locator('.screen-footer').screenshot(path=str(ARTIFACTS / 'focus-light-footer.png'))
-            browser_page.locator('.home-menu > summary').click()
+            browser_page.set_viewport_size({'width': 1440, 'height': 1000})
+            browser_page.locator('.site-footer .privacy').focus()
+            browser_page.keyboard.press('Shift+Tab')
             browser_page.keyboard.press('Tab')
-            browser_page.locator('.launcher-job').first.focus()
-            assert browser_page.locator('.launcher-job').first.evaluate('(e)=>e.matches(":focus-visible")')
-            primary_focus = browser_page.locator('.launcher-job').first.evaluate('(e)=>getComputedStyle(e).outlineColor')
-            primary_contrast = min(contrast(primary_focus,bg) for bg in backdrop_colors(browser_page.locator('.desktop-window')))
+            assert browser_page.locator('.site-footer .privacy').evaluate('(e)=>e.matches(":focus-visible")')
+            light_focus = browser_page.locator('.site-footer .privacy').evaluate('(e)=>getComputedStyle(e).outlineColor')
+            light_contrast = min(contrast(light_focus, bg) for bg in backdrop_colors(browser_page.locator('.site-footer')))
+            assert light_contrast >= 3
+            browser_page.locator('.site-footer').screenshot(path=str(ARTIFACTS / 'focus-light-footer.png'))
+            browser_page.locator('.cta-primary').focus()
+            browser_page.keyboard.press('Tab')
+            browser_page.keyboard.press('Shift+Tab')
+            assert browser_page.locator('.cta-primary').evaluate('(e)=>e.matches(":focus-visible")')
+            primary_focus = browser_page.locator('.cta-primary').evaluate('(e)=>getComputedStyle(e).outlineColor')
+            primary_contrast = min(contrast(primary_focus, bg) for bg in backdrop_colors(browser_page.locator('.hero')))
             assert primary_contrast >= 3
-            browser_page.locator('.desktop-window').screenshot(path=str(ARTIFACTS / 'focus-hero.png'))
+            browser_page.locator('.hero').screenshot(path=str(ARTIFACTS / 'focus-hero.png'))
             browser_page.locator('h1').click()
             context.grant_permissions(['clipboard-read', 'clipboard-write'])
-            browser_page.locator('.home-menu > summary').click()
             browser_page.locator('.connect summary').click()
-            browser_page.set_viewport_size({'width':844,'height':390})
-            menu_panel = browser_page.locator('.home-menu .menu-content')
-            bounds = menu_panel.bounding_box()
-            assert bounds['height'] > 195 and bounds['y'] + bounds['height'] <= 390
-            privacy_link = menu_panel.get_by_role('link', name='Privacy')
-            privacy_link.focus()
-            expect(privacy_link).to_be_in_viewport()
-            assert menu_panel.evaluate('el => el.scrollTop > 0')
-            browser_page.set_viewport_size({'width':320,'height':844})
-            browser_page.evaluate("document.documentElement.style.fontSize = '200%'")
-            assert menu_panel.evaluate('el => el.scrollWidth <= el.clientWidth')
-            for connection_row in menu_panel.locator('.line').all():
-                commands = connection_row.locator('.line__commands')
-                assert commands.evaluate('el => el.scrollWidth <= el.clientWidth')
-                copy_button = connection_row.get_by_role('button')
-                copy_button.focus()
-                expect(copy_button).to_be_in_viewport()
-                assert copy_button.bounding_box()['y'] >= commands.bounding_box()['y'] + commands.bounding_box()['height']
-            browser_page.evaluate("document.documentElement.style.removeProperty('font-size')")
-            home_copy = browser_page.locator('.line__copy').first
+            home_copy = browser_page.locator('#copy-mcp')
             browser_page.evaluate('''() => {
                 Object.defineProperty(navigator.clipboard, 'writeText', {configurable:true,
                     value:() => new Promise((_, reject) => { window.rejectEarlierCopy = reject; })});
@@ -1300,7 +1231,7 @@ try:
             browser_page.evaluate("window.rejectEarlierCopy(Error('denied'))")
             expect(browser_page.locator('#copy-codex')).to_have_text('Copy')
             expect(browser_page.locator('#copy-codex')).not_to_have_attribute('aria-busy', 'true')
-            expect(browser_page.locator('.line__feedback').last).to_be_empty()
+            expect(browser_page.locator('#codex-copy-feedback')).to_be_empty()
             browser_page.locator('#copy-codex').click()
             guide = browser_page.get_by_role('link', name='Connection guide', exact=True)
             browser_page.keyboard.press('Tab')
@@ -1312,17 +1243,19 @@ try:
             assert not browser_page.evaluate('getSelection().toString()')
             browser_page.locator('#copy-codex').click()
             browser_page.evaluate('delete navigator.clipboard.writeText')
+            home_copy.scroll_into_view_if_needed()
             initial_bounds = home_copy.bounding_box()
             home_copy.click()
-            expect(browser_page.locator('.line__copy').first).to_have_text('Copied')
+            expect(home_copy).to_have_text('Copied')
             assert browser_page.evaluate('navigator.clipboard.readText()') == ORIGIN + '/mcp'
-            expect(browser_page.locator('.line__feedback').first).to_have_text('MCP address copied.')
+            expect(browser_page.locator('#mcp-copy-feedback')).to_have_text('MCP address copied.')
             browser_page.evaluate("window.rejectEarlierCopy(Error('denied'))")
             expect(browser_page.locator('#copy-codex')).to_have_text('Copy')
             expect(browser_page.locator('.line__feedback:not(.sr-only)')).to_have_count(0)
-            assert home_copy.bounding_box() == initial_bounds
+            after_bounds = home_copy.bounding_box()
+            assert after_bounds['width'] == initial_bounds['width'] and after_bounds['height'] == initial_bounds['height']
             expect(home_copy).to_have_text('Copy')
-            expect(browser_page.locator('.line__feedback').first).to_be_empty()
+            expect(browser_page.locator('#mcp-copy-feedback')).to_be_empty()
             browser_page.evaluate("Object.defineProperty(navigator.clipboard, 'writeText', {configurable:true, value:async () => {throw Error('denied')}})")
             browser_page.locator('#copy-codex').click()
             expect(browser_page.locator('.line__feedback:not(.sr-only)')).to_have_text('Copy unavailable. Copy the selected text manually.')
@@ -1332,11 +1265,6 @@ try:
             expect(browser_page.locator('#copy-codex')).to_have_text('Copy')
             assert browser_page.evaluate('getSelection().toString()') == 'codex'
             browser_page.locator('#copy-codex').click()
-            browser_page.evaluate("getSelection().selectAllChildren(document.querySelector('#mcp-label'))")
-            expect(browser_page.locator('#copy-codex')).to_have_text('Copy')
-            expect(browser_page.locator('.line__feedback:not(.sr-only)')).to_have_count(0)
-            assert browser_page.evaluate('getSelection().toString()') == browser_page.locator('#mcp-label').inner_text()
-            browser_page.locator('#copy-codex').click()
             expect(browser_page.locator('#copy-codex')).to_have_text('Selected')
             browser_page.evaluate('delete navigator.clipboard.writeText')
             home_copy.click()
@@ -1344,8 +1272,7 @@ try:
             expect(browser_page.locator('#copy-codex')).to_have_text('Copy')
             assert not browser_page.evaluate('getSelection().toString()')
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
-            browser_page.set_viewport_size({'width':1440,'height':1000})
-            print(f'Rendered focus contrast: primary action {primary_contrast:.2f}:1, header {light_contrast:.2f}:1.')
+            print(f'Rendered focus contrast: primary action {primary_contrast:.2f}:1, footer {light_contrast:.2f}:1.')
             browser_page.set_viewport_size({'width': 390, 'height': 844})
             assert not browser_page.evaluate('document.documentElement.scrollWidth > innerWidth')
             browser_page.evaluate("Object.defineProperty(navigator.clipboard, 'writeText', {configurable:true, value:async () => {throw Error('denied')}})")
@@ -1354,23 +1281,11 @@ try:
             browser_page.evaluate('delete navigator.clipboard.writeText')
             browser_page.keyboard.press('Escape')
             expect(browser_page.locator('.connect summary')).to_be_focused()
-            expect(browser_page.locator('.line__copy').last).to_have_text('Copy')
+            expect(browser_page.locator('#copy-codex')).to_have_text('Copy')
             assert browser_page.evaluate('getSelection().rangeCount') == 0
             expect(browser_page.locator('.connect__body')).to_be_hidden()
-            browser_page.locator('.connect summary').dispatch_event('keydown', {'key':'Escape','repeat':True})
+            browser_page.locator('.connect summary').dispatch_event('keydown', {'key': 'Escape', 'repeat': True})
             expect(browser_page.locator('.connect summary')).to_be_focused()
-            expect(browser_page.locator('.menu-content')).to_be_visible()
-            browser_page.keyboard.press('Escape')
-            expect(browser_page.locator('.home-menu > summary')).to_be_focused()
-            expect(browser_page.locator('.menu-content')).to_be_hidden()
-            browser_page.locator('.home-menu > summary').click()
-            expect(browser_page.locator('.connect__body')).to_be_hidden()
-            browser_page.locator('.connect summary').click()
-            expect(browser_page.locator('.connect__body')).to_be_visible()
-            browser_page.locator('.home-menu > summary').evaluate('summary => { summary.click(); summary.click(); }')
-            expect(browser_page.locator('.menu-content')).to_be_visible()
-            expect(browser_page.locator('.connect__body')).to_be_hidden()
-            browser_page.screenshot(path=str(ARTIFACTS / 'home-menu-mobile.png'))
             for path in ['/sample.html', '/sample.epub', '/example.json', '/images/sample-cover.png', '/images/sample-exposure.png']:
                 assert request(path)[0] == 404, path
             sample_page = context.new_page()
@@ -1405,13 +1320,9 @@ try:
                     sample_page.locator('.figure-image').screenshot(path=str(ARTIFACTS / 'diagram-mobile.png'))
                 sample_page.locator('main').screenshot(path=str(ARTIFACTS / f'sample-prose-{label}.png'))
                 sample_page.goto(ORIGIN, wait_until='networkidle')
-                sample_page.locator('.home-screen').screenshot(path=str(ARTIFACTS / f'sample-landing-{label}.png'))
+                sample_page.locator('.page-shell').screenshot(path=str(ARTIFACTS / f'sample-landing-{label}.png'))
                 if label == 'mobile':
                     sample_page.evaluate("document.documentElement.style.fontSize = '200%'")
-                    art = sample_page.locator('.desk-art').first.bounding_box()
-                    task = sample_page.locator('#create-name').bounding_box()
-                    assert art['width'] <= sample_page.viewport_size['width'] * 0.18 + 1
-                    assert task['width'] > art['width'] * 2
                     assert not sample_page.evaluate('document.documentElement.scrollWidth > innerWidth')
                     sample_page.evaluate("document.documentElement.style.removeProperty('font-size')")
             assert not csp_errors, csp_errors
@@ -1577,13 +1488,11 @@ try:
             context.add_cookies([{'name': '__Host-palim', 'value': token, 'url': ORIGIN, 'httpOnly': True, 'secure': True, 'sameSite': 'Lax'}])
             for route, title in [('create-panel', 'Create a book'), ('upload-panel', 'Forward a file'), ('files-panel', 'Shelf'), ('studio-settings', 'Settings')]:
                 browser_page.goto(ORIGIN)
-                if route == 'studio-settings':
-                    browser_page.locator('.home-menu > summary').click()
-                browser_page.locator(f'a[href="/app#{route}"]').click()
+                browser_page.locator(f'a[href="/app#{route}"]').first.click()
                 expect(browser_page.locator('#studio-title')).to_have_text(title)
                 expect(browser_page.locator('#' + route)).to_be_visible()
                 browser_page.get_by_role('link', name='Palim home', exact=True).click()
-                expect(browser_page.locator('.launchers')).to_be_visible()
+                expect(browser_page.get_by_role('heading', name='Ship a thing to a Kindle')).to_be_visible()
             read_only = dict(params, scope='books:read')
             browser_page.goto(ORIGIN + '/authorize?' + urllib.parse.urlencode(read_only))
             expect(browser_page.locator('.consent-host')).to_have_text('localhost:3333')

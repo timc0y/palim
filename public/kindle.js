@@ -1,7 +1,11 @@
-import { enableMenu } from './menu.js';
-document.getElementById('mcp-address').textContent = new URL('/mcp', location.href).href;
-document.getElementById('mcp-label').textContent = 'MCP address';
-document.querySelector('.plugin-host').hidden = location.origin === 'https://palim.pages.dev';
+const mcpAddress = document.getElementById('mcp-address');
+const mcpLabel = document.getElementById('mcp-label');
+const pluginHost = document.querySelector('.plugin-host');
+if (mcpAddress) mcpAddress.textContent = new URL('/mcp', location.href).href;
+if (mcpLabel) mcpLabel.textContent = 'MCP address';
+if (pluginHost) pluginHost.hidden = location.origin === 'https://palim.pages.dev';
+
+const dock = document.getElementById('mcp-dock');
 const connect = document.querySelector('.connect');
 const timers = new WeakMap();
 let copySequence = 0;
@@ -31,12 +35,17 @@ function clearManualSelection() {
   manualSelection = null;
 }
 
+function isVisible(element) {
+  const details = element.closest('details');
+  return !details || details.open;
+}
+
 async function copyTarget(button, commands, label) {
   if (button.getAttribute('aria-busy') === 'true') return;
   const session = ++copySequence;
   const focusAtStart = document.activeElement;
   clearManualSelection();
-  for (const previous of connect.querySelectorAll('[data-result], [aria-busy="true"]')) {
+  for (const previous of document.querySelectorAll('[data-result], [aria-busy="true"]')) {
     window.clearTimeout(timers.get(previous));
     previous.textContent = 'Copy';
     delete previous.dataset.result;
@@ -53,12 +62,12 @@ async function copyTarget(button, commands, label) {
   }
   try {
     await navigator.clipboard.writeText(commands.textContent.trim());
-    if (session !== copySequence || !connect.open) return;
+    if (session !== copySequence || !isVisible(button)) return;
     button.textContent = 'Copied';
     button.dataset.result = 'copied';
     status.textContent = `${label} copied.`;
   } catch {
-    if (session !== copySequence || !connect.open) return;
+    if (session !== copySequence || !isVisible(button)) return;
     if (document.activeElement !== focusAtStart) {
       button.textContent = 'Copy';
       button.removeAttribute('aria-busy');
@@ -94,7 +103,7 @@ document.addEventListener('selectionchange', () => {
   const selection = window.getSelection();
   if (fullManualSelection(selection)) return;
   manualSelection = null;
-  const button = connect.querySelector('[data-result="selected"]');
+  const button = document.querySelector('[data-result="selected"]');
   if (!button) return;
   button.textContent = 'Copy';
   delete button.dataset.result;
@@ -103,30 +112,41 @@ document.addEventListener('selectionchange', () => {
   status.textContent = '';
 });
 
-// A quick close and reopen can coalesce into one native toggle event.
-function onDisclosureClose(disclosure, onClose) {
-  new MutationObserver((changes) => {
-    if (changes.some((change) => change.oldValue !== null)) onClose();
-  }).observe(disclosure, { attributes: true, attributeFilter: ['open'], attributeOldValue: true });
-}
-
-onDisclosureClose(connect, () => {
+function resetScope(scope) {
   copySequence++;
   clearManualSelection();
-  for (const button of connect.querySelectorAll('button[data-copy]')) {
+  for (const button of scope.querySelectorAll('button[data-copy]')) {
     window.clearTimeout(timers.get(button));
     button.textContent = 'Copy';
     button.removeAttribute('aria-busy');
     delete button.dataset.result;
   }
-  for (const status of connect.querySelectorAll('.line__feedback')) {
+  for (const status of scope.querySelectorAll('.line__feedback')) {
     status.classList.add('sr-only');
     status.textContent = '';
   }
-});
+}
 
-const menu = document.querySelector('.home-menu');
-onDisclosureClose(menu, () => {
-  connect.open = false;
-});
-enableMenu(menu);
+if (connect) {
+  new MutationObserver((changes) => {
+    if (changes.some((change) => change.oldValue !== null)) resetScope(connect);
+  }).observe(connect, { attributes: true, attributeFilter: ['open'], attributeOldValue: true });
+
+  connect.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || event.repeat || !connect.open) return;
+    event.preventDefault();
+    connect.open = false;
+    connect.querySelector('summary')?.focus();
+  });
+}
+
+if (dock) {
+  for (const trigger of document.querySelectorAll('a[href="#mcp-dock"]')) {
+    trigger.addEventListener('click', () => {
+      window.setTimeout(
+        () => document.getElementById('copy-mcp')?.focus({ preventScroll: true }),
+        80,
+      );
+    });
+  }
+}

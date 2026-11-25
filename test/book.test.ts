@@ -422,3 +422,179 @@ test('EPUB styles inherit reader colours and generated artwork uses canonical pa
   assert.ok(diagram.includes(PALIM_PALETTE.ink));
   assert.ok(diagram.includes(PALIM_FONTS.reading));
 });
+
+test('six visual primitives, wide 90deg plates, EPUB3 footnotes and Artifacts index build cleanly', async () => {
+  const b = await buildBook(
+    {
+      title: 'How SQLite WAL Works',
+      subtitle: 'Frames, snapshots and checkpoints',
+      creator: 'Palim',
+      language: 'en',
+      chapters: [
+        {
+          title: 'Append-Only Frames',
+          markdown: [
+            'Write-ahead logging appends modified pages as fixed frames.[^coalesce]',
+            '',
+            '![Throughput](figure:throughput)',
+            '',
+            '![State graph](figure:states)',
+            '',
+            '![Request trace](figure:spans)',
+            '',
+            '![Frame header](figure:header)',
+            '',
+            '![Attention formula](figure:attention)',
+            '',
+            '![Engine comparison](figure:engines)',
+          ].join('\n'),
+          footnotes: [
+            {
+              id: 'coalesce',
+              text: 'Repeated updates to one page coalesce; only the latest frame copies back.',
+            },
+          ],
+        },
+      ],
+      figures: [
+        {
+          kind: 'plot',
+          id: 'throughput',
+          alt: 'WAL stays above rollback under mixed writers.',
+          caption: 'Writer throughput across concurrent writers.',
+          xLabels: ['1', '16', '64 writers'],
+          series: [
+            { label: 'WAL', values: [42, 48, 52, 47, 38], band: [3, 4, 4, 5, 6] },
+            { label: 'Rollback', values: [34, 22, 14, 10, 8], style: 'dashed' },
+          ],
+          thresholds: [{ at: 45, label: 'SLA 45k/s' }],
+          pins: [{ at: 3, note: 'Auto-checkpoint' }],
+          footnote: 'Measured on 4 KB pages.',
+        },
+        {
+          kind: 'graph',
+          id: 'states',
+          alt: 'Request flows through parse and pack to done.',
+          caption: 'Pipeline flow with retry and cache paths.',
+          nodes: [
+            { id: 'in', label: 'in' },
+            { id: 'parse', label: 'parse' },
+            { id: 'retry', label: 'retry', emphasis: 'muted', lane: -1 },
+            { id: 'pack', label: 'pack' },
+            { id: 'cache', label: 'cache', lane: 1 },
+            { id: 'done', label: 'done', emphasis: 'terminal' },
+          ],
+          edges: [
+            { from: 'in', to: 'parse' },
+            { from: 'parse', to: 'pack' },
+            { from: 'pack', to: 'done' },
+            { from: 'parse', to: 'retry', style: 'dashed' },
+            { from: 'retry', to: 'done', style: 'dashed' },
+            { from: 'parse', to: 'cache' },
+          ],
+        },
+        {
+          kind: 'trace',
+          id: 'spans',
+          alt: 'Four execution spans across 94 milliseconds.',
+          caption: 'Request span trace.',
+          unit: 'ms',
+          wide: true,
+          lanes: [
+            { label: 'parse', start: 0, duration: 9 },
+            { label: 'raster x3', start: 9, duration: 38, style: 'outline' },
+            { label: 'zip epub', start: 47, duration: 13 },
+            { label: 'smtp send', start: 60, duration: 34 },
+          ],
+        },
+        {
+          kind: 'anatomy',
+          id: 'header',
+          alt: 'Three 32-bit rows of a WAL frame header.',
+          caption: 'WAL frame header layout.',
+          scale: ['0', '16', '31b'],
+          rows: [
+            {
+              offset: '+0x00',
+              fields: [
+                { label: 'page_number', span: 1 },
+                { label: 'db_size_commit', span: 1, emphasis: 'filled' },
+              ],
+            },
+            {
+              offset: '+0x08',
+              fields: [
+                { label: 'salt_1', span: 1, emphasis: 'muted' },
+                { label: 'salt_2', span: 1, emphasis: 'muted' },
+              ],
+            },
+            {
+              offset: '+0x10',
+              fields: [{ label: 'cumulative checksum (s0, s1)', span: 2 }],
+            },
+          ],
+        },
+        {
+          kind: 'equation',
+          id: 'attention',
+          alt: 'Scaled dot-product attention equation.',
+          caption: 'Scaled dot-product attention.',
+          lhs: 'Attention(Q,K,V)',
+          prefix: 'softmax',
+          fraction: { numerator: 'QK^T', denominator: 'sqrt(d_k)' },
+          suffix: 'V',
+          terms: [
+            { label: 'similarity scores', position: 'top', at: 0.62 },
+            { label: 'row probabilities', position: 'bottom', at: 0.42 },
+            { label: 'variance scale', position: 'bottom', at: 0.68 },
+          ],
+        },
+        {
+          kind: 'table',
+          id: 'engines',
+          alt: 'Comparison of SQLite WAL, PostgreSQL and DuckDB.',
+          caption: 'Embedded and server engine comparison.',
+          columns: [
+            { label: 'Engine' },
+            { label: 'p99', align: 'right' },
+            { label: 'Scaling' },
+            { label: 'Score', align: 'right' },
+          ],
+          rows: [
+            { cells: ['SQLite WAL', '0.4ms', { sparkline: [1, 2, 3, 4] }, { score: 4, max: 5 }] },
+            { cells: ['PostgreSQL', '2.1ms', { sparkline: [1, 2, 4, 5] }, { score: 5, max: 5 }] },
+            { cells: ['DuckDB', '8.4ms', { sparkline: [1, 2, 3, 3] }, { score: 3, max: 5 }] },
+          ],
+        },
+      ],
+    },
+    new Map(),
+    time,
+  );
+  const zip = await JSZip.loadAsync(b.bytes);
+  assert.ok(!Object.keys(zip.files).some((name) => name.endsWith('.svg')));
+  for (const id of ['throughput', 'states', 'spans', 'header', 'attention', 'engines']) {
+    const png = await zip.file(`EPUB/fig-${id}.png`)!.async('uint8array');
+    assert.deepEqual([...png.slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    const size = new DataView(png.buffer, png.byteOffset);
+    assert.equal(size.getUint32(16), 1200);
+    if (id === 'spans') {
+      // wide: true rotates landscape trace 90deg onto a taller portrait plate.
+      assert.ok(size.getUint32(20) > 1200);
+    }
+  }
+  const nav = await zip.file('EPUB/nav.xhtml')!.async('text');
+  parseXml(nav);
+  assert.match(nav, /epub:type="loi"/);
+  assert.match(nav, /href="chapter-1.xhtml#fig-throughput"/);
+  assert.match(nav, /href="chapter-1.xhtml#fig-engines"/);
+
+  const ch1 = await zip.file('EPUB/chapter-1.xhtml')!.async('text');
+  parseXml(ch1);
+  assert.match(ch1, /epub:type="noteref"/);
+  assert.match(ch1, /epub:type="footnote"/);
+  assert.match(ch1, /Measured on 4 KB pages\./);
+  assert.match(ch1, /Repeated updates to one page coalesce/);
+  const ids = [...b.preview.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
+  assert.equal(new Set(ids).size, ids.length);
+});

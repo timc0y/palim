@@ -1,16 +1,16 @@
 export const PALIM_PALETTE = {
   paper: '#eeeeea',
-  coverPaper: '#e6e6e1',
+  coverPaper: '#f9f8f4',
   previewPaper: '#d8d8d2',
   surface: '#f8f8f4',
-  inset: '#e2e2dc',
-  ink: '#242521',
-  inkSoft: '#4c4c47',
-  muted: '#555550',
-  accent: '#242521',
+  inset: '#e8e7e2',
+  ink: '#1a1a18',
+  inkSoft: '#52524c',
+  muted: '#6c6c66',
+  accent: '#1a1a18',
   accentDeep: '#111210',
   screen: '#d8d8d2',
-  line: '#c2c2bb',
+  line: '#d6d5ce',
   field: '#ffffff',
 } as const;
 
@@ -19,41 +19,46 @@ export const PALIM_FONTS = {
   mono: '"IBM Plex Mono", monospace',
 } as const;
 
-// EPUB keeps ordinary block flow so the reading app can paginate and resize it.
+// EPUB keeps ordinary block flow and zero hardcoded colours so Kindle Light, Sepia and Dark inherit natively.
 export const BOOK_CSS = `
-body { box-sizing: border-box; max-width: 40em; margin: 0 auto; padding: 0 .75em; font-size: 1em; line-height: 1.5; overflow-wrap: break-word; }
-h1, h2, h3 { line-height: 1.2; font-weight: bold; page-break-after: avoid; break-after: avoid; }
+body { box-sizing: border-box; max-width: 38em; margin: 0 auto; padding: 0 .75em; font-size: 1em; line-height: 1.6; overflow-wrap: break-word; }
+h1, h2, h3 { line-height: 1.2; font-weight: normal; page-break-after: avoid; break-after: avoid; }
 h1 { font-size: 1.75em; margin: 0 0 .75em; }
-h2 { font-size: 1.3em; margin: 2em 0 .75em; }
-h3 { font-size: 1.1em; margin: 1.5em 0 .75em; }
+h2 { font-size: 1.25em; margin: 2em 0 .65em; font-weight: bold; }
+h3 { font-size: 1.05em; margin: 1.5em 0 .5em; font-weight: bold; }
 p { margin: 0 0 1em; orphans: 3; widows: 3; }
 a { text-decoration: underline; }
 img { display: block; max-width: 100%; height: auto; margin: 0; }
-.chapter-heading { margin: 1em 0 1.5em; padding-bottom: 1em; border-bottom: 1px solid; page-break-inside: avoid; break-inside: avoid; }
+.chapter-heading { margin: 2.5em 0 1.75em; page-break-inside: avoid; break-inside: avoid; }
 [dir="rtl"] .chapter-number { text-align: right; }
-.chapter-number { font-size: .85em; margin: 0 0 .75em; }
+.chapter-number { font-size: .82em; letter-spacing: .04em; margin: 0 0 .6em; opacity: .65; }
 .chapter-heading h1 { margin: 0; }
-figure { max-width: 30em; margin: 2em 0; page-break-inside: avoid; break-inside: avoid; }
+figure { max-width: 32em; margin: 1.85em 0; page-break-inside: avoid; break-inside: avoid; }
 .figure-bars img { width: 100%; max-width: 24em; }
-figcaption { font-size: .85em; line-height: 1.5; margin-top: .75em; }
-.figure-number { font-weight: bold; margin-right: .5em; }
-pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85em; border: 1px solid; padding: 1em; margin: 1.5em 0; }
+figcaption { font-size: .84em; font-style: italic; line-height: 1.5; margin-top: .7em; opacity: .82; }
+.figure-number { font-style: normal; font-weight: bold; margin-right: .4em; }
+.noteref { font-size: .72em; vertical-align: super; line-height: 0; text-decoration: none; padding: 0 .12em; }
+.footnotes { margin-top: 2.5em; padding-top: 1em; border-top: 1px solid; font-size: .84em; line-height: 1.5; }
+.footnote { margin: 0 0 .6em; }
+.footnote p { margin: 0; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .84em; line-height: 1.65; padding: .2em 0 .2em 1.2em; margin: 1.5em 0; }
 code { font-family: monospace; }
-blockquote { margin: 1.5em 0; padding-inline-start: 1em; border-inline-start: 2px solid; }
-hr { width: 25%; margin: 1.5em auto; border: 0; border-top: 1px solid; }
+blockquote { margin: 1.5em 0; padding-inline-start: 1.25em; font-style: italic; opacity: .85; }
+hr { width: 22%; margin: 1.75em auto; border: 0; border-top: 1px solid; opacity: .4; }
 blockquote p { margin: 0; }
 blockquote > p + p { margin-block-start: .75em; }
-table { border-collapse: collapse; width: 100%; font-size: .85em; line-height: 1.5; margin: 1.5em 0; }
-th, td { overflow-wrap: anywhere; padding: .75em .5em; border-bottom: 1px solid; text-align: start; vertical-align: top; }
-th { font-size: .9em; font-weight: bold; border-bottom: 1px solid; }
+table { border-collapse: collapse; width: 100%; font-size: .85em; line-height: 1.5; margin: 1.5em 0; border-top: 1px solid; border-bottom: 1px solid; }
+th, td { overflow-wrap: anywhere; padding: .65em .5em; border-bottom: 1px solid; text-align: start; vertical-align: top; }
+th { font-size: .88em; font-weight: bold; border-bottom: 1px solid; }
+tbody tr:last-child td { border-bottom: 0; }
 ul, ol { margin: 0 0 1em; padding-inline-start: 1.5em; }
-li { margin-bottom: .5em; }
-.title-page { margin: 2em 0; padding-top: 1em; border-top: 1px solid; }
-.title-page h1 { font-size: 2.25em; line-height: 1.1; margin-bottom: .5em; }
-.subtitle { font-size: 1.15em; line-height: 1.5; }
-.author { margin: 1.5em 0; }
-.title-page .description { font-size: 1em; margin: 1em 0; }
-.source-note { font-size: .85em; }
+li { margin-bottom: .45em; }
+.title-page { margin: 3em 0 2em; }
+.title-page h1 { font-size: 2.2em; line-height: 1.12; margin-bottom: .5em; }
+.subtitle { font-size: 1.1em; line-height: 1.5; opacity: .8; }
+.author { margin: 1.75em 0 1em; }
+.title-page .description { font-size: .95em; margin: 1em 0; opacity: .82; }
+.source-note { font-size: .82em; opacity: .7; }
 .source-section li > p { margin: 0; }
 .source-section li > p + p { margin-top: .2em; }
 .source-section h1 { font-size: 1.75em; }
@@ -118,24 +123,28 @@ main > section > .chapter-heading { grid-column: 1 / -1; margin-bottom: .5rem; a
 main h3 { font-size: 1.25rem; margin-top: 1rem; }
 main h4, main h5, main h6 { font-size: 1rem; margin-top: 1rem; }
 main > section > figure { grid-column: 1 / -1; row-gap: 1rem; margin-block: 1rem; }
-figure img { grid-column: var(--reader-content); display: block; width: 100%; max-width: 30rem; height: auto; margin: 0; }
+figure img { grid-column: var(--reader-content); display: block; width: 100%; max-width: 32rem; height: auto; margin: 0; }
 .figure-bars img { width: 100%; max-width: 26rem; }
-figcaption { grid-column: 1 / -1; font-size: .875rem; line-height: 1.6; color: ${PALIM_PALETTE.muted}; }
-.figure-number { padding-top: .125rem; }
+figcaption { grid-column: 1 / -1; font-size: .875rem; line-height: 1.6; color: ${PALIM_PALETTE.muted}; font-style: italic; }
+.figure-number { padding-top: .125rem; font-style: normal; }
 .caption-text { grid-column: var(--reader-content); }
+.noteref { font-size: .75em; vertical-align: super; line-height: 0; text-decoration: none; padding-inline: .15em; font-style: normal; }
+.footnotes { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--reader-rule); font-size: .875rem; line-height: 1.6; color: ${PALIM_PALETTE.muted}; }
+.footnote + .footnote { margin-top: .5rem; }
 hr { width: 25%; margin: .5rem auto; border: 0; border-top: 1px solid var(--reader-rule); }
-blockquote { margin-top: .5rem; border-inline-start: 1px solid var(--reader-rule); padding-inline-start: 1.5rem; font-size: 1rem; line-height: 1.7; }
+blockquote { margin-top: .5rem; padding-inline-start: 1.25rem; font-size: 1rem; line-height: 1.7; font-style: italic; color: ${PALIM_PALETTE.inkSoft}; }
 blockquote > p + p { margin-block-start: .75em; }
 ul, ol { padding-inline-start: 1.5rem; }
 li + li { margin-top: .5rem; }
 li > p + p { margin-top: .5rem; }
-pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; border: 1px solid var(--reader-rule); padding: 1rem; background: ${PALIM_PALETTE.inset}; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; padding: .25rem 0 .25rem 1.25rem; }
 code { font-family: ui-monospace, monospace; }
 .preview-table { min-width: 0; overflow-x: auto; }
 .preview-table table:has(th:nth-child(5)) th { min-width: 6ch; }
-table { border-collapse: collapse; width: 100%; font-size: .875rem; line-height: 1.6; }
+table { border-collapse: collapse; width: 100%; font-size: .875rem; line-height: 1.6; border-top: 1px solid var(--reader-rule); border-bottom: 1px solid var(--reader-rule); }
 th, td { overflow-wrap: anywhere; padding: .75rem .5rem; border-bottom: 1px solid var(--reader-rule); text-align: start; vertical-align: top; }
 th { font-weight: 500; color: ${PALIM_PALETTE.muted}; }
+tbody tr:last-child td { border-bottom: 0; }
 td { font-variant-numeric: tabular-nums; }
 .source-section ol { font-size: .875rem; line-height: 1.7; }
 .source-section li + li { margin-top: 1em; }
